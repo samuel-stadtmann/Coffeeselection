@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Manrope:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#fdf9f4",
+                    "on-primary": "#ffffff",
+                    "surface-container": "#f1ede8",
+                    "tertiary-container": "#453100",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#51443e",
+                    "surface-container-low": "#f7f3ee",
+                    "on-tertiary-container": "#c79501",
+                    "surface": "#fdf9f4",
+                    "primary-fixed-dim": "#f0bba0",
+                    "background": "#fdf9f4",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "on-secondary-container": "#715300",
+                    "primary": "#341706",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-secondary-fixed": "#261a00",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#e6e2dd",
+                    "outline": "#83746d",
+                    "surface-container-highest": "#e6e2dd",
+                    "surface-container-high": "#ebe8e3",
+                    "secondary": "#795900",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "primary-fixed": "#ffdbca",
+                    "inverse-on-surface": "#f4f0eb",
+                    "inverse-primary": "#f0bba0",
+                    "on-primary-container": "#c29279",
+                    "tertiary": "#2a1d00",
+                    "error": "#ba1a1a",
+                    "on-error-container": "#93000a",
+                    "outline-variant": "#d5c3bb",
+                    "inverse-surface": "#31302d",
+                    "on-surface": "#1c1c19",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "secondary-container": "#ffc641",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "on-primary-fixed": "#301404",
+                    "surface-dim": "#ddd9d5",
+                    "secondary-fixed": "#ffdfa0",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#7d553f",
+                    "tertiary-fixed": "#ffdfa0",
+                    "primary-container": "#4d2c19",
+                    "on-background": "#1c1c19"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        .serif-text { font-family: 'Noto Serif', serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-primary antialiased">
+<!-- Header / Progress Area -->
+<header class="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-md">
+<div class="flex justify-between items-center px-8 py-6 h-16">
+<span class="font-headline text-xl font-bold text-primary tracking-tighter">Digital Sommelier</span>
+<span class="font-label text-xs uppercase tracking-[0.2em] text-primary/60">Schritt 1 / 7</span>
+</div>
+<!-- Elegant Progress Line -->
+<div class="w-full h-[1px] bg-outline-variant/20">
+<div class="h-full bg-secondary w-[14%] transition-all duration-700 ease-in-out"></div>
+</div>
+</header>
+<main class="min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-32 max-w-5xl mx-auto">
+<!-- Focused Content Canvas -->
+<div class="w-full text-center mb-16">
+<h1 class="font-headline text-4xl md:text-5xl text-primary mb-6 tracking-tight">
+                Welche Geschmacksrichtung bevorzugst du?
+            </h1>
+<p class="font-body text-primary/60 text-lg max-w-lg mx-auto leading-relaxed">
+                Wähle das Aroma, das deinen Morgen am besten beschreibt.
+            </p>
+</div>
+<!-- Answer Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+<!-- Fruity Option -->
+<button class="group relative flex flex-col items-start p-8 rounded-xl bg-surface-container-lowest transition-all duration-300 hover:bg-surface-container-low hover:shadow-sm border border-transparent hover:border-outline-variant/10">
+<div class="mb-8 p-4 rounded-full bg-surface-container-low group-hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-3xl text-secondary">potted_plant</span>
+</div>
+<h3 class="font-headline text-2xl text-primary mb-2">Fruchtig &amp; Spritzig</h3>
+<p class="text-sm text-primary/60 text-left font-body leading-relaxed">
+                    Noten von Beeren, Zitrusfrüchten und eine lebendige Säure.
+                </p>
+<div class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+</button>
+<!-- Nutty Option -->
+<button class="group relative flex flex-col items-start p-8 rounded-xl bg-surface-container-lowest transition-all duration-300 hover:bg-surface-container-low hover:shadow-sm border border-transparent hover:border-outline-variant/10">
+<div class="mb-8 p-4 rounded-full bg-surface-container-low group-hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-3xl text-secondary">nutrition</span>
+</div>
+<h3 class="font-headline text-2xl text-primary mb-2">Nussig &amp; Erdig</h3>
+<p class="text-sm text-primary/60 text-left font-body leading-relaxed">
+                    Klassische Aromen von Haselnuss, Mandeln und weichem Kakao.
+                </p>
+<div class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+</button>
+<!-- Chocolate Option -->
+<button class="group relative flex flex-col items-start p-8 rounded-xl bg-surface-container-lowest transition-all duration-300 hover:bg-surface-container-low hover:shadow-sm border border-transparent hover:border-outline-variant/10">
+<div class="mb-8 p-4 rounded-full bg-surface-container-low group-hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-3xl text-secondary">cookie</span>
+</div>
+<h3 class="font-headline text-2xl text-primary mb-2">Schokoladig &amp; Schwer</h3>
+<p class="text-sm text-primary/60 text-left font-body leading-relaxed">
+                    Zartbitter-Nuancen, kräftiger Körper und ein langer Nachhall.
+                </p>
+<div class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+</button>
+<!-- Spicy Option -->
+<button class="group relative flex flex-col items-start p-8 rounded-xl bg-surface-container-lowest transition-all duration-300 hover:bg-surface-container-low hover:shadow-sm border border-transparent hover:border-outline-variant/10">
+<div class="mb-8 p-4 rounded-full bg-surface-container-low group-hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-3xl text-secondary">local_fire_department</span>
+</div>
+<h3 class="font-headline text-2xl text-primary mb-2">Würzig &amp; Komplex</h3>
+<p class="text-sm text-primary/60 text-left font-body leading-relaxed">
+                    Ein Hauch von Zimt, Nelken und exotischen Gewürzen.
+                </p>
+<div class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+</button>
+</div>
+</main>
+<!-- Refined Bottom Navigation -->
+<footer class="fixed bottom-0 left-0 w-full bg-background/80 backdrop-blur-md px-8 py-10">
+<div class="max-w-4xl mx-auto flex justify-between items-center">
+<button class="flex items-center space-x-2 text-primary/40 hover:text-primary transition-colors duration-300 group">
+<span class="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+<span class="font-label text-xs uppercase tracking-[0.2em]">Zurück</span>
+</button>
+<button class="px-10 py-4 bg-primary text-on-primary rounded-lg font-label text-xs uppercase tracking-[0.2em] hover:bg-primary-container transition-all duration-300 shadow-lg shadow-primary/10">
+                Weiter
+            </button>
+</div>
+</footer>
+<!-- Background Decorative Element (Subtle Glassmorphism) -->
+<div class="fixed top-1/4 -right-24 w-96 h-96 bg-secondary/5 rounded-full blur-[120px] -z-10"></div>
+<div class="fixed bottom-1/4 -left-24 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -z-10"></div>
+<script>
+document.addEventListener('click', function(e) {
+    var t = e.target.closest('button, [class*="cursor-pointer"], a');
+    if (!t) return;
+    var txt = t.textContent.toLowerCase();
+    // Back
+    if (txt.includes('zurück') || txt.includes('arrow_back') || t.querySelector('[data-icon="arrow_back"]')) {
+        e.preventDefault(); window.location.href = '/refined_quiz_start/'; return;
+    }
+    // Forward / next / result
+    if (txt.includes('weiter') || txt.includes('quiz starten') || txt.includes('ergebnis anzeigen') || txt.includes('arrow_forward') || t.querySelector('[data-icon="arrow_forward"]')) {
+        e.preventDefault(); window.location.href = '/quiz_intensity/'; return;
+    }
+    // If it's an option card in main
+    if (t.closest('main') && (t.tagName === 'BUTTON' || t.hasAttribute('class') && t.getAttribute('class').includes('cursor-pointer'))) {
+        window.location.href = '/quiz_intensity/';
+    }
+});
+</script>
+</body></html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;600;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#4d2c19",
+                    "surface-container-high": "#ebe8e3",
+                    "secondary-fixed": "#ffdfa0",
+                    "surface-variant": "#e6e2dd",
+                    "inverse-surface": "#31302d",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fdf9f4",
+                    "secondary": "#795900",
+                    "secondary-container": "#ffc641",
+                    "on-tertiary-container": "#c79501",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#f0bba0",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "primary": "#341706",
+                    "tertiary-fixed": "#ffdfa0",
+                    "surface-container-low": "#f7f3ee",
+                    "surface-tint": "#7d553f",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "outline": "#83746d",
+                    "on-surface": "#1c1c19",
+                    "surface": "#fdf9f4",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "surface-container": "#f1ede8",
+                    "on-primary-container": "#c29279",
+                    "inverse-on-surface": "#f4f0eb",
+                    "tertiary": "#2a1d00",
+                    "surface-container-highest": "#e6e2dd",
+                    "on-background": "#1c1c19",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "background": "#fdf9f4",
+                    "tertiary-container": "#453100",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#ffdbca",
+                    "primary-fixed-dim": "#f0bba0",
+                    "outline-variant": "#d5c3bb",
+                    "on-primary-fixed": "#301404",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#715300",
+                    "on-surface-variant": "#51443e",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-secondary-fixed": "#261a00",
+                    "surface-dim": "#ddd9d5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body selection:bg-secondary-fixed">
+<!-- TopAppBar Shell -->
+<nav class="fixed top-0 w-full z-50 bg-[#fdf9f4] dark:bg-[#1a0b03]">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-screen-xl mx-auto">
+<button class="text-[#341706] dark:text-[#fdf9f4] hover:opacity-70 transition-opacity active:scale-95 duration-300">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h1 class="font-notoserif font-normal tracking-tight text-lg font-serif italic text-[#341706] dark:text-[#fdf9f4]">
+                Digital Sommelier
+            </h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</div>
+</nav>
+<main class="min-h-screen pt-24 pb-32 px-6 flex flex-col items-center">
+<!-- Progress Bar Section -->
+<div class="w-full max-w-2xl mb-12">
+<div class="flex justify-between items-end mb-3">
+<span class="text-[10px] uppercase tracking-[0.1em] font-semibold text-primary/60">Schritt 04 von 07</span>
+<span class="text-[10px] uppercase tracking-[0.1em] font-bold text-primary">57%</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary transition-all duration-700 ease-out" style="width: 57%;"></div>
+</div>
+</div>
+<!-- Headline -->
+<div class="max-w-2xl w-full mb-12 text-center md:text-left">
+<h2 class="font-headline text-4xl md:text-5xl lg:text-6xl text-primary leading-tight tracking-tight">
+                Welche Röstung bevorzugst du?
+            </h2>
+<p class="mt-4 text-on-surface-variant font-light text-lg tracking-wide">
+                Der Röstgrad definiert die Intensität und die Säure deines Kaffees.
+            </p>
+</div>
+<!-- Asymmetric Options Grid -->
+<div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+<!-- Option: Hell -->
+<button class="md:col-span-5 group relative overflow-hidden rounded-xl bg-surface-container-lowest transition-all hover:translate-y-[-4px] active:scale-[0.98] duration-300">
+<div class="aspect-[4/5] w-full relative">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Lightly roasted coffee beans with golden brown hues on a clean minimalist surface, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY2O-anAQphHP12QvSMRlb2TQ2LotVt3khFGmiqNn5BP1EvEFXoUXNzYJVoaRWaK6jkJSUhmaBWTLg06JEe5cnlD8juKbgCqXypGBd65goXMtQOrtymjajAV2YAdY-b7tzTAokhCaWcGZSYOdtnXVqCkrxEdkq5lZvqJD4HGZArUxSgtgSmhbNEY4_nkRWu8r_tf7ssjnAemr3j6AbKvLEnvattwapfkJejfSVMirl7u3j8i5yS2iDKG2ZpQPcIJRn-METX1b-Qd9b"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 text-left">
+<span class="text-secondary font-bold text-[10px] uppercase tracking-widest mb-1 block">Zitrus &amp; Floral</span>
+<h3 class="font-headline text-2xl text-white">Hell</h3>
+</div>
+</div>
+</button>
+<!-- Option: Mittel -->
+<button class="md:col-span-7 group relative overflow-hidden rounded-xl bg-surface-container-lowest transition-all hover:translate-y-[-4px] active:scale-[0.98] duration-300">
+<div class="aspect-[16/9] w-full relative">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Medium roasted coffee beans showing rich chocolate tones and balanced texture, studio lighting with warm shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASjsgE1DQrSNL3vfbM43xx04aK08psn1PRXnU41lAkQOOQ32CocENCgmQmYOSz_yBxvOhCP3o2FfbJq7y8qsWnOYCxn4k3l1N27VCxTnECzBLWhq7ndRIDnQi01caFERyTy0B7H8HU9fc9Ksy_68rsWVeWc0xcrW0r2OTc9Q84c9DLRhEYzxRaTpr0h1NBBr0RK5C9ZFXVnD3jSKZjaUWNAzqSBojrtNO9-C3KMC6kQM_dDwngpjh3uNHVfHRMI6qYMTyBAT9Ulpxq"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 text-left">
+<span class="text-secondary font-bold text-[10px] uppercase tracking-widest mb-1 block">Balance &amp; Schokolade</span>
+<h3 class="font-headline text-2xl text-white">Mittel</h3>
+</div>
+</div>
+</button>
+<!-- Option: Dunkel -->
+<button class="md:col-span-7 group relative overflow-hidden rounded-xl bg-surface-container-lowest transition-all hover:translate-y-[-4px] active:scale-[0.98] duration-300">
+<div class="aspect-[16/9] w-full relative">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Dark oily espresso beans with deep espresso color and intense texture, dramatic moody lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN8IgtovkYQlygVeCT7-HQJ3MxBIeXLHA7DLDxl1WsR_OhCTGdjP5WesE-1cuQRX2vSR__im3sOEI3Io4OQIaVy0Id7JoExY3qQQYId3uFZ0QVQ97HAEuACLlAIx1qmx6h9H7xFKRyQu1GTx1w87_FIcnKzg7zHh6N1JV8CH_0r5HSJp1bQCci05GFg8a9-XCnRtJRO_Y0T3nVzh4tLab0BxXGH_-yl0BwzYHtUSYMv6Gj_lGWgVZf3eVU60m2PPVUZdFKNue8cwtB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full p-6 text-left">
+<span class="text-secondary font-bold text-[10px] uppercase tracking-widest mb-1 block">Kräftig &amp; Würzig</span>
+<h3 class="font-headline text-2xl text-white">Dunkel</h3>
+</div>
+</div>
+</button>
+<!-- Option: Weiss ich nicht -->
+<button class="md:col-span-5 h-full group relative overflow-hidden rounded-xl border border-outline-variant/15 hover:border-primary/20 bg-surface-container-low transition-all active:scale-[0.98] duration-300 flex items-center justify-center min-h-[200px] md:min-h-0">
+<div class="text-center p-8">
+<span class="material-symbols-outlined text-4xl text-primary/40 mb-4 block group-hover:scale-110 transition-transform">help_outline</span>
+<h3 class="font-headline text-xl text-primary mb-2">Weiss ich nicht</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Wir empfehlen dir eine Auswahl basierend auf deinem Geschmacksprofil.</p>
+</div>
+</button>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<footer class="fixed bottom-0 w-full z-50 pb-8 bg-transparent">
+<div class="fixed bottom-0 w-full z-50 flex justify-between px-10 items-end pb-8">
+<!-- Back Button -->
+<button class="flex items-center justify-center text-[#341706] opacity-30 dark:text-[#fdf9f4] hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">arrow_back</span>
+</button>
+<!-- Next Button (Contextual FAB/Action) -->
+<button class="flex items-center justify-center bg-[#341706] text-[#fdf9f4] rounded-full w-14 h-14 shadow-2xl dark:bg-[#fdf9f4] dark:text-[#341706] hover:scale-110 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined text-3xl">arrow_forward</span>
+</button>
+</div>
+</footer>
+<script>
+document.addEventListener('click', function(e) {
+    var t = e.target.closest('button, [class*="cursor-pointer"], a');
+    if (!t) return;
+    var txt = t.textContent.toLowerCase();
+    // Back
+    if (txt.includes('zurück') || txt.includes('arrow_back') || t.querySelector('[data-icon="arrow_back"]')) {
+        e.preventDefault(); window.location.href = '/quiz_brewing_method/'; return;
+    }
+    // Forward / next / result
+    if (txt.includes('weiter') || txt.includes('quiz starten') || txt.includes('ergebnis anzeigen') || txt.includes('arrow_forward') || t.querySelector('[data-icon="arrow_forward"]')) {
+        e.preventDefault(); window.location.href = '/quiz_usage_moment/'; return;
+    }
+    // If it's an option card in main
+    if (t.closest('main') && (t.tagName === 'BUTTON' || t.hasAttribute('class') && t.getAttribute('class').includes('cursor-pointer'))) {
+        window.location.href = '/quiz_usage_moment/';
+    }
+});
+</script>
+</body></html>
