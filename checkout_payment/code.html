@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Manrope:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#261a00",
+                    "surface-container": "#f1ede8",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-primary-container": "#c29279",
+                    "secondary-fixed": "#ffdfa0",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#51443e",
+                    "surface-container-high": "#ebe8e3",
+                    "primary-fixed-dim": "#f0bba0",
+                    "surface-tint": "#7d553f",
+                    "tertiary": "#2a1d00",
+                    "primary-fixed": "#ffdbca",
+                    "on-primary-fixed": "#301404",
+                    "on-surface": "#1c1c19",
+                    "secondary-container": "#ffc641",
+                    "tertiary-container": "#453100",
+                    "surface-bright": "#fdf9f4",
+                    "inverse-primary": "#f0bba0",
+                    "surface-container-low": "#f7f3ee",
+                    "primary-container": "#4d2c19",
+                    "inverse-on-surface": "#f4f0eb",
+                    "surface-container-highest": "#e6e2dd",
+                    "secondary": "#795900",
+                    "on-background": "#1c1c19",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "tertiary-fixed": "#ffdfa0",
+                    "on-tertiary-container": "#c79501",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#ddd9d5",
+                    "on-secondary-container": "#715300",
+                    "outline-variant": "#d5c3bb",
+                    "inverse-surface": "#31302d",
+                    "surface": "#fdf9f4",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "outline": "#83746d",
+                    "surface-variant": "#e6e2dd",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "background": "#fdf9f4",
+                    "primary": "#341706",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fdf9f4] dark:bg-[#1a1614] flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4] hover:opacity-70 transition-opacity duration-300 cursor-pointer" data-icon="menu">menu</span>
+</div>
+<h1 class="font-['Noto_Serif'] tracking-[0.2em] text-lg font-bold text-[#341706] dark:text-[#fdf9f4] uppercase">THE DIGITAL SOMMELIER</h1>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4] hover:opacity-70 transition-opacity duration-300 cursor-pointer" data-icon="shopping_bag">shopping_bag</span>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 max-w-5xl mx-auto">
+<!-- Progress Stepper -->
+<div class="flex justify-center mb-12">
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2 opacity-40">
+<span class="text-xs font-label tracking-widest uppercase">01 Shipping</span>
+</div>
+<div class="h-[1px] w-8 bg-outline-variant opacity-20"></div>
+<div class="flex items-center space-x-2 opacity-40">
+<span class="text-xs font-label tracking-widest uppercase">02 Delivery</span>
+</div>
+<div class="h-[1px] w-8 bg-outline-variant opacity-20"></div>
+<div class="flex items-center space-x-2">
+<span class="text-xs font-label tracking-widest uppercase font-bold text-secondary">03 Payment</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left Column: Payment Details -->
+<div class="lg:col-span-7 space-y-10">
+<section>
+<h2 class="font-headline text-3xl tracking-tight text-primary mb-2">Finalize Purchase</h2>
+<p class="text-on-surface-variant font-light leading-relaxed">Select your preferred payment method. All transactions are encrypted and secure.</p>
+</section>
+<!-- Subscription Upsell Card -->
+<div class="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 flex items-center justify-between group">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="auto_renew" style="font-variation-settings: 'FILL' 0;">autorenew</span>
+</div>
+<div>
+<p class="font-bold text-primary tracking-tight">Save 15% with subscription</p>
+<p class="text-xs text-on-surface-variant">Monthly delivery of our curator's choice. Cancel anytime.</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<!-- Payment Methods -->
+<div class="space-y-4">
+<label class="relative block cursor-pointer group">
+<input checked="" class="sr-only peer" name="payment" type="radio"/>
+<div class="p-5 bg-surface-container-lowest border-2 border-transparent peer-checked:border-secondary rounded-lg transition-all duration-300 flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="credit_card">credit_card</span>
+</div>
+<span class="font-label font-medium tracking-wide uppercase text-sm">Credit Card</span>
+</div>
+<div class="flex space-x-2">
+<div class="w-8 h-5 bg-surface-container rounded-sm opacity-60"></div>
+<div class="w-8 h-5 bg-surface-container rounded-sm opacity-60"></div>
+</div>
+</div>
+</label>
+<!-- Credit Card Form (Visible when selected) -->
+<div class="mt-4 p-6 bg-surface-container-lowest rounded-lg space-y-6 border border-outline-variant/5">
+<div class="relative">
+<label class="block text-[10px] uppercase tracking-[0.1em] text-outline mb-1 font-bold">Card Number</label>
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 transition-colors py-2 font-mono text-primary placeholder:text-outline-variant/40" placeholder="0000 0000 0000 0000" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="relative">
+<label class="block text-[10px] uppercase tracking-[0.1em] text-outline mb-1 font-bold">Expiry Date</label>
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 transition-colors py-2 font-mono text-primary placeholder:text-outline-variant/40" placeholder="MM/YY" type="text"/>
+</div>
+<div class="relative">
+<label class="block text-[10px] uppercase tracking-[0.1em] text-outline mb-1 font-bold">CVV</label>
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 transition-colors py-2 font-mono text-primary placeholder:text-outline-variant/40" placeholder="•••" type="text"/>
+</div>
+</div>
+</div>
+<label class="relative block cursor-pointer group">
+<input class="sr-only peer" name="payment" type="radio"/>
+<div class="p-5 bg-surface-container-lowest border-2 border-transparent peer-checked:border-secondary rounded-lg transition-all duration-300 flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+</div>
+<span class="font-label font-medium tracking-wide uppercase text-sm">TWINT</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="qr_code_2">qr_code_2</span>
+</div>
+</label>
+<label class="relative block cursor-pointer group">
+<input class="sr-only peer" name="payment" type="radio"/>
+<div class="p-5 bg-surface-container-lowest border-2 border-transparent peer-checked:border-secondary rounded-lg transition-all duration-300 flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="apple">ios</span>
+</div>
+<span class="font-label font-medium tracking-wide uppercase text-sm">Apple Pay</span>
+</div>
+<span class="text-xs text-outline font-label uppercase">Quick Pay</span>
+</div>
+</label>
+</div>
+<div class="pt-6 flex items-center space-x-3 text-on-surface-variant/60">
+<span class="material-symbols-outlined text-lg" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span class="text-xs font-label tracking-wider uppercase">SSL Secure 256-bit Encryption</span>
+</div>
+</div>
+<!-- Right Column: Summary -->
+<aside class="lg:col-span-5">
+<div class="sticky top-24 space-y-8">
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_32px_64px_rgba(52,23,6,0.04)] space-y-8">
+<h3 class="font-headline text-xl tracking-tight border-b border-outline-variant/10 pb-4">Order Summary</h3>
+<div class="space-y-6">
+<!-- Item 1 -->
+<div class="flex space-x-4">
+<div class="w-20 h-24 bg-surface-container rounded overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="artisanal specialty coffee bag with minimalist label and gold accents on a textured surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAIQipHKZjfPPu5FNfT2QR9rUUzQrPWSB_KOw8ydb7JfaxTtCBedlQya6L8qdmQ_L_HyOir3cvApgcj2pafW2DeThTudwvii7NXLnJCqwUJp-KC0ljnT9FjpjIRjak5jVI3f9w8sT4Vhp8aQ3DxLX0gaHLvJ4h8e9DwufAT5N11qyFDayYoiKYXuQ-9syx1XGd0yGlKgiuGzHW-N-CLXX4PshTiLBVeaq5uneKus7M6sohWW5u434wrpwrx0keyAgaUkmDrJMUTVxq"/>
+</div>
+<div class="flex-grow">
+<p class="font-headline text-sm tracking-tight">Ethiopia Yirgacheffe</p>
+<p class="text-xs text-on-surface-variant font-light mt-1 italic">Notes: Jasmine, Bergamot</p>
+<div class="flex justify-between items-end mt-4">
+<span class="text-[10px] uppercase tracking-widest text-outline">QTY: 1</span>
+<span class="font-label text-sm text-primary">CHF 32.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Calculations -->
+<div class="space-y-3 pt-6 border-t border-outline-variant/10">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant font-light">Subtotal</span>
+<span class="text-primary">CHF 32.00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant font-light">Subscription Discount (15%)</span>
+<span class="text-secondary font-medium">- CHF 4.80</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant font-light">Shipping</span>
+<span class="text-primary">Free</span>
+</div>
+<div class="flex justify-between items-center pt-4 mt-2 border-t border-primary/5">
+<span class="font-headline text-lg tracking-tight uppercase">Total</span>
+<span class="font-headline text-2xl text-primary">CHF 27.20</span>
+</div>
+</div>
+<button class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-lg font-label uppercase tracking-[0.2em] text-xs font-bold hover:opacity-90 transition-all active:scale-[0.98]">
+                            Complete Purchase
+                        </button>
+<div class="flex items-center justify-center space-x-6 grayscale opacity-30 mt-4">
+<span class="material-symbols-outlined text-3xl" data-icon="verified_user">verified_user</span>
+<span class="material-symbols-outlined text-3xl" data-icon="trusted_stepper">steppers</span>
+<span class="material-symbols-outlined text-3xl" data-icon="shield_with_heart">shield_with_heart</span>
+</div>
+</div>
+<!-- Testimonial / Assurance -->
+<div class="px-4 italic text-center">
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                            "The finest curation of seasonal beans I've ever experienced. The subscription service is seamless."
+                        </p>
+<p class="text-[10px] font-bold uppercase tracking-widest mt-2 opacity-40">— Marc A., Sommelier</p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar (Visible on Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-20 px-4 bg-[#fdf9f4]/80 dark:bg-[#1a1614]/80 backdrop-blur-xl z-50 shadow-[0_-4px_20px_rgba(52,23,6,0.04)]">
+<a class="flex flex-col items-center justify-center text-[#341706]/60 dark:text-[#fdf9f4]/60" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="coffee_maker">coffee_maker</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.05em]">Curation</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#341706]/60 dark:text-[#fdf9f4]/60" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="explore">explore</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.05em]">Discover</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#341706]/60 dark:text-[#fdf9f4]/60" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="auto_stories">auto_stories</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.05em]">Stories</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#795900] dark:text-[#795900] font-bold" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-[0.05em]">Vault</span>
+</a>
+</nav>
+</body></html>

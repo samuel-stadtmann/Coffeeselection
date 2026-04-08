@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#fdf9f4",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#f1ede8",
+                        "tertiary-container": "#453100",
+                        "secondary-fixed-dim": "#f6be39",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#51443e",
+                        "surface-container-low": "#f7f3ee",
+                        "on-tertiary-container": "#c79501",
+                        "surface": "#fdf9f4",
+                        "primary-fixed-dim": "#f0bba0",
+                        "background": "#fdf9f4",
+                        "on-primary-fixed-variant": "#623e2a",
+                        "on-secondary-container": "#715300",
+                        "primary": "#341706",
+                        "on-tertiary-fixed": "#261a00",
+                        "on-secondary-fixed": "#261a00",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e6e2dd",
+                        "outline": "#83746d",
+                        "surface-container-highest": "#e6e2dd",
+                        "surface-container-high": "#ebe8e3",
+                        "secondary": "#795900",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "primary-fixed": "#ffdbca",
+                        "inverse-on-surface": "#f4f0eb",
+                        "inverse-primary": "#f0bba0",
+                        "on-primary-container": "#c29279",
+                        "tertiary": "#2a1d00",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#d5c3bb",
+                        "inverse-surface": "#31302d",
+                        "on-surface": "#1c1c19",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#5c4300",
+                        "secondary-container": "#ffc641",
+                        "tertiary-fixed-dim": "#f6be39",
+                        "on-primary-fixed": "#301404",
+                        "surface-dim": "#ddd9d5",
+                        "secondary-fixed": "#ffdfa0",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#7d553f",
+                        "tertiary-fixed": "#ffdfa0",
+                        "primary-container": "#4d2c19",
+                        "on-background": "#1c1c19"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Noto Serif', serif; }
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface selection:bg-secondary/20">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-[60] flex justify-between items-center px-6 py-4 h-16 bg-[#fdf9f4] dark:bg-[#1a0c03] glass-nav">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">menu</span>
+<span class="font-serif text-xl font-bold text-[#341706] dark:text-[#fdf9f4] tracking-tighter">Digital Sommelier</span>
+</div>
+<div class="hidden md:flex gap-8 items-center">
+<a class="font-sans text-xs uppercase tracking-[0.1em] text-[#795900] dark:text-[#d4af37] font-semibold" href="#">Home</a>
+<a class="font-sans text-xs uppercase tracking-[0.1em] text-[#341706]/60 dark:text-[#fdf9f4]/60 hover:text-[#795900] transition-colors duration-300" href="#">Roasters</a>
+<a class="font-sans text-xs uppercase tracking-[0.1em] text-[#341706]/60 dark:text-[#fdf9f4]/60 hover:text-[#795900] transition-colors duration-300" href="#">Match</a>
+<a class="font-sans text-xs uppercase tracking-[0.1em] text-[#341706]/60 dark:text-[#fdf9f4]/60 hover:text-[#795900] transition-colors duration-300" href="#">Account</a>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">shopping_bag</span>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="relative min-h-[795px] flex flex-col items-center justify-center px-6 text-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Minimalist coffee ritual" class="w-full h-full object-cover opacity-80" data-alt="Close-up of a minimalist white ceramic coffee cup on a raw wooden table in soft morning sunlight with gentle shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeplTqm8LOFUBL-biHtOoBz4zl4p38usWJavjaeSrNa747j_d2VAJhJORAEpvxDKUFDmnEwx73UTs1RlAFY_PIjJm5wCZqJhjH1fqO7lgNELbNjii7Um9dSZ-kI80-7NS8pmx5DADV3uFgmm7KDbsvIot43_8cTndqJocPI2jAeS-6n25BAoXo5JXSi1ljj6O6-I7MThAR4us0j-WgzhHAcS9r8HFg_arWrzVDuFxsMzybbDqjEuHVNKIhEsIjEApY2BplqNzn8GTk"/>
+<div class="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background"></div>
+</div>
+<div class="relative z-10 max-w-4xl mx-auto space-y-8">
+<span class="font-label text-xs uppercase tracking-[0.2em] text-secondary font-semibold">Premium Swiss Roast</span>
+<h1 class="text-5xl md:text-7xl text-primary tracking-tighter leading-tight">
+                    Finde deinen perfekten <br class="hidden md:block"/> Specialty Coffee
+                </h1>
+<p class="max-w-xl mx-auto text-on-surface-variant font-light text-lg leading-relaxed">
+                    Entdecke die Kunst des Kaffees durch eine kuratierte Auswahl der besten Schweizer Röstereien, maßgeschneidert für deinen Gaumen.
+                </p>
+<div class="pt-6">
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-10 py-4 rounded-lg font-label text-sm uppercase tracking-widest hover:opacity-90 transition-all duration-300 shadow-xl shadow-primary/10">
+                        Start Quiz
+                    </button>
+</div>
+</div>
+</section>
+<!-- Social Proof & Badges -->
+<section class="py-24 bg-surface-container-low">
+<div class="max-w-screen-xl mx-auto px-6">
+<div class="flex flex-col md:flex-row items-center justify-between gap-12">
+<div class="flex flex-col gap-2">
+<span class="text-3xl font-headline text-primary">2,000+ Coffee Lovers</span>
+<p class="text-on-surface-variant font-light tracking-wide uppercase text-xs">Vertrauen auf unsere Expertise</p>
+</div>
+<div class="flex items-center gap-12 opacity-70">
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-3xl font-light">verified_user</span>
+<span class="text-[10px] uppercase tracking-widest font-semibold">Swiss Made</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-3xl font-light">eco</span>
+<span class="text-[10px] uppercase tracking-widest font-semibold">Sustainable</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-3xl font-light">local_shipping</span>
+<span class="text-[10px] uppercase tracking-widest font-semibold">Fresh Roast</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works -->
+<section class="py-32 bg-background">
+<div class="max-w-screen-xl mx-auto px-6">
+<div class="text-center mb-24">
+<h2 class="text-4xl text-primary mb-4">Dein Weg zum Genuss</h2>
+<div class="h-px w-12 bg-secondary/30 mx-auto"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8">
+<!-- Step 1 -->
+<div class="group flex flex-col items-center text-center space-y-6">
+<span class="text-secondary/20 font-headline text-7xl md:text-8xl leading-none group-hover:text-secondary/40 transition-colors duration-500">01</span>
+<h3 class="text-2xl text-primary">Geschmacksprofil</h3>
+<p class="text-on-surface-variant font-light leading-relaxed px-4">
+                            Beantworte kurze Fragen zu deinen Vorlieben – von fruchtig-leicht bis schokoladig-intensiv.
+                        </p>
+</div>
+<!-- Step 2 -->
+<div class="group flex flex-col items-center text-center space-y-6">
+<span class="text-secondary/20 font-headline text-7xl md:text-8xl leading-none group-hover:text-secondary/40 transition-colors duration-500">02</span>
+<h3 class="text-2xl text-primary">Matching</h3>
+<p class="text-on-surface-variant font-light leading-relaxed px-4">
+                            Unser Algorithmus findet die perfekte Bohne aus über 50 exklusiven Schweizer Röstungen.
+                        </p>
+</div>
+<!-- Step 3 -->
+<div class="group flex flex-col items-center text-center space-y-6">
+<span class="text-secondary/20 font-headline text-7xl md:text-8xl leading-none group-hover:text-secondary/40 transition-colors duration-500">03</span>
+<h3 class="text-2xl text-primary">Direktversand</h3>
+<p class="text-on-surface-variant font-light leading-relaxed px-4">
+                            Erhalte deinen Kaffee röstfrisch direkt von der Manufaktur in deinen Briefkasten.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Roasters - Bento Grid Layout -->
+<section class="py-32 bg-surface-container-low">
+<div class="max-w-screen-xl mx-auto px-6">
+<div class="flex justify-between items-end mb-16">
+<div>
+<span class="font-label text-xs uppercase tracking-widest text-secondary mb-2 block">Kuratierte Auswahl</span>
+<h2 class="text-4xl text-primary">Unsere Röstereien</h2>
+</div>
+<a class="text-primary font-label text-xs uppercase tracking-widest border-b border-primary/20 pb-1 hover:border-primary transition-all" href="#">Alle Entdecken</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 h-[700px] md:h-[600px]">
+<!-- Main Card -->
+<div class="md:col-span-7 relative group overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm">
+<img alt="Roastery Interior" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Interior of a modern boutique coffee roastery with industrial machines and warm wood accents in Zurich" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgn2DKwgPOI6lxQcddyMfHsvhlNWyWgzR73IsPzUeEnmip7J-gdNK5Kn3SXNo_E6lyI4Oi2aM2aVWDWGDhEaJadCh9aBg_2VOnBSSEwly8T4njHCWs6RpkTWI5NPV3nmj0COAwzipKno7FtlSO62mO6TBf-35IJAlv-Tsvr-f_uv5d2TWvF1FlhF2lrqjVwnMABNE9F3eHM3NYvLYD8hGlmu2unt00zwHhiE-HCdnwMQz8AYccMC_7XeZRVVp7uYpf_cizv2rKBjZq"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 text-white">
+<p class="text-[10px] uppercase tracking-[0.2em] mb-2 text-white/80">Zürich, Schweiz</p>
+<h3 class="text-3xl font-headline italic">Miro Roastery</h3>
+</div>
+</div>
+<!-- Side Grid -->
+<div class="md:col-span-5 grid grid-rows-2 gap-8">
+<div class="relative group overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm">
+<img alt="Coffee Beans" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close up of specialty green coffee beans being inspected by hand in a light filled laboratory" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYR31fNkuWRA6jBpUsvItOXqUJruX-wSwHr38zK7n0j4fiFuaOe3cZQkDaiYq7sFjUqTf11MTV32bGasgA1usEZSkiN3fo81NQWcnCMlClcmt8-qa0H1Wz5exbY0mVP9NggncqkD1d2qkworKUJN771WKffCkIsSnYh_XgrGjVJ_9XP8XprJuz8xxMZawXDQKf-igpCZzSawT2WtDIVhCwnDGNyJ-qVFeLTrTPk-xT3KStD5RGHKhv6We4pEKo3_cQ1YSHGDpRZaUB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<div class="absolute bottom-0 left-0 p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="text-xl font-headline">The Lab Series</h3>
+</div>
+</div>
+<div class="relative group overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm">
+<img alt="Barista at work" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Artisan barista pouring steamed milk into a ceramic cup with precision in a moody, high-end cafe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2yb9xvY_cqdZgXZ6Zwe6Be1vJ5A-cmZgDowUEyU5RbiFeWYMwBXTIUsDKQ6SiTvW6BlXc9XmI4RRIP33NEqGmw_8A6_QXAywnFzFt2On63_yBD4uU_4MkxxxDmGAdxWeBw8C_DuGyQJzFV5Cnt-rv_cQb7eBDSxkuo4Q3b5oQLaldJMkg_AhhfIPfVFmvRZIYFXaE-zTQX3IHDeCtCJl378QmH6ytRqRexTkLuXytgkssKK77xDm2zj4AfBvhFs1sK5tZ_mSoeH3s"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+<div class="absolute bottom-0 left-0 p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+<h3 class="text-xl font-headline">Alpine Roast</h3>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Final Call to Action -->
+<section class="py-40 bg-background flex flex-col items-center justify-center text-center px-6">
+<h2 class="text-4xl md:text-5xl text-primary mb-8 max-w-2xl leading-tight">Bereit für dein nächstes <br class="hidden md:block"/> aromatisches Abenteuer?</h2>
+<button class="group flex items-center gap-4 bg-transparent border border-outline-variant/30 px-12 py-5 rounded-lg hover:bg-primary hover:text-on-primary transition-all duration-500">
+<span class="font-label text-sm uppercase tracking-[0.2em]">Entdecke dein Match</span>
+<span class="material-symbols-outlined transform group-hover:translate-x-2 transition-transform">arrow_forward</span>
+</button>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-high py-20">
+<div class="max-w-screen-xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+<div class="md:col-span-1">
+<span class="font-serif text-2xl font-bold text-primary tracking-tighter block mb-6">Digital Sommelier</span>
+<p class="text-on-surface-variant text-sm font-light leading-relaxed">
+                        Die kuratierte Plattform für anspruchsvolle Kaffeeliebhaber und erstklassige Schweizer Röstkunst.
+                    </p>
+</div>
+<div>
+<h4 class="font-label text-xs uppercase tracking-widest text-primary font-bold mb-6">Shop</h4>
+<ul class="space-y-4">
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">Alle Kaffees</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">Abonnement</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">Zubehör</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">Geschenke</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label text-xs uppercase tracking-widest text-primary font-bold mb-6">Informationen</h4>
+<ul class="space-y-4">
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">Über uns</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">Versand &amp; Retouren</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">Nachhaltigkeit</a></li>
+<li><a class="text-on-surface-variant text-sm hover:text-secondary transition-colors" href="#">FAQ</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label text-xs uppercase tracking-widest text-primary font-bold mb-6">Newsletter</h4>
+<div class="flex border-b border-outline-variant/30 pb-2">
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-outline-variant" placeholder="E-Mail Adresse" type="email"/>
+<button class="text-primary hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">east</span>
+</button>
+</div>
+</div>
+</div>
+<div class="pt-10 border-t border-outline-variant/20 flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/60">
+                    © 2024 Digital Sommelier. Crafted with care in Switzerland.
+                </p>
+<div class="flex gap-8">
+<a class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 hover:text-primary" href="#">Instagram</a>
+<a class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 hover:text-primary" href="#">Privacy</a>
+<a class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 hover:text-primary" href="#">Terms</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- Mobile Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-6 bg-[#fdf9f4]/80 dark:bg-[#1a0c03]/80 backdrop-blur-xl border-t border-[#341706]/10 shadow-[0_-4px_24px_rgba(52,23,6,0.04)]">
+<div class="flex flex-col items-center justify-center text-[#795900] dark:text-[#d4af37] font-semibold scale-95 duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] transition-all">
+<span class="material-symbols-outlined">local_cafe</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase mt-1">Roasters</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] transition-all">
+<span class="material-symbols-outlined">temp_preferences_custom</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase mt-1">Match</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] transition-all">
+<span class="material-symbols-outlined">person</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase mt-1">Account</span>
+</div>
+</nav>
+</body></html>

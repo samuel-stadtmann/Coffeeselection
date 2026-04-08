@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#ffc641",
+                    "on-secondary-container": "#715300",
+                    "surface": "#fdf9f4",
+                    "on-tertiary": "#ffffff",
+                    "outline": "#83746d",
+                    "outline-variant": "#d5c3bb",
+                    "on-surface-variant": "#51443e",
+                    "error-container": "#ffdad6",
+                    "background": "#fdf9f4",
+                    "surface-container-highest": "#e6e2dd",
+                    "error": "#ba1a1a",
+                    "surface-container": "#f1ede8",
+                    "surface-container-low": "#f7f3ee",
+                    "surface-dim": "#ddd9d5",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "on-secondary-fixed": "#261a00",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "tertiary": "#2a1d00",
+                    "surface-container-high": "#ebe8e3",
+                    "surface-tint": "#7d553f",
+                    "on-background": "#1c1c19",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-primary-fixed": "#301404",
+                    "tertiary-container": "#453100",
+                    "inverse-on-surface": "#f4f0eb",
+                    "on-primary-container": "#c29279",
+                    "surface-variant": "#e6e2dd",
+                    "on-tertiary-container": "#c79501",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "secondary-fixed": "#ffdfa0",
+                    "primary-fixed-dim": "#f0bba0",
+                    "secondary": "#795900",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#ffdbca",
+                    "primary": "#341706",
+                    "primary-container": "#4d2c19",
+                    "on-error": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed": "#ffdfa0",
+                    "on-surface": "#1c1c19",
+                    "on-primary": "#ffffff",
+                    "surface-bright": "#fdf9f4",
+                    "on-tertiary-fixed": "#261a00",
+                    "inverse-surface": "#31302d",
+                    "inverse-primary": "#f0bba0",
+                    "on-tertiary-fixed-variant": "#5c4300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Noto Serif', serif; }
+        .glass-panel {
+            background: rgba(253, 249, 244, 0.7);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-8 py-6 w-full sticky top-0 z-50 backdrop-blur-md bg-opacity-90 bg-[#fdf9f4] dark:bg-[#1a0c03]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">menu</span>
+</div>
+<div class="text-2xl font-serif text-[#341706] dark:text-[#fdf9f4] tracking-tight">The Digital Sommelier</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">shopping_bag</span>
+</div>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative min-h-[618px] flex items-center overflow-hidden bg-surface-container-low">
+<div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-8 items-center py-20">
+<div class="md:col-span-7 z-10">
+<span class="inline-block mb-4 text-secondary font-label tracking-[0.2em] text-xs uppercase">Personal Concierge</span>
+<h1 class="text-5xl md:text-7xl lg:text-8xl text-primary leading-tight mb-8">Kontaktiere unseren Concierge</h1>
+<p class="text-on-surface-variant text-lg md:text-xl max-w-xl font-light leading-relaxed">
+                        Ob Sie Fragen zu unseren Röstungen haben oder eine private Degustation in Zürich oder Zug planen – unser Atelier Espresso Team steht Ihnen persönlich zur Seite.
+                    </p>
+</div>
+<div class="md:col-span-5 relative mt-12 md:mt-0">
+<div class="aspect-[4/5] rounded-lg overflow-hidden shadow-2xl">
+<img class="w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" data-alt="close-up of steaming hand-poured specialty coffee in a minimal ceramic cup with soft morning light and moody shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwqG4IMm-7DTRhxyyy8ktoaLOD7F9Tx1FI8oNlmpTLA0C75sPW1RyBmYIKzknaPmFV8yL-_TE_TxG0Q7jAYPiCxi_ERz-3-nWUQvHGJG-H5qdAGKvwnuLtO17GWmPPbzrnrAw8LX2dHFu_leIt9UOUM97TX9Kf4xcuLl8aFB7hy-Vf33lbiU6zS5mJl4DTPLq6zQqyxKvje4vg17hgmpIAK_47jKdEcXxhPJff1-cangbyavEui8Hy0PF7giovzpjmsmzuKTGdVA-j"/>
+</div>
+<div class="absolute -bottom-6 -left-6 w-48 h-48 rounded-lg overflow-hidden hidden lg:block border-8 border-surface">
+<img class="w-full h-full object-cover" data-alt="close-up of high-quality coffee beans roasting with rich brown textures and warm amber highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-iBew11643NaOQyTVQXUm7GaZOgyy7dKwommgkyuojf8OyIwRDsvX8BZkAbQg-q0OwRFw5ErffI-AbhMpCVgieWkUdgVT-wp2hzmUVhsp9RPJGYHrAf2oqWSngBb5o79UvgZCRdLi6iUACjQhBqwJLEJQUtew3KDZeOymXaVuPjcUIhusduKIWfvuIuXjtWKKc9qL6LhHGlgC-6X_OJIFsW68UtkKgiOSxe-WYlJS9BqCUv55lbfdemMZgGpz5ptkB5Qqj4bO3x5g"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Contact Options & Form -->
+<section class="py-24 px-6 bg-surface">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24">
+<!-- Info Side -->
+<div class="space-y-16">
+<div>
+<h2 class="text-3xl text-primary mb-12 italic">Atelier Espresso HQ</h2>
+<div class="space-y-10">
+<div class="flex items-start gap-6">
+<span class="material-symbols-outlined text-secondary text-2xl" data-icon="location_on">location_on</span>
+<div class="space-y-6">
+<div>
+<p class="font-label text-xs tracking-widest uppercase text-outline mb-1">Zürich Studio</p>
+<p class="text-on-surface text-lg">Bleicherweg 12, 8002 Zürich<br/>Switzerland</p>
+</div>
+<div>
+<p class="font-label text-xs tracking-widest uppercase text-outline mb-1">Zug Roastery</p>
+<p class="text-on-surface text-lg">Gubelstrasse 24, 6300 Zug<br/>Switzerland</p>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-6">
+<span class="material-symbols-outlined text-secondary text-2xl" data-icon="mail">mail</span>
+<div>
+<p class="font-label text-xs tracking-widest uppercase text-outline mb-1">Email</p>
+<p class="text-on-surface text-lg">concierge@digital-sommelier.com</p>
+</div>
+</div>
+<div class="flex items-start gap-6">
+<span class="material-symbols-outlined text-secondary text-2xl" data-icon="call">call</span>
+<div>
+<p class="font-label text-xs tracking-widest uppercase text-outline mb-1">Telefon</p>
+<p class="text-on-surface text-lg">+41 (0) 44 202 55 00</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Visual Accent Card -->
+<div class="bg-surface-container-low p-8 rounded-lg flex items-center gap-6">
+<div class="w-20 h-20 rounded-full overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="portrait of a professional sommelier in a dark apron against a neutral studio background looking friendly" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGYug8s_YBd9TDrIipTKJTDn-otsTJ-U88K_PxJhiwL_vPp1Lna_459d8JIGVOUmbYz9VzJvONSklqfRX3BCeGH4RwHJj35hpf7ZC9BH6pnRvbMhdjTNX5sJnnasa7xyVywscYS5IHSget_YK6K2t4q21WSyt3e-0olrDYyRkNC4aHniwOUHt7LNtnbKhqD1eHAwgWCq3M3uuWTNjuBMQ5NZ_U0_EA0DuyHeY0RWVGG0azeEARYsfOVeaRJ-SprhuRpQUHTUbItP2O"/>
+</div>
+<div>
+<p class="text-primary font-medium italic">"Wir schätzen den direkten Austausch mit wahren Connaisseurs."</p>
+<p class="text-on-surface-variant text-sm mt-1">— Marcus, Head of Roasting</p>
+</div>
+</div>
+</div>
+<!-- Form Side -->
+<div class="bg-surface-container-lowest p-8 md:p-12 rounded-lg shadow-sm">
+<form class="space-y-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="block font-label text-xs tracking-widest uppercase text-outline" for="name">Name</label>
+<input class="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary transition-colors py-3 text-on-surface placeholder:text-outline-variant/50" id="name" name="name" placeholder="Ihr Name" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block font-label text-xs tracking-widest uppercase text-outline" for="email">Email</label>
+<input class="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary transition-colors py-3 text-on-surface placeholder:text-outline-variant/50" id="email" name="email" placeholder="ihre@email.ch" type="email"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block font-label text-xs tracking-widest uppercase text-outline" for="subject">Betreff</label>
+<input class="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary transition-colors py-3 text-on-surface placeholder:text-outline-variant/50" id="subject" name="subject" placeholder="Anfrage zu..." type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block font-label text-xs tracking-widest uppercase text-outline" for="message">Nachricht</label>
+<textarea class="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary transition-colors py-3 text-on-surface placeholder:text-outline-variant/50 resize-none" id="message" name="message" placeholder="Wie können wir Ihnen behilflich sein?" rows="4"></textarea>
+</div>
+<div class="pt-6">
+<button class="w-full md:w-auto px-12 py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-lg font-label tracking-widest uppercase text-sm hover:opacity-90 transition-all flex items-center justify-center gap-3" type="submit">
+                                Nachricht Senden
+                                <span class="material-symbols-outlined text-sm" data-icon="north_east">north_east</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</section>
+<!-- Subtle Gallery Strip -->
+<section class="py-12 overflow-hidden bg-surface-container-low">
+<div class="flex gap-4 md:gap-8 min-w-max animate-scroll-horizontal opacity-60">
+<div class="w-64 h-80 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="minimalist modern workspace with a laptop, designer stationery, and a fresh cup of black coffee on light wood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGDx1cIYDsAqcS5hooKHKHRlGMPGdyFZF7CEYuuMvo5TemPpB-3yEoRMA2m3eW0g_7k91TTPperfKjEmMh9Lwndw38-0zFqKwZaSY1zxhlTN0Y6OmtcUhQh72NCF1rdzEPFlKtyoi5CS4yZoLD8vT8ovYmoluenU29LxNst6v7UOM340TYFlh-U5gCBw_q4ucggpOAqJkqtMrNANwQBIdLVXObrtSxwv80dWIrFYUdBiPFts_HZQLGpnajID6zA5UqolZXz-NWByzP"/>
+</div>
+<div class="w-96 h-80 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="interior shot of a luxury boutique coffee studio with minimal brass shelves and marble counters" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMgQK73zhqKukI-tQzjwwj0RBFN0g8YHEj90a5-jqQakk_4iJYIIsee_Twl_7FeNKqIeWWaaKG_w-O4LLIViAyQ6xOKkE9Sk2bJD7c-pR-4G4b_RbZ9ep4mPSoVhDiyqQ2PB7nJP4obJCLMVr2AxFlp-E8EtydXfha8VQhasGJ1MOzj5-FhU0g2YOgNrv3wdfAlJp3HepI2H0UyeUS1SfSffUPHpfTlaKXyLzTgW9FdTbl3wUHRIPNMcser8120H-bQs_nhanFKlGk"/>
+</div>
+<div class="w-64 h-80 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="artisan barista hands adjusting a vintage espresso machine with precision and focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCldfKffMFdKU1Jx41o9lnzg2kGWNsPK-ZOb8YmdQgAZk93WJlzimrl7rbNmUE_sYLZjjuIeVslCd5cHASC1yKwfJORgsCFLvzxT5taO_tdhUrNRmS5kwgU3ueWURskSZu2cZVTB5LGEBavt12UwEh6Ah4C-dPRS72xUkLjNkpPLMoHfc8jcbNd0CrtY0jfCDdmeL9KRTL6Vw_nHHWu370_C46gHn097FdICXRAUsR1RdqQRoe7wN9eVYc8WWMnivHCiM2qVHeuQXeG"/>
+</div>
+<div class="w-96 h-80 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="zen overhead view of a coffee table with a small plant and a magazine in a sunlit airy room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBepW5OcWFGlGd2OQiGOrk2Zrcz7_KNpwsBz_np2TMinQi__xGT20dqF1r52grN7UCJFmrEAURo1f-AC3LFil8ACf9FXVhkos92IjPcBrdCX4M0QHW6dOIkwrUweuLWItN7dafgGw7v7MtQyf1wqQFe-dZOFazSWupuQpyqcPliLSjGdH_dypD6fqzJNXIKccAoP7XsoLA2KEA2rdlxGmKn3bdaqP4XJomIifaagsZ-3heJdVv47HENb6YHonHG_O7XOlUPVNtY8FIT"/>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#fdf9f4] dark:bg-[#1a0c03] py-16">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-12 max-w-7xl mx-auto items-end">
+<div class="space-y-4">
+<p class="font-sans text-xs tracking-[0.05em] uppercase text-[#341706] dark:text-[#fdf9f4] opacity-60">© 2024 The Digital Sommelier. Swiss Precision in Every Roast.</p>
+</div>
+<div class="flex flex-wrap gap-x-8 gap-y-2 justify-start md:justify-end">
+<a class="font-sans text-xs tracking-[0.05em] uppercase text-[#341706] dark:text-[#fdf9f4] opacity-60 hover:opacity-100 hover:text-[#795900] transition-opacity duration-300" href="#">The Collection</a>
+<a class="font-sans text-xs tracking-[0.05em] uppercase text-[#341706] dark:text-[#fdf9f4] opacity-60 hover:opacity-100 hover:text-[#795900] transition-opacity duration-300" href="#">Brewing Philosophy</a>
+<a class="font-sans text-xs tracking-[0.05em] uppercase text-[#341706] dark:text-[#fdf9f4] opacity-60 hover:opacity-100 hover:text-[#795900] transition-opacity duration-300" href="#">Shipping &amp; Returns</a>
+<a class="font-sans text-xs tracking-[0.05em] uppercase text-[#341706] dark:text-[#fdf9f4] opacity-60 hover:opacity-100 hover:text-[#795900] transition-opacity duration-300" href="#">Privacy Policy</a>
+</div>
+</div>
+</footer>
+</body></html>

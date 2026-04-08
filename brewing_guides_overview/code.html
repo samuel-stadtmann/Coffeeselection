@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fdf9f4",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#fdf9f4",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "surface-container-lowest": "#ffffff",
+                    "outline-variant": "#d5c3bb",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed": "#ffdfa0",
+                    "primary-fixed-dim": "#f0bba0",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#ffdbca",
+                    "primary": "#341706",
+                    "surface-tint": "#7d553f",
+                    "inverse-primary": "#f0bba0",
+                    "primary-container": "#4d2c19",
+                    "on-secondary-container": "#715300",
+                    "outline": "#83746d",
+                    "on-surface-variant": "#51443e",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "on-background": "#1c1c19",
+                    "secondary": "#795900",
+                    "on-secondary-fixed": "#261a00",
+                    "tertiary-fixed": "#ffdfa0",
+                    "on-tertiary-container": "#c79501",
+                    "on-primary-container": "#c29279",
+                    "on-surface": "#1c1c19",
+                    "on-primary-fixed": "#301404",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#31302d",
+                    "background": "#fdf9f4",
+                    "inverse-on-surface": "#f4f0eb",
+                    "surface-container-highest": "#e6e2dd",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#453100",
+                    "surface-dim": "#ddd9d5",
+                    "surface-container": "#f1ede8",
+                    "surface-container-low": "#f7f3ee",
+                    "on-tertiary-fixed": "#261a00",
+                    "surface-container-high": "#ebe8e3",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#f6be39"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "1rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #fdf9f4; color: #1c1c19; }
+        .serif { font-family: 'Noto Serif', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface selection:bg-secondary/20">
+<!-- TopAppBar -->
+<header class="bg-[#fdf9f4]/80 dark:bg-[#1a120b]/80 backdrop-blur-xl docked full-width top-0 sticky z-50 shadow-[0_8px_32px_rgba(52,23,6,0.04)]">
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-screen-xl mx-auto">
+<button class="text-[#341706] transition-all active:opacity-80">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-['Noto_Serif'] font-bold tracking-tight text-[#341706] text-lg uppercase tracking-[0.2em]">BREWING GUIDES</h1>
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="minimalist studio portrait of a person with soft lighting and natural skin textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8DbB4cTWts_kEr9skfDPUD3TPU8E04YhGB5EeT42D4L9fps1Q34cFcRpM9JZ-WHEWIOthd2szNO0d9Ky--9fjW6ynYXiGt93YO1ArVZaTCyJd263xCdVdfGGBfJYR1sh-K4m5SDSltWPlNW9JQR3Dr2iciBSUkCs4hxIjsa0LVN53viMEVOHalY4f7-wWwJCkNGq0n0P30inGfcAG4XDDdZtOjXkRhcYYT_SyW1rGg0yxAQSFBMSHarcZbeGuSwcOjM7ddfHuJVTG"/>
+</div>
+</div>
+</header>
+<main class="pb-32">
+<!-- Hero Section -->
+<section class="px-6 pt-12 pb-16 bg-surface-container-low">
+<div class="max-w-md mx-auto">
+<span class="font-label text-secondary uppercase tracking-[0.2em] text-[10px] font-bold mb-4 block">Atelier Espresso</span>
+<h2 class="serif text-4xl font-bold text-primary leading-tight mb-6">Meistere dein Handwerk</h2>
+<p class="text-on-surface-variant leading-relaxed text-sm max-w-[85%]">
+                    Die Kunst der Zubereitung beginnt mit der Wahl der Methode. Entdecke kuratierte Anleitungen für den perfekten Kaffeegenuss.
+                </p>
+</div>
+</section>
+<!-- Featured Guide (Bento Style Card) -->
+<section class="px-6 -mt-8">
+<div class="max-w-md mx-auto rounded-xl overflow-hidden shadow-[0_32px_64px_rgba(52,23,6,0.08)] bg-surface-container-lowest">
+<div class="relative h-64 overflow-hidden">
+<img alt="Coffee Grinding" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700" data-alt="macro close-up of premium coffee beans showing intricate textures and rich oily surface with warm dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyDsJHPlSE2WFRoJ1Wl-_i-hK6nyt8qMK9CXUTeYK5o8u6XvloMRVNnOW6sPonRmlq7ME9EAVcBGWcWSRt4pySYUOnffGHzJNY61VkI1e1rAqx5xQg9iOUtNAOqzkhnDbdbpHIMUxbOU5d5GzBcOEJFw0GUk2Pqpy0EqUmsVgPkij6aNTYILUgY0hnlg7K-H3ctMkEMTc1WRs7EdYlXKkRCefInfN2XZbJ5rHkFhRGTCzOYE6U43ueldaRu3uAEDosMcZvfEoPurDK"/>
+<div class="absolute top-4 left-4">
+<span class="bg-primary/90 text-on-primary px-3 py-1 rounded-full text-[10px] uppercase tracking-widest font-bold">Featured</span>
+</div>
+</div>
+<div class="p-8">
+<h3 class="serif text-2xl text-primary mb-3">Das Geheimnis der Mahlgrad-Einstellung</h3>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">
+                        Erfahren Sie, wie kleinste Veränderungen der Partikelgröße das gesamte Aromaprofil Ihres Kaffees transformieren können.
+                    </p>
+<button class="w-full py-4 rounded-lg bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold text-xs uppercase tracking-widest transition-all active:scale-95">
+                        Guide lesen
+                    </button>
+</div>
+</div>
+</section>
+<!-- Category Grid (Asymmetric) -->
+<section class="px-6 py-20">
+<div class="max-w-md mx-auto">
+<h4 class="serif text-xl text-primary mb-10 border-l-2 border-secondary pl-4">Zubereitungsmethoden</h4>
+<div class="grid grid-cols-1 gap-12">
+<!-- V60 -->
+<div class="flex flex-col gap-4">
+<div class="aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-high">
+<img alt="V60 Brewing" class="w-full h-full object-cover" data-alt="elegant ceramic V60 dripper with a slow spiral pour-over technique and steam rising in a sunlit kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRaDGtuP5tN3Lfcr_3X_-mp8zgq7dDfhdBXKggwqFuHA0iYhHV01pcMN5pmHwydM0QXSZAKhPYECXa7fjxWeG21v3XBxQTUT4EULvof8wuy11kdUhoPZo1-HtPIvVPaiDJ20R9xLT5CLq_2OzbFwDl_jmoZSfClJYiZhOzTbPDAz8AmoHIBCtoLuLPWqx17L25j1_vgWR7KCQWlne-AU3iBy9NMAMzTVscgCpr75ufMZ7AOwGIt1osBbZhT_XYu9oYX_aGlV2jSjxd"/>
+</div>
+<div>
+<div class="flex justify-between items-end mb-2">
+<h5 class="serif text-2xl text-primary">V60</h5>
+<span class="text-secondary text-[10px] font-bold uppercase tracking-widest pb-1 underline decoration-secondary/30 underline-offset-4">Guide lesen</span>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed italic">
+                                Klar, komplex und lebendig. Perfekt für Single-Origin Kaffees mit fruchtigen Noten.
+                            </p>
+</div>
+</div>
+<!-- Espresso -->
+<div class="flex flex-col gap-4">
+<div class="aspect-square rounded-xl overflow-hidden bg-surface-container-high">
+<img alt="Espresso" class="w-full h-full object-cover" data-alt="rich dark espresso shot pulling from a high-end chrome machine with thick golden crema texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAMI7_9R-bZQsvDV7Nq1bDpOzqaXNLbOaUMqtpubaPM3iuw4pzVCPYGjiFHfosdtAT3YRm5XnuhjRT9NMyZDBmwaQnEHkjo9ldb1KdmbpR1jlLHSggMmpcjCdbu7C9U2ic12BDvHhTWO7u10U0W89qqvKOJqkay_UncDQjMPgWjid-lAaewn6ZTaPi26wrBn7J8MglDQ9cJE7GsPenRoPdH9DVdKZhW3HzeAzsjK_BXLNaW42TndhrDw06Lz8dtwbHXBCfr1SAFqZn"/>
+</div>
+<div>
+<div class="flex justify-between items-end mb-2">
+<h5 class="serif text-2xl text-primary">Espresso</h5>
+<span class="text-secondary text-[10px] font-bold uppercase tracking-widest pb-1 underline decoration-secondary/30 underline-offset-4">Guide lesen</span>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed italic">
+                                Intensiv, syrupartig und kraftvoll. Die pure Essenz der Kaffeebohne.
+                            </p>
+</div>
+</div>
+<!-- French Press -->
+<div class="flex flex-col gap-4">
+<div class="aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-high">
+<img alt="French Press" class="w-full h-full object-cover" data-alt="vintage french press coffee maker on a rustic wooden table with morning light filtering through a window" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOsat6TxRE0VmDU-dmYfeVZDOpW3VtccMOkuldV8v8cjmdqOjbqxaViIEe6KRygLi8bNViKu89fbIaIrn5KwCSuiZJr7kdItiNiACyQsmpccup27p3N_oJewcmTVJNzCggw-6f1yPqCEz8NjWOc5YQP6t3H6NQUYsN1f50empy6U3LWf7fUWVAwQo7yYbH2qHbgQ8057syeonGHo8Y9MQUlGytva8XZN7aT5azwzE4yvHnfTx5qwv6R1xqSDTU9Lsu0kg-HtSVVmWh"/>
+</div>
+<div>
+<div class="flex justify-between items-end mb-2">
+<h5 class="serif text-2xl text-primary">French Press</h5>
+<span class="text-secondary text-[10px] font-bold uppercase tracking-widest pb-1 underline decoration-secondary/30 underline-offset-4">Guide lesen</span>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed italic">
+                                Körperreich, ölig und rund. Der Inbegriff von gemütlichem Kaffeegenuss.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Educational Section -->
+<section class="bg-primary-container py-20 px-6 text-on-primary">
+<div class="max-w-md mx-auto">
+<h4 class="serif text-3xl mb-8 leading-tight">Warum die Brühmethode entscheidend ist</h4>
+<div class="space-y-6">
+<div class="flex gap-4">
+<span class="text-secondary serif text-2xl">01</span>
+<p class="text-sm opacity-80 leading-relaxed">Die Extraktion bestimmt, welche Aromastoffe aus der Bohne gelöst werden – von Säuren bis zu Bitterstoffen.</p>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary serif text-2xl">02</span>
+<p class="text-sm opacity-80 leading-relaxed">Die Kontaktzeit zwischen Wasser und Kaffeemehl variiert je nach Methode drastisch.</p>
+</div>
+<div class="flex gap-4">
+<span class="text-secondary serif text-2xl">03</span>
+<p class="text-sm opacity-80 leading-relaxed">Filterarten (Papier vs. Metall) beeinflussen das Mundgefühl und die Klarheit des Getränks.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-8 pt-4 pb-8 bg-[#fdf9f4] dark:bg-[#1a120b] shadow-[0_-10px_40px_rgba(52,23,6,0.06)] rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 font-['Manrope'] text-[10px] uppercase tracking-[0.05em] font-medium transition-all hover:text-[#341706]" href="#">
+<span class="material-symbols-outlined mb-1">home_app_logo</span>
+            Home
+        </a>
+<a class="flex flex-col items-center justify-center text-[#795900] dark:text-[#c4a661] font-bold font-['Manrope'] text-[10px] uppercase tracking-[0.05em] transition-all scale-110" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">local_cafe</span>
+            Guides
+        </a>
+<a class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 font-['Manrope'] text-[10px] uppercase tracking-[0.05em] font-medium transition-all hover:text-[#341706]" href="#">
+<span class="material-symbols-outlined mb-1">temp_preferences_custom</span>
+            Sommelier
+        </a>
+<a class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 font-['Manrope'] text-[10px] uppercase tracking-[0.05em] font-medium transition-all hover:text-[#341706]" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+            Profile
+        </a>
+</nav>
+</body></html>

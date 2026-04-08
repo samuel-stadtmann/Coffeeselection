@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Customer Insights | Atelier Espresso</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-primary": "#ffffff",
+                "on-surface": "#1c1c19",
+                "surface-dim": "#ddd9d5",
+                "surface-tint": "#7d553f",
+                "surface": "#fdf9f4",
+                "outline": "#83746d",
+                "on-secondary-fixed": "#261a00",
+                "on-error-container": "#93000a",
+                "on-primary-fixed": "#301404",
+                "secondary": "#795900",
+                "primary-fixed": "#ffdbca",
+                "tertiary-container": "#453100",
+                "secondary-container": "#ffc641",
+                "error-container": "#ffdad6",
+                "surface-container": "#f1ede8",
+                "on-background": "#1c1c19",
+                "background": "#fdf9f4",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-highest": "#e6e2dd",
+                "error": "#ba1a1a",
+                "inverse-on-surface": "#f4f0eb",
+                "secondary-fixed-dim": "#f6be39",
+                "on-tertiary-container": "#c79501",
+                "surface-variant": "#e6e2dd",
+                "surface-container-low": "#f7f3ee",
+                "tertiary-fixed-dim": "#f6be39",
+                "outline-variant": "#d5c3bb",
+                "inverse-primary": "#f0bba0",
+                "primary-fixed-dim": "#f0bba0",
+                "on-secondary-fixed-variant": "#5c4300",
+                "surface-bright": "#fdf9f4",
+                "on-surface-variant": "#51443e",
+                "inverse-surface": "#31302d",
+                "on-secondary": "#ffffff",
+                "on-primary-container": "#c29279",
+                "tertiary": "#2a1d00",
+                "on-tertiary": "#ffffff",
+                "primary-container": "#4d2c19",
+                "secondary-fixed": "#ffdfa0",
+                "on-error": "#ffffff",
+                "on-secondary-container": "#715300",
+                "surface-container-high": "#ebe8e3",
+                "on-primary-fixed-variant": "#623e2a",
+                "primary": "#341706",
+                "on-tertiary-fixed-variant": "#5c4300",
+                "tertiary-fixed": "#ffdfa0",
+                "on-tertiary-fixed": "#261a00"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "fontFamily": {
+                "headline": ["Noto Serif"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Manrope', sans-serif;
+        background-color: #fdf9f4;
+      }
+      .font-serif { font-family: 'Noto Serif', serif; }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(16px);
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #d5c3bb;
+        border-radius: 10px;
+      }
+      .radar-bg {
+        background-image: radial-gradient(circle, #83746d 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      .map-vignette {
+        box-shadow: inset 0 0 100px rgba(0,0,0,0.05);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="text-on-background selection:bg-secondary/20">
+<!-- NavigationDrawer -->
+<aside class="hidden md:flex h-screen w-64 fixed left-0 top-0 bg-[#fdf9f4] border-r border-[#341706]/15 flex-col p-6 z-50">
+<span class="font-['Noto_Serif'] text-xl mb-8 block text-[#341706]">Atelier Espresso</span>
+<nav class="space-y-2 flex-grow">
+<a class="flex items-center gap-3 px-4 py-3 text-[#341706]/70 font-['Manrope'] text-sm tracking-[0.05em] uppercase hover:text-[#341706] hover:bg-[#795900]/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> Dashboard
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#341706]/70 font-['Manrope'] text-sm tracking-[0.05em] uppercase hover:text-[#341706] hover:bg-[#795900]/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span> Inventory
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#341706] bg-[#795900]/10 font-bold border-r-2 border-[#795900] font-['Manrope'] text-sm tracking-[0.05em] uppercase transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span> Insights
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#341706]/70 font-['Manrope'] text-sm tracking-[0.05em] uppercase hover:text-[#341706] hover:bg-[#795900]/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span> Orders
+        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#341706]/70 font-['Manrope'] text-sm tracking-[0.05em] uppercase hover:text-[#341706] hover:bg-[#795900]/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span> Settings
+        </a>
+</nav>
+</aside>
+<!-- Main Canvas -->
+<main class="md:ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-8 h-20 w-full bg-[#fdf9f4] sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#341706]" data-icon="analytics">analytics</span>
+<h1 class="font-['Noto_Serif'] font-normal tracking-tight text-2xl text-[#341706]">Customer Insights</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/15 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a professional coffee roaster with a focused and artisan expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyp7AsxiHGoAwGmoqU-fSRAzhNYxLztr0WSYlEkYCd-5mc6ie1lDz-0MYak9IJQw1kphhNqdCpybCPMsoX6bQWruz6-22YUnYCYpQhM5cnxipDBEokKO7sGDRjbAEcY69dUtkKhWTTg28sfWXbxynIVuEO0uRPQKUjgBUFw6HTTWZcGCWtfqxilRis3NPRK8nq-0lgAYff0RDHy27JDmEnW9TUkNGjUqN1JhE4Y9YSSS-MlV4Ij2EbIvxr6bnmZ0B_oqx0QCi8DL5a"/>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto space-y-12">
+<!-- Key Insight Cards (Bento Grid Style) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-lowest p-8 rounded-lg group hover:shadow-xl transition-shadow duration-500 border-l-4 border-secondary">
+<p class="font-['Manrope'] text-xs tracking-widest uppercase text-on-surface-variant mb-4">Avg. Rating</p>
+<div class="flex items-end gap-2">
+<span class="font-['Noto_Serif'] text-5xl text-primary font-bold">4.8</span>
+<span class="text-secondary mb-1">
+<span class="material-symbols-outlined" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</span>
+</div>
+<p class="text-sm text-on-surface-variant/60 mt-4">+0.2 from last month</p>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-lg group hover:shadow-xl transition-shadow duration-500 border-l-4 border-secondary">
+<p class="font-['Manrope'] text-xs tracking-widest uppercase text-on-surface-variant mb-4">Top Preference</p>
+<span class="font-['Noto_Serif'] text-3xl text-primary block leading-tight">Fruity &amp; Bright</span>
+<div class="flex gap-1 mt-6">
+<div class="h-1 flex-grow bg-secondary rounded-full"></div>
+<div class="h-1 w-12 bg-outline-variant/30 rounded-full"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-lg group hover:shadow-xl transition-shadow duration-500 border-l-4 border-secondary">
+<p class="font-['Manrope'] text-xs tracking-widest uppercase text-on-surface-variant mb-4">Market Reach</p>
+<span class="font-['Noto_Serif'] text-5xl text-primary font-bold">12</span>
+<span class="font-['Manrope'] text-lg text-on-surface-variant ml-2">Cantons</span>
+<p class="text-sm text-on-surface-variant/60 mt-4">Expanding to Ticino next</p>
+</div>
+</section>
+<!-- Taste Trend Chart & Sommelier Advice Row -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+<!-- Taste Trend Visualization -->
+<div class="lg:col-span-2 bg-surface-container-low p-10 rounded-lg relative overflow-hidden flex flex-col justify-between">
+<div class="flex justify-between items-start mb-12 relative z-10">
+<div>
+<h2 class="font-['Noto_Serif'] text-3xl text-primary mb-2">The Palate Shift</h2>
+<p class="text-on-surface-variant text-sm tracking-wide">Evolution of curated taste profiles across active batches.</p>
+</div>
+<span class="material-symbols-outlined text-secondary opacity-50" data-icon="auto_graph">auto_graph</span>
+</div>
+<!-- Sophisticated Taste Sliders/Radar Hybrid -->
+<div class="space-y-12 relative z-10">
+<!-- Acidity -->
+<div class="group">
+<div class="flex justify-between items-baseline mb-3">
+<span class="font-['Noto_Serif'] text-lg text-primary italic">Acidity</span>
+<span class="text-xs tracking-[0.2em] uppercase text-on-surface-variant/70 font-semibold">82% Intensity preference</span>
+</div>
+<div class="relative h-1 w-full bg-outline-variant/20 rounded-full">
+<div class="absolute h-full bg-secondary rounded-full" style="width: 82%"></div>
+<div class="absolute top-1/2 left-[82%] -translate-y-1/2 w-4 h-4 rounded-full border-2 border-secondary bg-white shadow-sm ring-4 ring-secondary/10"></div>
+</div>
+<div class="flex justify-between mt-3 text-[10px] uppercase tracking-widest text-on-surface-variant/40">
+<span>Mellow</span>
+<span>Sparkling</span>
+</div>
+</div>
+<!-- Body -->
+<div class="group">
+<div class="flex justify-between items-baseline mb-3">
+<span class="font-['Noto_Serif'] text-lg text-primary italic">Body</span>
+<span class="text-xs tracking-[0.2em] uppercase text-on-surface-variant/70 font-semibold">45% Mouthfeel preference</span>
+</div>
+<div class="relative h-1 w-full bg-outline-variant/20 rounded-full">
+<div class="absolute h-full bg-secondary rounded-full" style="width: 45%"></div>
+<div class="absolute top-1/2 left-[45%] -translate-y-1/2 w-4 h-4 rounded-full border-2 border-secondary bg-white shadow-sm ring-4 ring-secondary/10"></div>
+</div>
+<div class="flex justify-between mt-3 text-[10px] uppercase tracking-widest text-on-surface-variant/40">
+<span>Tea-like</span>
+<span>Full-bodied</span>
+</div>
+</div>
+<!-- Roast -->
+<div class="group">
+<div class="flex justify-between items-baseline mb-3">
+<span class="font-['Noto_Serif'] text-lg text-primary italic">Roast Profile</span>
+<span class="text-xs tracking-[0.2em] uppercase text-on-surface-variant/70 font-semibold">68% Lighter leaning</span>
+</div>
+<div class="relative h-1 w-full bg-outline-variant/20 rounded-full">
+<div class="absolute h-full bg-secondary rounded-full" style="width: 68%"></div>
+<div class="absolute top-1/2 left-[68%] -translate-y-1/2 w-4 h-4 rounded-full border-2 border-secondary bg-white shadow-sm ring-4 ring-secondary/10"></div>
+</div>
+<div class="flex justify-between mt-3 text-[10px] uppercase tracking-widest text-on-surface-variant/40">
+<span>Nordic</span>
+<span>Medium-Dark</span>
+</div>
+</div>
+</div>
+<!-- Artistic background decoration -->
+<div class="absolute -bottom-10 -right-10 w-64 h-64 border border-secondary/10 rounded-full"></div>
+<div class="absolute -bottom-20 -right-20 w-80 h-80 border border-secondary/5 rounded-full"></div>
+</div>
+<!-- Sommelier Advice Box -->
+<div class="bg-primary-container p-8 rounded-lg text-on-primary shadow-2xl relative overflow-hidden flex flex-col justify-between border border-secondary/20">
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-secondary/10 rounded-full blur-3xl"></div>
+<div class="relative">
+<span class="material-symbols-outlined text-secondary mb-6 block text-4xl" data-icon="auto_awesome">auto_awesome</span>
+<h3 class="font-['Manrope'] text-xs tracking-[0.3em] uppercase font-bold text-secondary mb-8 border-b border-secondary/20 pb-4">Roastmaster Intelligence</h3>
+<p class="font-['Noto_Serif'] italic text-xl leading-relaxed text-surface/90">
+                        "Consider a lighter roast for your next Ethiopian batch to highlight the jasmine notes preferred by your Zurich audience. Sentiment data suggests a growing fatigue with medium-dark profiles in urban centers."
+                    </p>
+</div>
+<div class="pt-8 mt-8">
+<p class="text-[10px] tracking-[0.3em] uppercase opacity-40">AI Engine Analysis v4.2 • Zurich Region Focus</p>
+</div>
+</div>
+</section>
+<!-- Batch Sentiment & Geographical Reach -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Refined Batch Sentiment Gallery -->
+<div class="bg-surface-container-lowest rounded-lg p-10">
+<div class="flex justify-between items-baseline mb-10">
+<h2 class="font-['Noto_Serif'] text-2xl text-primary">Current Sentiment</h2>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant/60">Updated Live</span>
+</div>
+<div class="space-y-12">
+<!-- Batch Item: Curated High-End Style -->
+<div class="flex flex-col sm:flex-row gap-8 items-start group">
+<div class="relative flex-shrink-0">
+<div class="w-24 h-32 bg-surface-container rounded-sm overflow-hidden shadow-sm group-hover:shadow-lg transition-all duration-500">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100" data-alt="Close up of coffee beans in a bag with elegant minimalist label" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNx1dnq6UpgJn0bRsoXplEW8iRHgkwDJ1MmT2pjQcAmx6IMbnIFITq-SYpHZjk4CmnqRCTzi2wbWf1x--V53f6ntTjT2gRpMkLvbI8MR-bf4PW1kGcZdNwy-_LeyNZeLJl_BoIIyWe3zCpoHTv0_nU0qe9SwnE2SG5_Dfb4_0SX5c3JOaOasf9J9x13Qfj943-naB5OofBIS_P7C5hsvDmGnZiZpcLLWXfomeRdnlVnj6dKMj0zTaGh4s2Q1o4LB1FPW2eSjeSDPvA"/>
+</div>
+</div>
+<div class="flex-grow pt-1">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-['Noto_Serif'] text-lg text-primary font-bold">Yirgacheffe G1 <span class="text-secondary/60">#042</span></h4>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/40 mt-1">Single Origin · Washed</p>
+</div>
+<div class="flex items-center text-secondary border border-secondary/20 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold ml-1">4.9</span>
+</div>
+</div>
+<blockquote class="text-on-surface-variant italic text-sm leading-relaxed border-l-2 border-outline-variant/10 pl-4">
+                                "The jasmine perfume is intoxicating. A masterclass in acidity balance that defines our morning ritual."
+                            </blockquote>
+<div class="mt-4 flex justify-between items-center text-[10px] uppercase tracking-tighter text-on-surface-variant/40">
+<span>12 Verified Reviews</span>
+<span>Zurich · Seefeld</span>
+</div>
+</div>
+</div>
+<!-- Batch Item 2 -->
+<div class="flex flex-col sm:flex-row gap-8 items-start group">
+<div class="relative flex-shrink-0">
+<div class="w-24 h-32 bg-surface-container rounded-sm overflow-hidden shadow-sm group-hover:shadow-lg transition-all duration-500">
+<img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100" data-alt="Artisanal coffee packaging on a textured almond background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBq2ncAxfVT7Ik0tUBMAH1o-QGiyLaNCjX3-Jg-ul__VJx75Vj8dRo88JdxIo5hwoi0Ewtc8IozKZ3l7jmd12HSa6hzjvHDuH_THtJLu6RCSHXLbmcHaeTl_S_b8X29VrHf_sKsypxOwCdHDwtaFkLcE3Mv6hRmGH_jp47On62N3DdBExuXdPHvd9dL2aWBm0wmevgcw-j5uoetgIewzxZI-TOfccORTI8Zzy759kJSC6kRe_eZeH88xaNpwuAZJC40BH6QSOEgEg2x"/>
+</div>
+</div>
+<div class="flex-grow pt-1">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-['Noto_Serif'] text-lg text-primary font-bold">Sidamo Reserve <span class="text-secondary/60">#038</span></h4>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/40 mt-1">Limited Harvest · Natural</p>
+</div>
+<div class="flex items-center text-secondary border border-secondary/20 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold ml-1">4.6</span>
+</div>
+</div>
+<blockquote class="text-on-surface-variant italic text-sm leading-relaxed border-l-2 border-outline-variant/10 pl-4">
+                                "Earthier than expected but with a remarkably clean finish. Preferred by our darker-roast clientele."
+                            </blockquote>
+<div class="mt-4 flex justify-between items-center text-[10px] uppercase tracking-tighter text-on-surface-variant/40">
+<span>8 Verified Reviews</span>
+<span>Basel · Altstadt</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Editorial Geographical Reach Map -->
+<div class="bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col border border-outline-variant/10">
+<div class="p-10 pb-6 relative z-10">
+<h2 class="font-['Noto_Serif'] text-2xl text-primary mb-2">Regional Affinities</h2>
+<p class="text-sm text-on-surface-variant/70 italic">Charting our cultural footprint across the Swiss cantons.</p>
+</div>
+<div class="relative flex-grow min-h-[400px] map-vignette">
+<div class="absolute inset-0 bg-[#e6e2dd] overflow-hidden">
+<!-- More editorial abstract map -->
+<img class="w-full h-full object-cover opacity-60 mix-blend-multiply transition-transform duration-[20s] hover:scale-110 ease-out" data-alt="Minimalist abstract topographical map of Switzerland with soft beige tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg_q4DEBRX9ZjZI79iH-7fLdWqak2bIT0ROVkk-0eBHYCPGM_Valh_VWUr1ui3iHVmr-HvtzLLPcRAuH7egcS-pciwiLzAqkKbjF_3GvCyPv79BpNC16IcVI61d4IAewtnXeYpNGNy0KF2HnkfFs3A7HHKjswU40EX5QGcBryWaj6DTgSCU5ZKbsuJpJtkUpJL7YIfUp4yWNyA0GrX4UP2OvmmFFmFWszzFq77_yQDax_uQskc383S2OnFWHgFuDK9uX_8APih8q_J"/>
+<!-- Map Marker - Zurich -->
+<div class="absolute top-[30%] left-[65%] group">
+<div class="w-4 h-4 bg-secondary rounded-full animate-ping absolute opacity-40"></div>
+<div class="w-4 h-4 bg-secondary rounded-full relative z-10 border-2 border-white shadow-lg"></div>
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<div class="glass-card px-3 py-1 rounded shadow-xl whitespace-nowrap border border-white/50">
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">Zurich Hub</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Editorial Data Overlay -->
+<div class="absolute inset-0 p-8 flex flex-col justify-end bg-gradient-to-t from-surface-container-lowest/90 via-transparent to-transparent">
+<div class="grid grid-cols-3 gap-6">
+<div class="text-center group">
+<p class="text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface-variant/40 mb-1 group-hover:text-secondary transition-colors">Zurich</p>
+<p class="font-['Noto_Serif'] text-3xl font-light text-primary">42<span class="text-lg opacity-50">%</span></p>
+<div class="h-[1px] w-8 bg-secondary/30 mx-auto mt-2"></div>
+</div>
+<div class="text-center group">
+<p class="text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface-variant/40 mb-1 group-hover:text-secondary transition-colors">Geneva</p>
+<p class="font-['Noto_Serif'] text-3xl font-light text-primary">28<span class="text-lg opacity-50">%</span></p>
+<div class="h-[1px] w-8 bg-secondary/30 mx-auto mt-2"></div>
+</div>
+<div class="text-center group">
+<p class="text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface-variant/40 mb-1 group-hover:text-secondary transition-colors">Basel</p>
+<p class="font-['Noto_Serif'] text-3xl font-light text-primary">15<span class="text-lg opacity-50">%</span></p>
+<div class="h-[1px] w-8 bg-secondary/30 mx-auto mt-2"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer / Space for breathing -->
+<footer class="h-32 border-t border-outline-variant/10 mt-12 flex items-center justify-center">
+<p class="text-[10px] uppercase tracking-[0.4em] text-on-surface-variant/30">Atelier Espresso Analytics Dashboard</p>
+</footer>
+</main>
+<!-- Mobile Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface h-16 flex items-center justify-around border-t border-outline-variant/10 z-50">
+<button class="text-primary/40 flex flex-col items-center">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+</button>
+<button class="text-primary/40 flex flex-col items-center">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+</button>
+<button class="text-primary flex flex-col items-center">
+<span class="material-symbols-outlined" data-icon="insights" style="font-variation-settings: 'FILL' 1;">insights</span>
+</button>
+<button class="text-primary/40 flex flex-col items-center">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+</button>
+<button class="text-primary/40 flex flex-col items-center">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</nav>
+</body></html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#715300",
+                    "primary": "#341706",
+                    "surface-variant": "#e6e2dd",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-secondary-fixed": "#261a00",
+                    "on-secondary": "#ffffff",
+                    "outline": "#83746d",
+                    "surface-container-highest": "#e6e2dd",
+                    "surface-container-high": "#ebe8e3",
+                    "surface-container": "#f1ede8",
+                    "surface-bright": "#fdf9f4",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#453100",
+                    "surface-container-low": "#f7f3ee",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#51443e",
+                    "on-tertiary-container": "#c79501",
+                    "surface": "#fdf9f4",
+                    "background": "#fdf9f4",
+                    "primary-fixed-dim": "#f0bba0",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "surface-dim": "#ddd9d5",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#ffdfa0",
+                    "surface-tint": "#7d553f",
+                    "tertiary-fixed": "#ffdfa0",
+                    "on-background": "#1c1c19",
+                    "primary-container": "#4d2c19",
+                    "secondary": "#795900",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "primary-fixed": "#ffdbca",
+                    "on-primary-container": "#c29279",
+                    "inverse-primary": "#f0bba0",
+                    "inverse-on-surface": "#f4f0eb",
+                    "tertiary": "#2a1d00",
+                    "on-error-container": "#93000a",
+                    "error": "#ba1a1a",
+                    "on-surface": "#1c1c19",
+                    "outline-variant": "#d5c3bb",
+                    "inverse-surface": "#31302d",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "on-error": "#ffffff",
+                    "on-primary-fixed": "#301404",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "secondary-container": "#ffc641"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        .font-serif { font-family: 'Noto Serif', serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-secondary/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 h-16 bg-[#fdf9f4] dark:bg-[#1a0b03] shadow-sm dark:shadow-none">
+<div class="text-xl font-bold text-[#341706] dark:text-[#fdf9f4] uppercase tracking-widest font-['Noto_Serif']">
+            The Digital Sommelier
+        </div>
+<div class="flex items-center space-x-6">
+<div class="hidden md:flex space-x-8 text-sm font-['Noto_Serif'] tracking-tight">
+<a class="text-[#4d2c19]/70 hover:text-[#795900] transition-colors duration-300" href="#">Marketplace</a>
+<a class="text-[#341706] border-b-2 border-[#795900]" href="#">Revenue</a>
+<a class="text-[#4d2c19]/70 hover:text-[#795900] transition-colors duration-300" href="#">Insights</a>
+</div>
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-primary cursor-pointer active:opacity-70" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-primary cursor-pointer active:opacity-70" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col h-screen pt-20 pb-8 px-4 w-64 fixed left-0 top-0 bg-[#fdf9f4] dark:bg-[#1a0b03] border-r border-transparent z-40">
+<div class="mb-8 px-4">
+<h2 class="text-lg font-serif text-[#341706]">Artisan Roastery</h2>
+<p class="text-xs text-[#4d2c19]/60 tracking-[0.05em] uppercase">Premium Tier</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#4d2c19]/60 hover:bg-[#f5f0e8] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-sm tracking-[0.05em]">Dashboard</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#4d2c19]/60 hover:bg-[#f5f0e8] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="precision_manufacturing">precision_manufacturing</span>
+<span class="text-sm tracking-[0.05em]">Production</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#4d2c19]/60 hover:bg-[#f5f0e8] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="text-sm tracking-[0.05em]">Shipping</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#341706] font-bold bg-[#f5f0e8]" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-sm tracking-[0.05em]">Revenue</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#4d2c19]/60 hover:bg-[#f5f0e8] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="timeline">timeline</span>
+<span class="text-sm tracking-[0.05em]">Forecast</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#4d2c19]/60 hover:bg-[#f5f0e8] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-sm tracking-[0.05em]">Insights</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/15 pt-4 space-y-1">
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#4d2c19]/60 hover:bg-[#f5f0e8] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="text-sm tracking-[0.05em]">Support</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-3 rounded-lg text-[#4d2c19]/60 hover:bg-[#f5f0e8] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-sm tracking-[0.05em]">Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="lg:ml-64 pt-24 pb-12 px-8 min-h-screen">
+<!-- Header & Actions -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+<div class="max-w-2xl">
+<h1 class="text-4xl font-serif text-primary tracking-tight mb-2">Revenue Analytics</h1>
+<p class="text-on-surface-variant font-body leading-relaxed">
+                    A comprehensive financial overview of your roastery's performance across all digital channels. 
+                    Curated insights for the month of October.
+                </p>
+</div>
+<div class="flex items-center space-x-4">
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-lg border border-outline-variant/15">
+<span class="material-symbols-outlined text-sm mr-2" data-icon="calendar_today">calendar_today</span>
+<span class="text-sm font-label tracking-wider">Oct 01 - Oct 31, 2023</span>
+</div>
+<button class="flex items-center bg-primary text-on-primary px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm mr-2" data-icon="file_download">file_download</span>
+<span class="text-sm font-label tracking-wider">Export Data</span>
+</button>
+</div>
+</header>
+<!-- KPI Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<!-- AOV -->
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_32px_64px_-12px_rgba(52,23,6,0.04)] flex flex-col justify-between group">
+<div>
+<span class="text-xs font-label tracking-[0.1em] text-on-surface-variant uppercase mb-4 block">Average Order Value</span>
+<div class="flex items-baseline space-x-2">
+<h2 class="text-3xl font-serif text-primary">$42.80</h2>
+<span class="text-sm text-secondary font-medium">+12.4%</span>
+</div>
+</div>
+<div class="mt-6 h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4 transition-all duration-1000"></div>
+</div>
+</div>
+<!-- LTV -->
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_32px_64px_-12px_rgba(52,23,6,0.04)] flex flex-col justify-between">
+<div>
+<span class="text-xs font-label tracking-[0.1em] text-on-surface-variant uppercase mb-4 block">Customer Lifetime Value</span>
+<div class="flex items-baseline space-x-2">
+<h2 class="text-3xl font-serif text-primary">$315.20</h2>
+<span class="text-sm text-secondary font-medium">+5.2%</span>
+</div>
+</div>
+<div class="mt-6 flex space-x-1 items-end h-8">
+<div class="w-2 bg-primary/10 h-3 rounded-t-sm"></div>
+<div class="w-2 bg-primary/20 h-5 rounded-t-sm"></div>
+<div class="w-2 bg-primary/30 h-4 rounded-t-sm"></div>
+<div class="w-2 bg-primary/40 h-6 rounded-t-sm"></div>
+<div class="w-2 bg-primary/60 h-8 rounded-t-sm"></div>
+</div>
+</div>
+<!-- Top SKU -->
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_32px_64px_-12px_rgba(52,23,6,0.04)] flex items-center space-x-6 relative overflow-hidden">
+<div class="z-10 flex-1">
+<span class="text-xs font-label tracking-[0.1em] text-on-surface-variant uppercase mb-4 block">Top Selling SKU</span>
+<h2 class="text-xl font-serif text-primary mb-1">Ethiopian Yirgacheffe</h2>
+<p class="text-sm text-on-surface-variant font-label italic">Washed Process, Light Roast</p>
+</div>
+<div class="w-24 h-24 rounded-lg bg-surface-container rotate-6 overflow-hidden flex-shrink-0 border border-outline-variant/15">
+<img class="w-full h-full object-cover grayscale-[0.3]" data-alt="Close-up of roasted coffee beans in a premium matte ceramic bowl with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0kJJ941cGNB8EMYUYgRFv35pGjrEKZmBMP979drXPIMoGHmlABtOsZ7xj261G0CZFHdMjSJK09dzGpilBw4divkSL4ZiMibZdb2JuPDdmwKRs2Kz3Hm7BqVZtIKU6d3C4kcCTRGVRSl10wFAntlVab8FfvpEBEKlucyHq_z__Zq-euho1epWPa9uf-Cnn7f5jXLsoN-FD4Q8jJPcxn4qy0yWVmr2p0B6GiWeKvi9G74ehWq4Ic5uyQlHqnM0D6CcjYXnjPj5YlczP"/>
+</div>
+</div>
+</section>
+<!-- Charts Layout (Asymmetric) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Marketplace Revenue (Primary Focus) -->
+<div class="lg:col-span-8 bg-surface-container-lowest p-8 rounded-lg shadow-[0_32px_64px_-12px_rgba(52,23,6,0.04)]">
+<div class="flex justify-between items-center mb-10">
+<div>
+<h3 class="text-xl font-serif text-primary">Marketplace Revenue</h3>
+<p class="text-xs font-label text-on-surface-variant tracking-wider uppercase mt-1">Direct to Consumer Performance</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-serif text-primary">$84,200</span>
+<p class="text-xs text-secondary font-medium mt-1">Target: $80,000</p>
+</div>
+</div>
+<!-- Custom SVG Chart Visualization -->
+<div class="relative h-64 w-full mt-8">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none">
+<defs>
+<lineargradient id="chartGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#341706;stop-opacity:0.1"></stop>
+<stop offset="100%" style="stop-color:#341706;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<line stroke="#d5c3bb" stroke-opacity="0.2" stroke-width="1" x1="0" x2="100%" y1="0" y2="0"></line>
+<line stroke="#d5c3bb" stroke-opacity="0.2" stroke-width="1" x1="0" x2="100%" y1="33%" y2="33%"></line>
+<line stroke="#d5c3bb" stroke-opacity="0.2" stroke-width="1" x1="0" x2="100%" y1="66%" y2="66%"></line>
+<line stroke="#d5c3bb" stroke-opacity="0.2" stroke-width="1" x1="0" x2="100%" y1="100%" y2="100%"></line>
+<!-- Area -->
+<path class="w-full" d="M0,60 Q100,50 200,80 T400,40 T600,60 T800,20 T1000,50 L1000,256 L0,256 Z" fill="url(#chartGradient)"></path>
+<!-- Line -->
+<path d="M0,60 Q100,50 200,80 T400,40 T600,60 T800,20 T1000,50" fill="none" stroke="#341706" stroke-width="2.5" vector-effect="non-scaling-stroke"></path>
+</svg>
+<div class="absolute bottom-0 w-full flex justify-between pt-4 text-[10px] font-label text-on-surface-variant uppercase tracking-widest">
+<span>Week 1</span>
+<span>Week 2</span>
+<span>Week 3</span>
+<span>Week 4</span>
+</div>
+</div>
+</div>
+<!-- Quiz Revenue (Secondary Focus) -->
+<div class="lg:col-span-4 flex flex-col gap-8">
+<div class="bg-surface-container-low p-8 rounded-lg flex-1 border border-outline-variant/15">
+<h3 class="text-lg font-serif text-primary mb-1">Quiz Revenue</h3>
+<p class="text-xs font-label text-on-surface-variant tracking-wider uppercase mb-6">Guided Selection Growth</p>
+<div class="text-3xl font-serif text-primary mb-8">$12,450</div>
+<div class="flex items-end space-x-3 h-24">
+<div class="w-full bg-secondary/20 h-[30%] rounded-sm"></div>
+<div class="w-full bg-secondary/40 h-[45%] rounded-sm"></div>
+<div class="w-full bg-secondary/60 h-[70%] rounded-sm"></div>
+<div class="w-full bg-secondary h-[90%] rounded-sm"></div>
+<div class="w-full bg-secondary/30 h-[55%] rounded-sm"></div>
+</div>
+</div>
+<!-- Subscription Revenue -->
+<div class="bg-primary text-on-primary p-8 rounded-lg flex-1 shadow-xl">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-serif text-surface">Subscription</h3>
+<p class="text-[10px] font-label text-primary-fixed-dim tracking-[0.15em] uppercase mt-1">Recurring Value</p>
+</div>
+<span class="material-symbols-outlined text-secondary" data-icon="autorenew">autorenew</span>
+</div>
+<div class="text-3xl font-serif mb-2">$48,900</div>
+<div class="flex items-center text-xs font-label tracking-wide text-primary-fixed-dim">
+<span class="material-symbols-outlined text-sm mr-1" data-icon="trending_up">trending_up</span>
+                        240 Active Members
+                    </div>
+<!-- Mini visual -->
+<div class="mt-8 flex gap-1">
+<div class="h-1 flex-1 bg-on-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-2/3"></div>
+</div>
+<div class="h-1 flex-1 bg-on-primary/10 rounded-full"></div>
+<div class="h-1 flex-1 bg-on-primary/10 rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Contextual Detail: Regional Distribution -->
+<section class="mt-12">
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-[0_32px_64px_-12px_rgba(52,23,6,0.04)] overflow-hidden">
+<div class="flex flex-col md:flex-row gap-12 items-center">
+<div class="flex-1 w-full">
+<h3 class="text-2xl font-serif text-primary mb-2">Regional Distribution</h3>
+<p class="text-on-surface-variant font-body mb-8">Concentration of high-value wholesale accounts across North America.</p>
+<div class="space-y-6">
+<div class="flex justify-between items-center text-sm border-b border-outline-variant/10 pb-3">
+<span class="font-label tracking-wide">California, USA</span>
+<span class="font-serif">$32,100</span>
+</div>
+<div class="flex justify-between items-center text-sm border-b border-outline-variant/10 pb-3">
+<span class="font-label tracking-wide">New York, USA</span>
+<span class="font-serif">$28,450</span>
+</div>
+<div class="flex justify-between items-center text-sm border-b border-outline-variant/10 pb-3">
+<span class="font-label tracking-wide">Ontario, CA</span>
+<span class="font-serif">$15,200</span>
+</div>
+</div>
+</div>
+<div class="w-full md:w-[400px] h-[300px] rounded-lg overflow-hidden bg-surface-container border border-outline-variant/15 relative">
+<img class="w-full h-full object-cover opacity-60 grayscale" data-alt="Minimalist monochromatic world map print on fine textured paper with warm studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdEGeqr9GYAjtl_5xnvk1b9ScU9hM9cAyknnfWbn_eeg6XX9Caqiejn2PbWszHHZxyZZFC6lk1twJ1Fa_ZhYPrKMpXiHGwYoZuri2dwIws4_0ACju2L5-xYqToRjm-ZGnfeYWvhuPWMOoPuZzBIzJv77k8AyOCR2iB0FPMd5iZd3lBmtb0OaxZhWmERxFZKYTcRUIRS3IVpA90ouZ11HfTgQvCrWHocYckCs_vte4hEhTz-Y6BceKZwWch8wKSbnTE2Bq5R_AnqWbf"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+<!-- Decorative Map Markers -->
+<div class="absolute top-1/4 left-1/4 w-3 h-3 bg-secondary rounded-full shadow-[0_0_10px_rgba(121,89,0,0.5)]"></div>
+<div class="absolute top-1/3 left-1/2 w-2 h-2 bg-secondary rounded-full opacity-60"></div>
+<div class="absolute top-1/2 left-1/3 w-2 h-2 bg-secondary rounded-full opacity-60"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Contextual FAB -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="flex items-center space-x-3 bg-primary-container text-on-primary-container px-6 py-4 rounded-full shadow-2xl hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="coffee_maker">coffee_maker</span>
+<span class="font-label tracking-widest text-sm uppercase font-bold">New Batch</span>
+</button>
+</div>
+</body></html>

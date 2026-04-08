@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Digital Sommelier | User Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#f1ede8",
+                    "inverse-surface": "#31302d",
+                    "secondary": "#795900",
+                    "outline": "#83746d",
+                    "on-surface": "#1c1c19",
+                    "on-primary-fixed": "#301404",
+                    "on-primary-container": "#c29279",
+                    "secondary-fixed-dim": "#f6be39",
+                    "primary-fixed": "#ffdbca",
+                    "on-secondary-fixed": "#261a00",
+                    "surface-dim": "#ddd9d5",
+                    "primary-fixed-dim": "#f0bba0",
+                    "tertiary-fixed": "#ffdfa0",
+                    "surface-bright": "#fdf9f4",
+                    "on-tertiary-fixed": "#261a00",
+                    "background": "#fdf9f4",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "on-secondary-container": "#715300",
+                    "surface-container-high": "#ebe8e3",
+                    "on-background": "#341706",
+                    "on-tertiary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "tertiary": "#2a1d00",
+                    "on-tertiary-container": "#c79501",
+                    "primary": "#341706",
+                    "error-container": "#ffdad6",
+                    "secondary-container": "#ffc641",
+                    "surface-variant": "#e6e2dd",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "tertiary-container": "#453100",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#d5c3bb",
+                    "surface-container-low": "#f7f3ee",
+                    "surface-tint": "#4D2C19",
+                    "primary-container": "#4D2C19",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "inverse-on-surface": "#f4f0eb",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#f0bba0",
+                    "surface": "#fdf9f4",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-surface-variant": "#51443e",
+                    "secondary-fixed": "#ffdfa0",
+                    "surface-container-highest": "#e6e2dd",
+                    "on-secondary-fixed-variant": "#5c4300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif", "serif"],
+                    "body": ["Montserrat", "sans-serif"],
+                    "label": ["Montserrat", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            line-height: 1.8;
+            background-color: #fdf9f4;
+        }
+        .font-serif, h1, h2, h3, h4 { 
+            font-family: 'Noto Serif', serif; 
+            letter-spacing: -0.01em;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-primary selection:bg-secondary/20 font-body">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-20 bg-background/90 backdrop-blur-xl border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer" data-icon="menu">menu</span>
+<h1 class="font-serif text-xl font-bold tracking-widest text-primary">Digital Sommelier</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-10 items-center">
+<a class="text-[11px] uppercase tracking-[0.2em] text-primary/60 hover:text-secondary transition-colors duration-300 font-semibold" href="#">Home</a>
+<a class="text-[11px] uppercase tracking-[0.2em] text-primary/60 hover:text-secondary transition-colors duration-300 font-semibold" href="#">Roasters</a>
+<a class="text-[11px] uppercase tracking-[0.2em] text-primary/60 hover:text-secondary transition-colors duration-300 font-semibold" href="#">Match</a>
+<a class="text-[11px] uppercase tracking-[0.2em] text-primary font-bold" href="#">Account</a>
+</nav>
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden ring-1 ring-outline-variant/20">
+<img alt="Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4BzcVQMBGFdTEyLfN4iyXSpU0TZ2uOsMcgjOJD7N6UZ17-_mcxqytG5MHMe-pS5_UmzXUFghjUHS9YDxrnrfQWYYsfvV4CS8Dxjsfgix4xcm0VJEy56s1l5mm7ix8Nyb8At-XzjYqr17vmMJ6SbQq_20J0p1Mntu063kNuyg14ASVfPrzc2lZykzGhT-6hWlX0wvG9u95ciBRvVF3iT2JGtyHuxR0cFiBPp1pqd7WmWvp2ung1sJVF59mn-lbdjuXRFS-qYMG5Jjm"/>
+</div>
+</div>
+</header>
+<main class="pt-32 pb-40 px-6 max-w-7xl mx-auto space-y-24">
+<!-- Header: Greeting -->
+<section>
+<h2 class="font-serif italic text-5xl text-primary mb-4 leading-tight">Grüezi, Marc</h2>
+<p class="text-on-surface-variant font-body tracking-[0.3em] uppercase text-[10px] font-bold">Your Personal Concierge Dashboard</p>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-12">
+<!-- Next Delivery Card -->
+<div class="md:col-span-8 bg-surface-container-lowest p-10 rounded-xl shadow-sm relative overflow-hidden border border-outline-variant/10">
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-16">
+<div>
+<span class="text-secondary font-label text-[10px] tracking-[0.3em] uppercase block mb-3 font-bold">Next Shipment</span>
+<h3 class="text-4xl font-serif text-primary">Arriving June 14</h3>
+</div>
+<div class="text-right">
+<span class="material-symbols-outlined text-secondary text-5xl font-light" data-icon="local_shipping">local_shipping</span>
+</div>
+</div>
+<div class="flex flex-col md:flex-row gap-12 items-center">
+<div class="w-40 h-52 bg-surface-container rounded-lg overflow-hidden shadow-sm flex-shrink-0">
+<img alt="Ethiopia Yirgacheffe" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNfebbup4LROqspcxgkAoc7A9JoyhZp8SWwyq-ps2qRLtPbuTX29xIzNcm9Wb5pAuo3WPA4q4-Xr6cd50ixm9GBD-5JttuWCIZlwXhbCuv_TdF8b6DosK7dSTFUh_qv1h99xbgfQcbH6CZrXYCJPYwyxBBWaxTtyx04t86PqDWXcStnLMRPUQsnpvlMFNl4h1sZhC_CVS-DSBhCV-o9qJs-y4kKN7TizUOcylHhwQdQWpd1tWXiyofiLGa3XBfSHiYUxuHOKdlOzZH"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-serif text-2xl text-primary mb-3">Ethiopia Yirgacheffe</h4>
+<p class="text-on-surface-variant text-base mb-8 leading-relaxed font-light tracking-wide">Floral notes of jasmine and bright bergamot citrus. Light roast from the Dumerso washing station.</p>
+<!-- Progress -->
+<div class="space-y-4">
+<div class="flex justify-between text-[10px] font-label uppercase tracking-[0.25em] text-on-surface-variant/60 font-bold">
+<span>Processing</span>
+<span class="text-secondary">In Transit</span>
+</div>
+<div class="h-[1px] w-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-secondary w-[65%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Subscription Care -->
+<div class="md:col-span-4 bg-primary text-surface-container p-10 rounded-xl shadow-lg flex flex-col justify-between h-full min-h-[400px]">
+<div>
+<h3 class="font-serif text-3xl mb-10 italic text-white leading-snug">Subscription Care</h3>
+<div class="space-y-4">
+<button class="w-full py-4 px-6 border border-white/20 rounded-lg text-[10px] font-label uppercase tracking-[0.25em] flex items-center justify-between hover:bg-white/10 transition-all font-semibold">
+                        Pause Delivery <span class="material-symbols-outlined text-sm" data-icon="pause_circle">pause_circle</span>
+</button>
+<button class="w-full py-4 px-6 border border-white/20 rounded-lg text-[10px] font-label uppercase tracking-[0.25em] flex items-center justify-between hover:bg-white/10 transition-all font-semibold">
+                        Skip Month <span class="material-symbols-outlined text-sm" data-icon="fast_forward">fast_forward</span>
+</button>
+<button class="w-full py-4 px-6 border border-white/20 rounded-lg text-[10px] font-label uppercase tracking-[0.25em] flex items-center justify-between hover:bg-white/10 transition-all font-semibold">
+                        Change Frequency <span class="material-symbols-outlined text-sm" data-icon="calendar_today">calendar_today</span>
+</button>
+</div>
+</div>
+<div class="mt-12 pt-8 border-t border-white/10">
+<p class="text-[10px] text-white/50 uppercase tracking-[0.2em] leading-relaxed font-light">Billing cycle resets in 12 days. Managed by concierge.</p>
+</div>
+</div>
+<!-- Taste Profile Summary -->
+<div class="md:col-span-6 bg-surface-container-low p-10 rounded-xl border border-outline-variant/10">
+<div class="flex justify-between items-center mb-12">
+<h3 class="font-serif text-2xl text-primary font-medium">Your Taste Profile</h3>
+<button class="text-[10px] font-label uppercase tracking-[0.25em] text-secondary font-bold border-b border-secondary/20 pb-1 hover:border-secondary transition-all">Retake Quiz</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-12">
+<div class="space-y-8">
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<label class="text-[10px] font-label uppercase tracking-[0.25em] text-on-surface-variant font-bold">Fruitiness</label>
+<span class="text-xs font-semibold text-primary">85%</span>
+</div>
+<div class="h-[1px] w-full bg-surface-container-highest">
+<div class="h-full bg-secondary w-[85%]"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<label class="text-[10px] font-label uppercase tracking-[0.25em] text-on-surface-variant font-bold">Body</label>
+<span class="text-xs font-semibold text-primary">40%</span>
+</div>
+<div class="h-[1px] w-full bg-surface-container-highest">
+<div class="h-full bg-secondary w-[40%]"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<label class="text-[10px] font-label uppercase tracking-[0.25em] text-on-surface-variant font-bold">Acidity</label>
+<span class="text-xs font-semibold text-primary">70%</span>
+</div>
+<div class="h-[1px] w-full bg-surface-container-highest">
+<div class="h-full bg-secondary w-[70%]"></div>
+</div>
+</div>
+</div>
+<div class="flex flex-col justify-center items-start sm:border-l sm:border-outline-variant/20 sm:pl-10 text-left">
+<p class="text-2xl italic font-serif text-primary mb-4 leading-snug">"The Vibrant Explorer"</p>
+<p class="text-[12px] leading-relaxed text-on-surface-variant/80 uppercase tracking-widest font-light">You prefer light, washed beans with high clarity and floral aromatic structures.</p>
+</div>
+</div>
+</div>
+<!-- Referral Status -->
+<div class="md:col-span-6 bg-surface-container-lowest p-10 rounded-xl shadow-sm border border-outline-variant/10">
+<div class="flex items-center gap-6 mb-10">
+<div class="w-14 h-14 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl font-light" data-icon="stars">stars</span>
+</div>
+<div>
+<h3 class="font-serif text-2xl text-primary font-medium">Referral Status</h3>
+<p class="text-[10px] font-label uppercase tracking-[0.3em] text-secondary font-bold">Prestige Member</p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-8">
+<div class="flex-grow w-full">
+<div class="flex gap-4 mb-8">
+<div class="h-14 w-full bg-secondary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl" data-icon="check">check</span>
+</div>
+<div class="h-14 w-full bg-secondary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl" data-icon="check">check</span>
+</div>
+<div class="h-14 w-full bg-surface-container rounded-lg border border-dashed border-outline-variant/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline/40 text-xl font-light" data-icon="person_add">person_add</span>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant font-light tracking-wide">Refer 1 more friend for your <span class="text-primary font-bold">Complimentary V60 Kit</span>.</p>
+</div>
+<button class="bg-[#341706] text-white text-[11px] font-label uppercase tracking-[0.3em] px-10 py-4 rounded-lg hover:bg-opacity-90 transition-all w-full sm:w-auto font-bold">Invite</button>
+</div>
+</div>
+<!-- History -->
+<div class="md:col-span-12 pt-12">
+<div class="flex justify-between items-end mb-12">
+<h3 class="font-serif text-3xl text-primary">Your History</h3>
+<a class="text-[10px] font-label uppercase tracking-[0.3em] text-on-surface-variant font-bold hover:text-secondary transition-colors" href="#">View All Archive</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+<!-- History Item 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl group transition-all duration-700 hover:shadow-xl border border-outline-variant/5">
+<div class="aspect-[4/5] bg-surface-container rounded-lg mb-6 overflow-hidden relative">
+<img alt="Panama Geisha" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATkYliu8QcJbhhVFG4h2g1WpFdcEI1EO3LPKVyHLPJN1L8pMKu-LgtUHrz8Svt_cOg_McdTLeaiWFYSrHsynO7XXbFCusSfT0CJVIFh3YHsVUo-7REjlrChcnF-ONmwqTafuakcwJJK-9cTubA8LJEfrbXvVugGHpUEFRNSsy8ee2HT4UZWvqpfBI3JPeCM56VKXC3GQK4Jupm-DnCCptknstvMSqZZl7qxesQRPW-VlK-4d0WCC1rH7UdqH_M0teuG5K-r4R5fSMF"/>
+<div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-[10px] font-bold text-secondary flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px] fill-1" data-icon="star">star</span> 4.9
+                        </div>
+</div>
+<h4 class="font-serif text-primary text-lg font-medium mb-1">Panama Geisha</h4>
+<p class="text-[10px] font-label uppercase tracking-[0.3em] text-on-surface-variant/60 font-bold">May Delivery</p>
+</div>
+<!-- History Item 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl group transition-all duration-700 hover:shadow-xl border border-outline-variant/5">
+<div class="aspect-[4/5] bg-surface-container rounded-lg mb-6 overflow-hidden relative">
+<img alt="Kenya AA Nyeri" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0S9PKsjWCKw8CVKx8G6u_3joovY44c3btVKDp4Wc2r2MKJgqRiiCvvKooPIjrt4udnwRR2LNfgVQrq32-qw3iJ_kLebo3o_-tRLvHsa-6DPNL4jCXpni_RkIJaF8mbgrSbJuziK2Jhk60A_v8l0LgR5rR86qNBtUy06DUx9DE6pfp8UgGRmMnWBVuRuRzUJkm3OkG4wKrirmnjwSFE6fcpt4Tv6OUlaEclGnl6hF-KM-8EDmh6K-z0uwcf4ERuCJB0Xv4giH4fCfv"/>
+<div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-[10px] font-bold text-secondary flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px] fill-1" data-icon="star">star</span> 4.2
+                        </div>
+</div>
+<h4 class="font-serif text-primary text-lg font-medium mb-1">Kenya AA Nyeri</h4>
+<p class="text-[10px] font-label uppercase tracking-[0.3em] text-on-surface-variant/60 font-bold">April Delivery</p>
+</div>
+<!-- History Item 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl group transition-all duration-700 hover:shadow-xl border border-outline-variant/5">
+<div class="aspect-[4/5] bg-surface-container rounded-lg mb-6 overflow-hidden relative">
+<img alt="Colombia Pink Bourbon" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEKlL3sg9T1DJpUm3Ngf2k3rJvALzwCjDb9gzWtmdv4rTfs51N5znqAXXaG3vuHrJr0HuSJax6Imz8YkzB8RFzRurf_mlHA7ZR_bj-xOHuHoqS0mNv4xfn3YoeRm8mKbjlEOdw5bOvkJXYFOm_fntvRhc3WyMD4dagsAqwbTh2paO4ly7iXeSkSJqECMRWo5MxSwyJQODKkLy244gVoxHhgR-eLODIYdkdntnUxxHE1tUcuPGyrCSzZwziCwEWEZDFiBCQsAAYpWe6"/>
+<div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-full text-[10px] font-bold text-secondary flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px] fill-1" data-icon="star">star</span> 4.5
+                        </div>
+</div>
+<h4 class="font-serif text-primary text-lg font-medium mb-1">Colombia Pink Bourbon</h4>
+<p class="text-[10px] font-label uppercase tracking-[0.3em] text-on-surface-variant/60 font-bold">March Delivery</p>
+</div>
+<!-- Quick Reorder / Rate Brews CTA -->
+<div class="border border-dashed border-secondary/30 p-8 rounded-xl flex flex-col items-center justify-center text-center group cursor-pointer bg-secondary/5 hover:bg-secondary/10 transition-all duration-500">
+<span class="material-symbols-outlined text-secondary text-4xl mb-6 group-hover:scale-110 transition-transform font-light" data-icon="star_rate">star_rate</span>
+<p class="text-[11px] font-label uppercase tracking-[0.3em] text-primary font-bold">Rate Recent Brews</p>
+<p class="text-[10px] text-on-surface-variant/70 mt-3 font-light tracking-widest">Unlock better matches</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-8 pt-4 bg-background/95 backdrop-blur-xl border-t border-outline-variant/10 shadow-[0_-4px_30px_rgba(52,23,6,0.06)]">
+<a class="flex flex-col items-center justify-center text-primary/40 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-sans tracking-[0.2em] text-[9px] uppercase font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary/40 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="local_cafe">local_cafe</span>
+<span class="font-sans tracking-[0.2em] text-[9px] uppercase font-bold">Roasters</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary/40 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="temp_preferences_custom">temp_preferences_custom</span>
+<span class="font-sans tracking-[0.2em] text-[9px] uppercase font-bold">Match</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-sans tracking-[0.2em] text-[9px] uppercase font-bold">Account</span>
+</a>
+</nav>
+</body></html>

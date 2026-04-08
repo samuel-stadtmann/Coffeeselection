@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shipping Details - The Digital Sommelier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#261a00",
+                    "surface-container": "#f1ede8",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-primary-container": "#c29279",
+                    "secondary-fixed": "#ffdfa0",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#51443e",
+                    "surface-container-high": "#ebe8e3",
+                    "primary-fixed-dim": "#f0bba0",
+                    "surface-tint": "#7d553f",
+                    "tertiary": "#2a1d00",
+                    "primary-fixed": "#ffdbca",
+                    "on-primary-fixed": "#301404",
+                    "on-surface": "#1c1c19",
+                    "secondary-container": "#ffc641",
+                    "tertiary-container": "#453100",
+                    "surface-bright": "#fdf9f4",
+                    "inverse-primary": "#f0bba0",
+                    "surface-container-low": "#f7f3ee",
+                    "primary-container": "#4d2c19",
+                    "inverse-on-surface": "#f4f0eb",
+                    "surface-container-highest": "#e6e2dd",
+                    "secondary": "#795900",
+                    "on-background": "#1c1c19",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "tertiary-fixed": "#ffdfa0",
+                    "on-tertiary-container": "#c79501",
+                    "on-error": "#ffffff",
+                    "surface-dim": "#ddd9d5",
+                    "on-secondary-container": "#715300",
+                    "outline-variant": "#d5c3bb",
+                    "inverse-surface": "#31302d",
+                    "surface": "#fdf9f4",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "outline": "#83746d",
+                    "surface-variant": "#e6e2dd",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "background": "#fdf9f4",
+                    "primary": "#341706",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        .font-serif { font-family: 'Noto Serif', serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fdf9f4] dark:bg-[#1a1614] flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4] cursor-pointer">arrow_back</span>
+</div>
+<div class="font-['Noto_Serif'] tracking-tight text-lg font-bold tracking-[0.2em] text-[#341706] dark:text-[#fdf9f4] uppercase">
+            THE DIGITAL SOMMELIER
+        </div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">shopping_bag</span>
+</div>
+</header>
+<main class="flex-grow pt-24 pb-32 px-6 max-w-lg mx-auto w-full">
+<!-- Progress Steps -->
+<div class="flex justify-between items-center mb-10 px-2">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs mb-2">1</div>
+<span class="text-[10px] uppercase tracking-widest opacity-60">Cart</span>
+</div>
+<div class="flex-grow h-[1px] bg-outline-variant/30 mx-4 mb-6"></div>
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full border border-primary text-primary flex items-center justify-center text-xs mb-2 bg-surface-container-lowest">2</div>
+<span class="text-[10px] uppercase tracking-widest font-bold">Shipping</span>
+</div>
+<div class="flex-grow h-[1px] bg-outline-variant/30 mx-4 mb-6"></div>
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full border border-outline-variant text-outline-variant flex items-center justify-center text-xs mb-2">3</div>
+<span class="text-[10px] uppercase tracking-widest opacity-60">Payment</span>
+</div>
+</div>
+<!-- Section Title -->
+<div class="mb-8">
+<h1 class="text-3xl font-serif tracking-tighter mb-2">Shipping Details</h1>
+<p class="text-sm text-on-surface-variant/80 font-light leading-relaxed">Where shall we send your curated selection?</p>
+</div>
+<!-- Address Form -->
+<form class="space-y-8">
+<div class="grid grid-cols-1 gap-6">
+<div class="relative group">
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary border-t-0 border-l-0 border-r-0 px-0 py-3 text-sm focus:ring-0 transition-colors placeholder:text-outline/50 uppercase tracking-widest" id="full_name" placeholder="Full Name" type="text"/>
+<label class="absolute -top-3 left-0 text-[10px] uppercase tracking-widest text-outline" for="full_name">Recipient</label>
+</div>
+<div class="relative group">
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary border-t-0 border-l-0 border-r-0 px-0 py-3 text-sm focus:ring-0 transition-colors placeholder:text-outline/50 uppercase tracking-widest" id="street" placeholder="Street &amp; Number" type="text"/>
+<label class="absolute -top-3 left-0 text-[10px] uppercase tracking-widest text-outline" for="street">Delivery Address</label>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="col-span-1 relative group">
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary border-t-0 border-l-0 border-r-0 px-0 py-3 text-sm focus:ring-0 transition-colors placeholder:text-outline/50 uppercase tracking-widest" id="zip" placeholder="Postcode" type="text"/>
+<label class="absolute -top-3 left-0 text-[10px] uppercase tracking-widest text-outline" for="zip">Zip</label>
+</div>
+<div class="col-span-2 relative group">
+<input class="w-full bg-transparent border-b border-outline-variant focus:border-primary border-t-0 border-l-0 border-r-0 px-0 py-3 text-sm focus:ring-0 transition-colors placeholder:text-outline/50 uppercase tracking-widest" id="city" placeholder="City" type="text"/>
+<label class="absolute -top-3 left-0 text-[10px] uppercase tracking-widest text-outline" for="city">City</label>
+</div>
+</div>
+<div class="relative group">
+<select class="w-full bg-transparent border-b border-outline-variant focus:border-primary border-t-0 border-l-0 border-r-0 px-0 py-3 text-sm focus:ring-0 transition-colors appearance-none uppercase tracking-widest" id="country">
+<option>Switzerland</option>
+<option>Liechtenstein</option>
+<option>Austria</option>
+<option>Germany</option>
+</select>
+<label class="absolute -top-3 left-0 text-[10px] uppercase tracking-widest text-outline" for="country">Region</label>
+<span class="material-symbols-outlined absolute right-0 bottom-3 pointer-events-none text-outline text-sm">expand_more</span>
+</div>
+</div>
+<!-- Shipping Methods -->
+<div class="pt-8">
+<h3 class="text-xs uppercase tracking-[0.2em] font-bold text-primary mb-6">Delivery Method</h3>
+<div class="space-y-4">
+<!-- Swiss Post Option -->
+<label class="block relative cursor-pointer">
+<input checked="" class="sr-only peer" name="shipping_method" type="radio"/>
+<div class="p-5 bg-surface-container-lowest rounded-lg border border-transparent peer-checked:border-secondary transition-all flex items-center justify-between shadow-sm">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-surface-container flex items-center justify-center rounded-lg overflow-hidden">
+<img alt="Switzerland" class="w-6 opacity-80" data-alt="Small national flag of Switzerland with a red square and white cross, subtle fabric texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0ttGY--DHfEwZj4WqhVaK_Xw9SKs06iIaK9novT4ppjItVnWWYmV8-MS-R2o3PGQdp-H_SKAvHvxEhB-2HgahrIu1KNtA028V_0ExLr7aItYpleGp1BWv2Ylsg-U7z0yLdo40kM8Av1YLoSK7DFIPCkJom2FqQLXRXDtFPBorfO9SJPMjJxFNsKY5hp2AC3YOFTxHlgGMxfiEOFcZSwbtrXCRiKw_Q67g3aSLmBgH651tynOmsLgyQhIK9k63i2-ZhNo6r_qICdC1"/>
+</div>
+<div>
+<p class="text-sm font-bold tracking-tight">Swiss Post Economy</p>
+<p class="text-[10px] text-on-surface-variant/70 uppercase tracking-widest">2-3 Business Days</p>
+</div>
+</div>
+<div class="text-sm font-serif font-bold text-secondary">CHF 0.00</div>
+</div>
+<div class="absolute top-4 right-4 opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</label>
+<!-- Priority Option -->
+<label class="block relative cursor-pointer">
+<input class="sr-only peer" name="shipping_method" type="radio"/>
+<div class="p-5 bg-surface-container-low rounded-lg border border-transparent peer-checked:border-secondary transition-all flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-surface-container-highest flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-primary/40">bolt</span>
+</div>
+<div>
+<p class="text-sm font-medium tracking-tight">Swiss Post Priority</p>
+<p class="text-[10px] text-on-surface-variant/70 uppercase tracking-widest">Next Business Day</p>
+</div>
+</div>
+<div class="text-sm font-serif font-bold text-on-surface-variant/80">CHF 9.00</div>
+</div>
+<div class="absolute top-4 right-4 opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-secondary text-base" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</label>
+</div>
+</div>
+</form>
+<!-- Order Summary Preview (Mobile) -->
+<div class="mt-12 p-6 bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm">
+<div class="flex justify-between items-center mb-4">
+<span class="text-xs uppercase tracking-widest text-outline">Subtotal (3 items)</span>
+<span class="text-sm font-serif">CHF 124.00</span>
+</div>
+<div class="flex justify-between items-center mb-4">
+<span class="text-xs uppercase tracking-widest text-outline">Shipping</span>
+<span class="text-sm text-secondary font-bold uppercase tracking-widest">Free</span>
+</div>
+<div class="h-[1px] bg-outline-variant/10 my-4"></div>
+<div class="flex justify-between items-center">
+<span class="text-sm uppercase tracking-widest font-bold">Total</span>
+<span class="text-xl font-serif font-bold">CHF 124.00</span>
+</div>
+</div>
+</main>
+<!-- Sticky Bottom CTA -->
+<div class="fixed bottom-0 left-0 w-full p-6 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/5 z-50">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary py-4 rounded-lg flex items-center justify-center space-x-3 active:scale-[0.98] transition-transform shadow-lg">
+<span class="text-xs uppercase tracking-[0.2em] font-bold">Continue to Payment</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+<div class="mt-4 flex items-center justify-center space-x-2 text-[10px] text-outline uppercase tracking-widest">
+<span class="material-symbols-outlined text-xs">verified_user</span>
+<span>Secure Swiss Checkout</span>
+</div>
+</div>
+</body></html>

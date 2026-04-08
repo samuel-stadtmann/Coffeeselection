@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#fdf9f4",
+                        "on-primary": "#ffffff",
+                        "surface-container": "#f1ede8",
+                        "tertiary-container": "#453100",
+                        "secondary-fixed-dim": "#f6be39",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#51443e",
+                        "surface-container-low": "#f7f3ee",
+                        "on-tertiary-container": "#c79501",
+                        "surface": "#fdf9f4",
+                        "primary-fixed-dim": "#f0bba0",
+                        "background": "#fdf9f4",
+                        "on-primary-fixed-variant": "#623e2a",
+                        "on-secondary-container": "#715300",
+                        "primary": "#341706",
+                        "on-tertiary-fixed": "#261a00",
+                        "on-secondary-fixed": "#261a00",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#e6e2dd",
+                        "outline": "#83746d",
+                        "surface-container-highest": "#e6e2dd",
+                        "surface-container-high": "#ebe8e3",
+                        "secondary": "#795900",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "primary-fixed": "#ffdbca",
+                        "inverse-on-surface": "#f4f0eb",
+                        "inverse-primary": "#f0bba0",
+                        "on-primary-container": "#c29279",
+                        "tertiary": "#2a1d00",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#d5c3bb",
+                        "inverse-surface": "#31302d",
+                        "on-surface": "#1c1c19",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#5c4300",
+                        "secondary-container": "#ffc641",
+                        "tertiary-fixed-dim": "#f6be39",
+                        "on-primary-fixed": "#301404",
+                        "surface-dim": "#ddd9d5",
+                        "secondary-fixed": "#ffdfa0",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#7d553f",
+                        "tertiary-fixed": "#ffdfa0",
+                        "primary-container": "#4d2c19",
+                        "on-background": "#1c1c19"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Noto Serif', serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen selection:bg-secondary/20">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 py-4 w-full h-16 bg-[#fdf9f4] dark:bg-[#1a0c03] docked full-width top-0 z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">menu</span>
+</div>
+<h1 class="font-serif text-xl font-bold text-[#341706] dark:text-[#fdf9f4] tracking-tighter">Digital Sommelier</h1>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">shopping_bag</span>
+</div>
+</header>
+<div class="bg-[#f5eee6] dark:bg-[#2d1a0f] h-[1px] w-full"></div>
+<main class="max-w-5xl mx-auto px-6 py-12 md:py-20">
+<!-- Subtle Label -->
+<div class="mb-2">
+<span class="font-sans text-xs uppercase tracking-[0.2em] text-secondary font-semibold">Dein Match</span>
+</div>
+<div class="flex flex-col lg:flex-row gap-16 items-start">
+<!-- Left Column: Image & Badge -->
+<div class="w-full lg:w-3/5 space-y-8">
+<div class="relative group">
+<div class="aspect-[4/5] overflow-hidden rounded-xl bg-surface-container-low">
+<img alt="Ethiopia Yirgacheffe coffee beans" class="w-full h-full object-cover grayscale-[0.2] contrast-[1.1] transition-transform duration-700 group-hover:scale-105" data-alt="Close-up of premium light-roasted coffee beans in a minimalist ceramic bowl, soft natural light, warm organic tones, high-end editorial style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL"/>
+</div>
+<!-- 93% Match Badge -->
+<div class="absolute -bottom-6 -right-6 lg:right-12 glass-card p-8 rounded-full shadow-2xl border border-outline-variant/10 flex flex-col items-center justify-center w-32 h-32">
+<span class="font-serif text-3xl font-bold text-primary">93%</span>
+<span class="font-sans text-[10px] uppercase tracking-widest text-secondary font-bold">Match</span>
+</div>
+</div>
+<!-- Roaster Story -->
+<div class="bg-surface-container-lowest p-8 rounded-xl flex items-center gap-6 shadow-[0_4px_24px_rgba(52,23,6,0.02)]">
+<div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 bg-surface-variant">
+<img alt="Roaster Portrait" class="w-full h-full object-cover" data-alt="Portrait of an artisanal Swiss coffee roaster in a clean, sunlit wooden workshop, wearing a professional apron, soft background blur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-S5G-G2GyXwDSqhZUBVhEPzzhn6fmZjVav9MDmLRnTGguG1RMynNRtrMwDGxCBzjzoSF6OlAEDCOy47VHoi3ZWOP_lDsJTt9l2vjncVB3sPlBZ3_iqCO-t_b8t2mON0PC8klJhq85bKvLFqxRzhU2nTAf0ddAOBci5HMOPNI9RT9Fu8G5Oozu9c8wMB_n5dCv9mHBMPAzqbXs-rjZ3u7WxXvwScbAcg355mQw3rzPzcT7rHe-wZUyVGsAr1SxpcScic3PHn3AlmzX"/>
+</div>
+<div>
+<h4 class="font-serif text-lg text-primary">Miro’s Roastery</h4>
+<p class="font-sans text-xs text-on-surface-variant leading-relaxed">Unser Partner aus Zürich. Handgeröstet in kleinen Chargen für maximale Aromen-Tiefe.</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Info & Actions -->
+<div class="w-full lg:w-2/5 sticky top-24">
+<h2 class="text-5xl md:text-6xl font-serif text-primary leading-[1.1] mb-6 tracking-tighter">Ethiopia Yirgacheffe</h2>
+<p class="font-serif italic text-lg text-on-surface-variant leading-relaxed mb-10">
+                    "Dieses Profil spiegelt Ihre Vorliebe für lebendige, florale Noten wider. Die feine Balance aus Jasmin und Limette harmoniert perfekt mit Ihrem Wunsch nach einem hellen, klaren Körper."
+                </p>
+<!-- Visual Profiler -->
+<div class="space-y-6 mb-12">
+<h3 class="font-sans text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold mb-8">Geschmacksprofil</h3>
+<!-- Fruitiness -->
+<div class="space-y-2">
+<div class="flex justify-between font-sans text-xs uppercase tracking-widest">
+<span>Fruchtigkeit</span>
+<span class="text-secondary font-bold italic">Intensiv</span>
+</div>
+<div class="h-[1px] w-full bg-outline-variant/30 relative">
+<div class="absolute right-[10%] top-[-2px] h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_8px_#795900]"></div>
+</div>
+</div>
+<!-- Body -->
+<div class="space-y-2">
+<div class="flex justify-between font-sans text-xs uppercase tracking-widest">
+<span>Körper</span>
+<span class="text-primary/60">Leicht</span>
+</div>
+<div class="h-[1px] w-full bg-outline-variant/30 relative">
+<div class="absolute left-[30%] top-[-2px] h-1.5 w-1.5 rounded-full bg-primary/40"></div>
+</div>
+</div>
+<!-- Acidity -->
+<div class="space-y-2">
+<div class="flex justify-between font-sans text-xs uppercase tracking-widest">
+<span>Säure</span>
+<span class="text-secondary font-bold italic">Vibrant</span>
+</div>
+<div class="h-[1px] w-full bg-outline-variant/30 relative">
+<div class="absolute right-[20%] top-[-2px] h-1.5 w-1.5 rounded-full bg-secondary shadow-[0_0_8px_#795900]"></div>
+</div>
+</div>
+<!-- Roast -->
+<div class="space-y-2">
+<div class="flex justify-between font-sans text-xs uppercase tracking-widest">
+<span>Röstung</span>
+<span class="text-primary/60">Helle Röstung</span>
+</div>
+<div class="h-[1px] w-full bg-outline-variant/30 relative">
+<div class="absolute left-[15%] top-[-2px] h-1.5 w-1.5 rounded-full bg-primary/40"></div>
+</div>
+</div>
+</div>
+<!-- CTAs -->
+<div class="flex flex-col gap-4">
+<button class="w-full py-5 px-8 rounded-lg bg-gradient-to-r from-primary to-primary-container text-on-primary font-sans text-xs uppercase tracking-[0.2em] font-bold shadow-xl active:scale-[0.98] transition-all">
+                        Bestellung abschliessen — 24.50 CHF
+                    </button>
+<button class="w-full py-5 px-8 rounded-lg border border-outline-variant/20 text-primary font-sans text-xs uppercase tracking-[0.2em] font-medium hover:bg-surface-container transition-colors">
+                        Im Abo sparen (10%)
+                    </button>
+</div>
+<p class="mt-6 text-[10px] text-center text-on-surface-variant/60 font-sans uppercase tracking-widest">
+                    Versandbereit in 24h • Inkl. Verkostungs-Guide
+                </p>
+</div>
+</div>
+<!-- Secondary Section: Details Bento-ish -->
+<div class="mt-32 grid grid-cols-1 md:grid-cols-3 gap-12">
+<div class="p-8 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-secondary mb-4">filter_drama</span>
+<h4 class="font-serif text-xl text-primary mb-2">Anbauhöhe</h4>
+<p class="font-sans text-sm text-on-surface-variant leading-relaxed">1,900m – 2,200m über Meer. Dies sorgt für die charakteristische Dichte der Bohnen.</p>
+</div>
+<div class="p-8 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-secondary mb-4">water_drop</span>
+<h4 class="font-serif text-xl text-primary mb-2">Aufbereitung</h4>
+<p class="font-sans text-sm text-on-surface-variant leading-relaxed">Gewaschen (Washed). Erzeugt eine glasklare Tasse mit präzisen Aromenprofilen.</p>
+</div>
+<div class="p-8 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-secondary mb-4">temp_preferences_custom</span>
+<h4 class="font-serif text-xl text-primary mb-2">Brüh-Empfehlung</h4>
+<p class="font-sans text-sm text-on-surface-variant leading-relaxed">Hario V60 oder Chemex. Wir empfehlen 92°C Wassertemperatur.</p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-6 bg-[#fdf9f4]/80 dark:bg-[#1a0c03]/80 backdrop-blur-xl border-t border-[#341706]/10 dark:border-[#fdf9f4]/10 shadow-[0_-4px_24px_rgba(52,23,6,0.04)]">
+<div class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] dark:hover:text-[#fdf9f4] transition-all">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] dark:hover:text-[#fdf9f4] transition-all">
+<span class="material-symbols-outlined mb-1">local_cafe</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase">Roasters</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#795900] dark:text-[#d4af37] font-semibold scale-95 transition-transform">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">temp_preferences_custom</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase">Match</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] dark:hover:text-[#fdf9f4] transition-all">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-sans text-[10px] font-medium tracking-widest uppercase">Account</span>
+</div>
+</nav>
+<!-- Filler for bottom nav padding -->
+<div class="h-24"></div>
+</body></html>

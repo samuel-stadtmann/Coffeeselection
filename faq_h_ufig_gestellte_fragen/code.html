@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&amp;family=Manrope:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#31302d",
+                    "tertiary-fixed": "#ffdfa0",
+                    "on-secondary-fixed": "#261a00",
+                    "on-surface": "#1c1c19",
+                    "primary-fixed-dim": "#f0bba0",
+                    "on-tertiary-container": "#c79501",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-primary-container": "#c29279",
+                    "tertiary": "#2a1d00",
+                    "surface-tint": "#7d553f",
+                    "secondary-container": "#ffc641",
+                    "on-secondary-container": "#715300",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#f7f3ee",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "surface-variant": "#e6e2dd",
+                    "primary-fixed": "#ffdbca",
+                    "primary-container": "#4d2c19",
+                    "surface-container": "#f1ede8",
+                    "secondary-fixed": "#ffdfa0",
+                    "on-error": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#f0bba0",
+                    "surface-container-high": "#ebe8e3",
+                    "surface-bright": "#fdf9f4",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "surface": "#fdf9f4",
+                    "inverse-on-surface": "#f4f0eb",
+                    "error-container": "#ffdad6",
+                    "background": "#fdf9f4",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "primary": "#341706",
+                    "outline-variant": "#d5c3bb",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "tertiary-container": "#453100",
+                    "on-primary-fixed": "#301404",
+                    "on-surface-variant": "#51443e",
+                    "outline": "#83746d",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#ddd9d5",
+                    "on-background": "#1c1c19"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "notoSerif": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"],
+                    "sans": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Noto Serif', serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background selection:bg-secondary/20">
+<!-- TopAppBar from Shared Components JSON -->
+<header class="bg-[#fdf9f4]/80 dark:bg-[#341706]/80 backdrop-blur-xl fixed top-0 w-full z-50 shadow-sm shadow-[#341706]/5 dark:shadow-none">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="text-[#341706] dark:text-[#fdf9f4] hover:text-[#795900] transition-colors duration-300 scale-95 duration-200 ease-in-out">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<div class="text-xl font-notoSerif tracking-tighter text-[#341706] dark:text-[#fdf9f4]">
+                Atelier Espresso
+            </div>
+<div class="flex items-center gap-4">
+<nav class="hidden md:flex gap-8 items-center text-[11px] uppercase tracking-widest font-medium">
+<a class="text-[#341706]/70 dark:text-[#fdf9f4]/70 hover:text-[#795900] transition-colors duration-300" href="#">Shop</a>
+<a class="text-[#341706]/70 dark:text-[#fdf9f4]/70 hover:text-[#795900] transition-colors duration-300" href="#">Brewing</a>
+<a class="text-[#795900] font-bold" href="#">FAQ</a>
+</nav>
+<button class="text-[#341706] dark:text-[#fdf9f4] hover:text-[#795900] transition-colors duration-300 scale-95 duration-200 ease-in-out">
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+</div>
+</div>
+</header>
+<main class="pt-32 pb-24">
+<!-- Hero Section -->
+<section class="max-w-4xl mx-auto px-6 mb-24">
+<div class="text-center">
+<h1 class="text-5xl md:text-6xl font-headline tracking-tight text-primary mb-8 leading-tight">
+                    Häufig gestellte Fragen
+                </h1>
+<div class="w-12 h-px bg-secondary mx-auto mb-8"></div>
+<p class="text-on-surface-variant font-body text-lg max-w-2xl mx-auto leading-relaxed opacity-80">
+                    Wir begleiten Sie auf Ihrer Reise zum perfekten Kaffee-Moment. Hier finden Sie Antworten auf die am häufigsten gestellten Fragen zu unserem Atelier und unseren Röstungen.
+                </p>
+</div>
+</section>
+<!-- FAQ Content: Asymmetric Layout -->
+<section class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-16">
+<!-- Sticky Categories Navigation (Left Column) -->
+<aside class="lg:col-span-3">
+<nav class="sticky top-40 flex flex-col gap-6">
+<div class="space-y-4">
+<p class="text-[10px] uppercase tracking-[0.2em] text-secondary font-semibold">Themenwelten</p>
+<ul class="space-y-3">
+<li><a class="text-primary hover:text-secondary transition-colors font-medium tracking-wide block py-1 border-l-2 border-secondary pl-4" href="#abonnement">Abonnement</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-colors tracking-wide block py-1 border-l-2 border-transparent pl-4" href="#versand">Lieferung &amp; Versand</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-colors tracking-wide block py-1 border-l-2 border-transparent pl-4" href="#qualitat">Kaffee &amp; Qualität</a></li>
+</ul>
+</div>
+<div class="mt-12 p-6 bg-surface-container-low rounded-lg">
+<h4 class="font-headline text-lg text-primary mb-2">Noch Fragen?</h4>
+<p class="text-sm text-on-surface-variant mb-4">Unser Sommelier-Team hilft Ihnen gerne persönlich weiter.</p>
+<a class="text-xs uppercase tracking-widest font-bold text-primary underline underline-offset-4 hover:text-secondary transition-colors" href="mailto:concierge@ateler-espresso.de">Kontaktieren</a>
+</div>
+</nav></aside>
+<!-- Questions Column (Right) -->
+<div class="lg:col-span-9 space-y-24">
+<!-- Category: Abonnement -->
+<div class="scroll-mt-40" id="abonnement">
+<div class="flex items-baseline gap-4 mb-8">
+<span class="text-4xl font-headline text-secondary/30 italic">01</span>
+<h2 class="text-3xl font-headline text-primary">Abonnement</h2>
+</div>
+<div class="space-y-2">
+<!-- Accordion Item 1 -->
+<div class="group border-b border-outline-variant/30 py-6">
+<button class="w-full flex justify-between items-center text-left focus:outline-none">
+<span class="text-xl font-body text-primary group-hover:text-secondary transition-colors">Wie funktioniert das Abo?</span>
+<span class="material-symbols-outlined text-outline group-hover:text-secondary transition-transform duration-300">expand_more</span>
+</button>
+<div class="mt-4 text-on-surface-variant leading-relaxed font-light max-w-2xl">
+<p>Unser Abonnement ist so flexibel wie Ihr Kaffeegenuss. Sie wählen Ihre bevorzugten Röstungen und den Lieferzyklus. Wir rösten Ihre Auswahl frisch und liefern sie direkt an Ihre Haustür – versandkostenfrei und jederzeit kündbar.</p>
+</div>
+</div>
+<!-- Accordion Item 2 -->
+<div class="group border-b border-outline-variant/30 py-6">
+<button class="w-full flex justify-between items-center text-left focus:outline-none">
+<span class="text-xl font-body text-primary group-hover:text-secondary transition-colors">Kann ich mein Abo pausieren?</span>
+<span class="material-symbols-outlined text-outline group-hover:text-secondary">expand_more</span>
+</button>
+<div class="mt-4 text-on-surface-variant leading-relaxed font-light max-w-2xl">
+<p>Selbstverständlich. In Ihrem Kundenkonto können Sie Lieferungen für Urlaubszeiten einfach aussetzen oder den nächsten Liefertermin mit einem Klick verschieben. Es gibt keine Mindestlaufzeiten.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Featured Image Break -->
+<div class="relative h-[400px] rounded-lg overflow-hidden my-16 group">
+<img alt="Premium Coffee Beans" class="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-1000" data-alt="Close-up of premium roasted espresso beans in a wooden scoop with soft cinematic lighting and almond tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkX2GZQyrR3fOfvQQTQsVJWyAcC7lNUxqz9qu89dMe9KrxVtSXcVobcXnztfc3sJ7i7wYAWU-eEfloMIloGLhmDd2ere-TeF0WijO23_6YHsJP2FnrgwFA3Dhk7BdvkSPSTH7TbDKyeh7bB1mY4wS-3UQNKRj_0wgIPqsceVUomUGuLjlJB4urKylEgQpmYru6wYr9I27_VtOrYzyTB6s-_AJicaQYqu8w8vy4Cot8SK8XgeWYi--Su1618S6d-3dAMU7JhQfnL8AJ"/>
+<div class="absolute inset-0 bg-primary/20"></div>
+<div class="absolute bottom-8 left-8 text-white p-8 backdrop-blur-md bg-primary/40 rounded-lg max-w-md">
+<p class="font-headline text-2xl italic">"Qualität braucht Zeit und Hingabe."</p>
+<p class="text-[10px] uppercase tracking-widest mt-2 opacity-80">— Das Atelier Credo</p>
+</div>
+</div>
+<!-- Category: Lieferung -->
+<div class="scroll-mt-40" id="versand">
+<div class="flex items-baseline gap-4 mb-8">
+<span class="text-4xl font-headline text-secondary/30 italic">02</span>
+<h2 class="text-3xl font-headline text-primary">Lieferung &amp; Versand</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="p-8 bg-surface-container-lowest rounded-lg hover:shadow-sm transition-shadow">
+<h3 class="text-xl font-headline mb-4 text-primary">Wie lange dauert die Lieferung?</h3>
+<p class="text-on-surface-variant leading-relaxed font-light text-sm">Innerhalb Deutschlands erreicht Sie unser Kaffee meist binnen 2-4 Werktagen. Wir versenden ausschließlich nach der wöchentlichen Röstung am Dienstag, um maximale Frische zu garantieren.</p>
+</div>
+<div class="p-8 bg-surface-container-lowest rounded-lg hover:shadow-sm transition-shadow border-t-4 border-secondary/20">
+<h3 class="text-xl font-headline mb-4 text-primary">Wohin liefern wir?</h3>
+<p class="text-on-surface-variant leading-relaxed font-light text-sm">Aktuell beliefern wir Kaffeeliebhaber in ganz Europa. Für Lieferungen außerhalb der EU kontaktieren Sie bitte unseren Concierge-Service für ein individuelles Angebot.</p>
+</div>
+</div>
+</div>
+<!-- Category: Qualität -->
+<div class="scroll-mt-40" id="qualitat">
+<div class="flex items-baseline gap-4 mb-8">
+<span class="text-4xl font-headline text-secondary/30 italic">03</span>
+<h2 class="text-3xl font-headline text-primary">Kaffee &amp; Qualität</h2>
+</div>
+<div class="space-y-12">
+<div class="flex flex-col md:flex-row gap-8 items-start">
+<div class="w-full md:w-1/3 aspect-square rounded-lg overflow-hidden">
+<img alt="Roasting Process" class="w-full h-full object-cover" data-alt="Artisan coffee roaster checking beans with a probe, warm copper and espresso tones in a minimalist studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEL2VaYnLLLtZsnSUAzYOFC2TnxH26wD23hTMOOWUjzva3NMn3gDawgrbd6uFFlnDugPGReb-QwoMBGk8z0HGnDMIiculB-BMn9bkgydLKycsGBl4aBRpPB89MfUStubq2OJMSkJ__pCdFJMj8ScMRxnXL1XUeTVrNY7aSH3pDwa0hc78cZY1xq6uakeuj2gtDiHrDMuDsWRJJRs0AUmc_-2Uwhw5ihREKFdp31Xp1eWnxg0-na6wzIwcZSrKS0-pyKxhqlznaEPua"/>
+</div>
+<div class="w-full md:w-2/3">
+<h3 class="text-2xl font-headline text-primary mb-4">Wann wird mein Kaffee geröstet?</h3>
+<p class="text-on-surface-variant leading-relaxed font-light mb-6">Wir rösten in kleinen Chargen (Small Batches) jeweils am Dienstagmorgen. So stellen wir sicher, dass der Kaffee die ideale Ruhephase während des Transports durchläuft und perfekt entgast bei Ihnen ankommt.</p>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined text-xs text-secondary" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Bio-Zertifiziert</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined text-xs text-secondary" style="font-variation-settings: 'FILL' 1;">handshake</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Direktimport</span>
+</div>
+</div>
+</div>
+</div>
+<div class="group border-b border-outline-variant/30 py-6">
+<button class="w-full flex justify-between items-center text-left focus:outline-none">
+<span class="text-xl font-body text-primary group-hover:text-secondary transition-colors">Ist der Kaffee für Vollautomaten geeignet?</span>
+<span class="material-symbols-outlined text-outline group-hover:text-secondary">expand_more</span>
+</button>
+<div class="mt-4 text-on-surface-variant leading-relaxed font-light max-w-2xl">
+<p>Ja, besonders unsere 'Omni-Roasts' und dunkleren Röstungen wie der 'Heritage Espresso' sind hervorragend für Vollautomaten und Siebträger optimiert. Wir beraten Sie gerne zum richtigen Mahlgrad.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter / CTA -->
+<section class="mt-32 max-w-5xl mx-auto px-6">
+<div class="bg-primary p-12 md:p-20 text-center rounded-lg relative overflow-hidden">
+<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, #fdf9f4 1px, transparent 0); background-size: 40px 40px;"></div>
+<div class="relative z-10">
+<h2 class="text-3xl md:text-4xl font-headline text-surface mb-6">Bleiben Sie informiert</h2>
+<p class="text-surface/70 font-body mb-10 max-w-lg mx-auto leading-relaxed">Erhalten Sie Einblicke in unsere Röstprozesse und exklusive Angebote für Abonnenten.</p>
+<form class="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
+<input class="flex-grow bg-transparent border-b border-surface/30 text-surface placeholder:text-surface/40 focus:outline-none focus:border-secondary py-2 text-sm font-light" placeholder="E-Mail Adresse" type="email"/>
+<button class="bg-secondary text-on-secondary px-8 py-3 rounded-lg text-xs uppercase tracking-[0.2em] font-bold hover:bg-secondary-container hover:text-on-secondary-container transition-all">Anmelden</button>
+</form>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer from Shared Components JSON -->
+<footer class="bg-[#fdf9f4] dark:bg-[#341706] w-full mt-auto py-12 px-8 border-t border-[#341706]/10 dark:border-[#fdf9f4]/10">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-7xl mx-auto">
+<div class="font-sans tracking-widest text-[10px] uppercase text-[#341706]/60 dark:text-[#fdf9f4]/60">
+                © 2024 The Digital Sommelier. All rights reserved.
+            </div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="font-sans tracking-widest text-[10px] uppercase text-[#341706]/60 dark:text-[#fdf9f4]/60 hover:text-[#341706] dark:hover:text-[#fdf9f4] transition-all duration-300 opacity-80 hover:opacity-100" href="#">Sustainability</a>
+<a class="font-sans tracking-widest text-[10px] uppercase text-[#341706]/60 dark:text-[#fdf9f4]/60 hover:text-[#341706] dark:hover:text-[#fdf9f4] transition-all duration-300 opacity-80 hover:opacity-100" href="#">Brewing Guides</a>
+<a class="font-sans tracking-widest text-[10px] uppercase text-[#341706]/60 dark:text-[#fdf9f4]/60 hover:text-[#341706] dark:hover:text-[#fdf9f4] transition-all duration-300 opacity-80 hover:opacity-100" href="#">Contact Us</a>
+<a class="font-sans tracking-widest text-[10px] uppercase text-[#341706]/60 dark:text-[#fdf9f4]/60 hover:text-[#341706] dark:hover:text-[#fdf9f4] transition-all duration-300 opacity-80 hover:opacity-100" href="#">Wholesale</a>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary/60 text-lg">brand_awareness</span>
+<span class="material-symbols-outlined text-primary/60 text-lg">psychology</span>
+</div>
+</div>
+</footer>
+</body></html>

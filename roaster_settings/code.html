@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Roaster Portal Settings | Atelier Espresso</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed": "#301404",
+                      "surface-container-low": "#f7f3ee",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#623e2a",
+                      "surface-bright": "#fdf9f4",
+                      "secondary-fixed-dim": "#f6be39",
+                      "primary": "#341706",
+                      "tertiary-fixed": "#ffdfa0",
+                      "surface-dim": "#ddd9d5",
+                      "outline-variant": "#d5c3bb",
+                      "outline": "#83746d",
+                      "primary-fixed-dim": "#f0bba0",
+                      "on-tertiary-fixed": "#261a00",
+                      "surface-container-highest": "#e6e2dd",
+                      "on-error-container": "#93000a",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-fixed-variant": "#5c4300",
+                      "surface-variant": "#e6e2dd",
+                      "on-surface-variant": "#51443e",
+                      "tertiary": "#2a1d00",
+                      "on-tertiary-container": "#c79501",
+                      "secondary-fixed": "#ffdfa0",
+                      "on-secondary": "#ffffff",
+                      "inverse-surface": "#31302d",
+                      "on-error": "#ffffff",
+                      "on-background": "#1c1c19",
+                      "surface": "#fdf9f4",
+                      "on-primary-container": "#c29279",
+                      "inverse-primary": "#f0bba0",
+                      "tertiary-fixed-dim": "#f6be39",
+                      "secondary": "#795900",
+                      "surface-container": "#f1ede8",
+                      "secondary-container": "#ffc641",
+                      "surface-tint": "#7d553f",
+                      "primary-fixed": "#ffdbca",
+                      "on-primary": "#ffffff",
+                      "on-surface": "#1c1c19",
+                      "on-secondary-container": "#715300",
+                      "background": "#fdf9f4",
+                      "inverse-on-surface": "#f4f0eb",
+                      "primary-container": "#4d2c19",
+                      "on-secondary-fixed-variant": "#5c4300",
+                      "tertiary-container": "#453100",
+                      "surface-container-high": "#ebe8e3",
+                      "on-secondary-fixed": "#261a00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Noto Serif"],
+                      "body": ["Manrope"],
+                      "label": ["Manrope"]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Noto Serif', serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 w-full bg-[#fdf9f4] dark:bg-[#1a0b03]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4] hover:opacity-80 transition-opacity cursor-pointer scale-95 duration-150" data-icon="menu">menu</span>
+<h1 class="text-2xl font-serif text-[#341706] dark:text-[#fdf9f4] tracking-tighter font-noto-serif tracking-tight">Atelier Espresso</h1>
+</div>
+<div class="h-10 w-10 rounded-full overflow-hidden border border-outline-variant/20 hover:opacity-80 transition-opacity cursor-pointer scale-95 duration-150">
+<img class="h-full w-full object-cover" data-alt="Close-up portrait of a professional coffee roaster in a clean minimalist apron with warm studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdSfFwei_Jt_0llmnzPkhdBKAfCTRYqcCyXYCATJ3a4kWThI6o8d-bnB8SqLm8XJFRc8ClDD9icnPT-7aT-CqFBn5UnAnArW5Io3Uirfu-PedU-7QodQYOnGzLEPVEqShCvn3yRQ53QPWh26fvjPgDIblAVbE17m8aAkYUnL2PUc7AxqU2IkXn5uJIjjpDmMRkkqdWN67nMw2WdusGJp8UCzR0Y8dIdWvwLctaaXXGVjlamwRYRHh69cjYNkSbxgPlIsYuNxZOKL3T"/>
+</div>
+</header>
+<!-- Separation Logic Line -->
+<div class="fixed top-[72px] w-full bg-[#f2ede4] dark:bg-[#2d180c] h-px z-50"></div>
+<main class="pt-28 pb-32 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
+<!-- Left Sidebar (Large Screen) -->
+<aside class="hidden md:flex md:col-span-3 flex-col gap-8 p-8 max-w-xs h-[calc(100vh-140px)] bg-[#fdf9f4] dark:bg-[#1a0b03] rounded-r-lg shadow-2xl shadow-[#341706]/5">
+<div class="flex items-center gap-4 mb-4">
+<div class="h-12 w-12 rounded-xl bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary" data-icon="coffee_maker">coffee_maker</span>
+</div>
+<div>
+<p class="font-manrope uppercase tracking-[0.05em] text-xs text-[#341706] font-semibold">Master Roaster</p>
+<p class="text-[10px] text-[#341706]/50 dark:text-[#fdf9f4]/50">Premium Partner</p>
+</div>
+</div>
+<nav class="flex flex-col gap-6">
+<a class="font-manrope uppercase tracking-[0.05em] text-xs text-[#341706]/50 dark:text-[#fdf9f4]/50 pl-4 hover:text-[#795900] transition-colors translate-x-1 duration-200 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="person">person</span> Profile
+                </a>
+<a class="font-manrope uppercase tracking-[0.05em] text-xs text-[#341706]/50 dark:text-[#fdf9f4]/50 pl-4 hover:text-[#795900] transition-colors translate-x-1 duration-200 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="notifications">notifications</span> Notifications
+                </a>
+<a class="font-manrope uppercase tracking-[0.05em] text-xs text-[#341706] dark:text-[#fdf9f4] font-semibold border-l-2 border-[#795900] pl-4 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span> Settings
+                </a>
+<a class="font-manrope uppercase tracking-[0.05em] text-xs text-[#341706]/50 dark:text-[#fdf9f4]/50 pl-4 hover:text-[#795900] transition-colors translate-x-1 duration-200 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="handshake">handshake</span> Partnership
+                </a>
+</nav>
+</aside>
+<!-- Main Settings Content -->
+<div class="md:col-span-9 flex flex-col gap-16">
+<!-- Header Section -->
+<section class="space-y-2">
+<h2 class="text-4xl md:text-5xl font-bold text-primary tracking-tight">Settings</h2>
+<p class="text-on-surface-variant font-body tracking-wide">Refine your artisanal profile and operational preferences.</p>
+</section>
+<!-- Profile Bento Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="md:col-span-2 bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10 flex flex-col md:flex-row items-center gap-8">
+<div class="relative group">
+<img class="h-32 w-32 rounded-full object-cover shadow-xl border-4 border-surface" data-alt="Artistic bird's eye view of a perfect espresso shot with crema in a white ceramic cup on a wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFZevHPb9unpqBc4JcXuBKu6QJL2xlO3hvw3nC6s8nvoxDCFRWU0oWFeSQbdhQPjtWU_EdTaTNAmGr0aUDlMgNrefoX9lUaXsXvfT-LIsl4P9mnhOhsrC6Q4C8STrWVaTQisKXm2yAfnlyLkElPV_NRNohQ8pFL1VECrQxzyzuao4wdo1T4K-8zGyQZI0rAXECJP4QtKd9Mzi_hTC309eXbtK4iLtgI_RSwXe1gqV-gjjoiFiZC0USLvBquvbbxGbU6dqPVqTQkW3U"/>
+<div class="absolute inset-0 bg-primary/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined text-surface text-3xl" data-icon="photo_camera">photo_camera</span>
+</div>
+</div>
+<div class="flex-grow text-center md:text-left">
+<h3 class="text-2xl font-bold text-primary">Atelier Espresso</h3>
+<p class="text-on-surface-variant mb-4">roaster@ateliershop.com</p>
+<button class="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-lg text-sm font-semibold tracking-wide hover:opacity-90 transition-all shadow-md">
+                            Edit Profile
+                        </button>
+</div>
+<div class="bg-surface-container-low px-6 py-4 rounded-xl flex flex-col items-center justify-center">
+<span class="text-secondary text-2xl font-serif font-bold italic">Gold</span>
+<span class="text-[10px] uppercase tracking-widest text-outline">Merchant Tier</span>
+</div>
+</div>
+</section>
+<!-- Settings Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Notification Settings -->
+<section class="space-y-6">
+<h3 class="text-xl font-bold flex items-center gap-2 border-b border-outline-variant/15 pb-2">
+<span class="material-symbols-outlined text-secondary" data-icon="notifications">notifications</span>
+                        Notifications
+                    </h3>
+<div class="space-y-6">
+<div class="flex justify-between items-center group">
+<div>
+<p class="text-sm font-semibold text-primary tracking-wide">New Orders</p>
+<p class="text-xs text-on-surface-variant">Instant alerts for incoming coffee requests.</p>
+</div>
+<div class="w-12 h-6 bg-secondary-container rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+<div class="flex justify-between items-center group">
+<div>
+<p class="text-sm font-semibold text-primary tracking-wide">Inventory Alerts</p>
+<p class="text-xs text-on-surface-variant">Notifications for low bean stock levels.</p>
+</div>
+<div class="w-12 h-6 bg-secondary-container rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+<div class="flex justify-between items-center group">
+<div>
+<p class="text-sm font-semibold text-primary tracking-wide">Subscription Forecasts</p>
+<p class="text-xs text-on-surface-variant">Monthly demand predictions for recurring orders.</p>
+</div>
+<div class="w-12 h-6 bg-surface-container-high rounded-full relative cursor-pointer">
+<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Security & Partnership -->
+<div class="space-y-12">
+<!-- Security -->
+<section class="space-y-6">
+<h3 class="text-xl font-bold flex items-center gap-2 border-b border-outline-variant/15 pb-2">
+<span class="material-symbols-outlined text-secondary" data-icon="security">security</span>
+                            Security
+                        </h3>
+<div class="flex flex-col gap-4">
+<button class="flex items-center justify-between w-full p-4 rounded-xl hover:bg-surface-container-low transition-colors group">
+<span class="text-sm font-medium text-on-surface">Change Password</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="flex items-center justify-between w-full p-4 rounded-xl hover:bg-surface-container-low transition-colors group">
+<div class="text-left">
+<span class="text-sm font-medium text-on-surface">Two-Factor Authentication</span>
+<p class="text-[10px] text-secondary font-bold uppercase tracking-tighter">Enabled</p>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Partnership Status -->
+<section class="glass-card p-6 rounded-xl border border-outline-variant/20 shadow-xl shadow-secondary/5 overflow-hidden relative">
+<div class="absolute -right-4 -top-4 text-secondary/10 text-9xl font-serif italic select-none">A</div>
+<p class="text-[10px] uppercase tracking-[0.2em] text-outline mb-2">Partnership Status</p>
+<h4 class="text-2xl font-bold text-primary mb-1">Premium Partner</h4>
+<p class="text-xs text-on-surface-variant mb-6">Renews: December 14, 2024</p>
+<div class="flex items-center gap-2 text-secondary text-xs font-bold uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm" data-icon="verified" data-weight="fill">verified</span>
+                            Verified Roaster
+                        </div>
+</section>
+</div>
+</div>
+<!-- Support & Legal List -->
+<section class="mt-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<a class="p-6 bg-surface-container-low rounded-xl hover:bg-surface-container-high transition-colors text-center" href="#">
+<span class="material-symbols-outlined text-primary mb-3 block" data-icon="gavel">gavel</span>
+<p class="text-xs font-bold uppercase tracking-widest text-primary">Partner Terms</p>
+</a>
+<a class="p-6 bg-surface-container-low rounded-xl hover:bg-surface-container-high transition-colors text-center" href="#">
+<span class="material-symbols-outlined text-primary mb-3 block" data-icon="policy">policy</span>
+<p class="text-xs font-bold uppercase tracking-widest text-primary">Privacy Policy</p>
+</a>
+<a class="p-6 bg-surface-container-low rounded-xl hover:bg-surface-container-high transition-colors text-center border-2 border-secondary/20" href="#">
+<span class="material-symbols-outlined text-secondary mb-3 block" data-icon="support_agent">support_agent</span>
+<p class="text-xs font-bold uppercase tracking-widest text-secondary">Contact Concierge</p>
+</a>
+</div>
+</section>
+<!-- Sign Out -->
+<footer class="pt-8 flex justify-center border-t border-outline-variant/10">
+<button class="flex items-center gap-2 px-8 py-3 text-on-surface/40 hover:text-error transition-colors font-body text-sm font-semibold group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" data-icon="logout">logout</span>
+                    Sign Out
+                </button>
+</footer>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center py-4 px-2 pb-safe bg-[#fdf9f4]/80 dark:bg-[#1a0b03]/80 backdrop-blur-xl rounded-t-lg z-50">
+<a class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] scale-110 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-manrope text-[10px] tracking-widest uppercase mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] scale-110 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="package_2">package_2</span>
+<span class="font-manrope text-[10px] tracking-widest uppercase mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#795900] scale-110 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-manrope text-[10px] tracking-widest uppercase mt-1">Settings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#341706]/40 dark:text-[#fdf9f4]/40 hover:text-[#341706] scale-110 duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+<span class="font-manrope text-[10px] tracking-widest uppercase mt-1">Support</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&amp;family=Merriweather:ital,wght@0,400;0,700;1,400&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#1c1c19",
+                    "primary-container": "#4d2c19",
+                    "inverse-on-surface": "#f4f0eb",
+                    "surface-container-highest": "#e6e2dd",
+                    "secondary": "#665d4b",
+                    "surface-container-low": "#f7f3ee",
+                    "tertiary-container": "#453100",
+                    "surface-bright": "#fdf9f4",
+                    "inverse-primary": "#f0bba0",
+                    "secondary-container": "#ebdec6",
+                    "on-surface": "#1c1c19",
+                    "on-primary-fixed": "#301404",
+                    "primary-fixed": "#ffdbca",
+                    "tertiary": "#2a1d00",
+                    "surface-tint": "#7d553f",
+                    "on-surface-variant": "#51443e",
+                    "primary-fixed-dim": "#f0bba0",
+                    "surface-container-high": "#ebe8e3",
+                    "secondary-fixed-dim": "#d1c5ae",
+                    "error": "#ba1a1a",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#eee1c9",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "surface-container": "#f1ede8",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-primary-container": "#c29279",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#211b0c",
+                    "on-secondary": "#ffffff",
+                    "primary": "#341706",
+                    "background": "#fdf9f4",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "surface-variant": "#e6e2dd",
+                    "outline": "#83746d",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "surface": "#fdf9f4",
+                    "inverse-surface": "#31302d",
+                    "outline-variant": "#d5c3bb",
+                    "on-secondary-container": "#6b624f",
+                    "surface-dim": "#ddd9d5",
+                    "on-secondary-fixed-variant": "#4e4634",
+                    "on-tertiary-container": "#c79501",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#ffdfa0"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Montserrat"],
+                    "body": ["Merriweather"],
+                    "label": ["Montserrat"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .quiz-card-selected {
+            border: 1px solid #D4A017;
+            background-color: #ffffff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-secondary-container">
+<!-- Top Navigation (Shell suppressed per rules for Transactional Flow, but brand identity maintained) -->
+<header class="fixed top-0 w-full z-50 bg-[#fdf9f4]/80 backdrop-blur-md shadow-[0_10px_40px_rgba(77,44,25,0.06)]">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer">arrow_back</span>
+<h1 class="text-xl font-bold tracking-tighter text-[#4D2C19] font-headline uppercase">Coffee Selection</h1>
+</div>
+<div class="hidden md:flex gap-8 items-center">
+<span class="font-['Montserrat'] tracking-widest uppercase text-[0.6875rem] font-bold text-[#665d4b]">Step 07 / 07</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#4D2C19]">shopping_bag</span>
+</div>
+</div>
+</header>
+<main class="min-h-screen pt-24 pb-32 px-6 flex flex-col items-center max-w-4xl mx-auto">
+<!-- Progress Indicator -->
+<div class="w-full mb-12">
+<div class="flex justify-between items-end mb-3">
+<span class="font-label text-[0.6875rem] uppercase tracking-[0.2em] font-bold text-primary">Letzter Schritt</span>
+<span class="font-label text-[0.6875rem] uppercase tracking-[0.2em] font-bold text-primary">100%</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-highest overflow-hidden">
+<div class="h-full bg-primary-container w-full"></div>
+</div>
+</div>
+<!-- Question Section -->
+<section class="text-center mb-12">
+<h2 class="font-headline text-3xl md:text-4xl font-bold text-primary mb-4 leading-tight">Wie oft brauchst du Nachschub?</h2>
+<p class="font-body italic text-secondary text-lg">Wähle dein bevorzugtes Lieferintervall für frische Bohnen.</p>
+</section>
+<!-- Answer Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-16">
+<!-- Most Popular Option -->
+<button class="relative group flex flex-col text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-[#D4A017]/30 transition-all duration-300 shadow-[0_10px_40px_rgba(77,44,25,0.04)] focus:ring-2 focus:ring-[#D4A017]/20 outline-none">
+<div class="absolute -top-3 left-8 bg-[#D4A017] text-white px-4 py-1 rounded-full text-[0.625rem] font-label font-bold uppercase tracking-widest shadow-sm">Am Beliebtesten</div>
+<div class="flex justify-between items-start mb-6">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="calendar_today">calendar_today</span>
+<div class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center group-hover:border-[#D4A017]">
+<div class="w-3 h-3 rounded-full bg-[#D4A017] opacity-0 group-focus:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<h3 class="font-headline font-bold text-xl text-primary mb-2">Alle 2 Wochen</h3>
+<p class="font-body text-sm text-on-surface-variant leading-relaxed">Für den täglichen Genuss und maximale Frische in deiner Tasse.</p>
+</button>
+<!-- Option 2 -->
+<button class="group flex flex-col text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-[#D4A017]/30 transition-all duration-300 shadow-[0_10px_40px_rgba(77,44,25,0.04)] focus:ring-2 focus:ring-[#D4A017]/20 outline-none">
+<div class="flex justify-between items-start mb-6">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="event_repeat">event_repeat</span>
+<div class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center group-hover:border-[#D4A017]">
+<div class="w-3 h-3 rounded-full bg-[#D4A017] opacity-0 group-focus:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<h3 class="font-headline font-bold text-xl text-primary mb-2">Monatlich</h3>
+<p class="font-body text-sm text-on-surface-variant leading-relaxed">Der Standard für Kaffeeliebhaber. Ideal für 1-2 Tassen pro Tag.</p>
+</button>
+<!-- Option 3 -->
+<button class="group flex flex-col text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-[#D4A017]/30 transition-all duration-300 shadow-[0_10px_40px_rgba(77,44,25,0.04)] focus:ring-2 focus:ring-[#D4A017]/20 outline-none">
+<div class="flex justify-between items-start mb-6">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="history">history</span>
+<div class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center group-hover:border-[#D4A017]">
+<div class="w-3 h-3 rounded-full bg-[#D4A017] opacity-0 group-focus:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<h3 class="font-headline font-bold text-xl text-primary mb-2">Alle 6 Wochen</h3>
+<p class="font-body text-sm text-on-surface-variant leading-relaxed">Wenn du gerne variierst oder etwas weniger Kaffee trinkst.</p>
+</button>
+<!-- Option 4 -->
+<button class="group flex flex-col text-left p-8 bg-surface-container-lowest rounded-xl border border-transparent hover:border-[#D4A017]/30 transition-all duration-300 shadow-[0_10px_40px_rgba(77,44,25,0.04)] focus:ring-2 focus:ring-[#D4A017]/20 outline-none">
+<div class="flex justify-between items-start mb-6">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="package_2">package_2</span>
+<div class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center group-hover:border-[#D4A017]">
+<div class="w-3 h-3 rounded-full bg-[#D4A017] opacity-0 group-focus:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<h3 class="font-headline font-bold text-xl text-primary mb-2">Nur einmalig</h3>
+<p class="font-body text-sm text-on-surface-variant leading-relaxed">Zum Testen unserer Auswahl ohne automatische Folgelieferung.</p>
+</button>
+</div>
+<!-- Call to Action -->
+<div class="w-full flex flex-col items-center gap-6">
+<button class="w-full max-w-md py-5 bg-primary text-on-primary font-headline font-bold uppercase tracking-[0.2em] text-[0.75rem] rounded-xl hover:bg-primary-container transition-all active:scale-95 shadow-xl">
+                Ergebnis anzeigen
+            </button>
+<p class="text-[0.625rem] font-label text-secondary uppercase tracking-widest opacity-60">Keine Sorge, du kannst dein Abo jederzeit anpassen.</p>
+</div>
+</main>
+<!-- Footer Information (Light version for focused flow) -->
+<footer class="w-full bg-[#fdf9f4] py-12 px-8 border-t border-[#4D2C19]/10">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-7xl mx-auto">
+<div class="flex flex-col gap-2">
+<span class="font-['Montserrat'] font-bold text-lg text-primary">Coffee Selection</span>
+<p class="font-['Merriweather'] text-sm italic text-secondary">© 2024 Coffee Selection. Swiss Made Quality.</p>
+</div>
+<nav class="flex flex-wrap justify-center gap-6">
+<a class="text-[#665d4b] hover:text-[#D4A017] transition-colors font-label text-[0.6875rem] uppercase tracking-wider font-bold" href="#">Subscription</a>
+<a class="text-[#665d4b] hover:text-[#D4A017] transition-colors font-label text-[0.6875rem] uppercase tracking-wider font-bold" href="#">Our Roasters</a>
+<a class="text-[#665d4b] hover:text-[#D4A017] transition-colors font-label text-[0.6875rem] uppercase tracking-wider font-bold" href="#">Sustainability</a>
+<a class="text-[#665d4b] hover:text-[#D4A017] transition-colors font-label text-[0.6875rem] uppercase tracking-wider font-bold" href="#">Privacy</a>
+</nav>
+</div>
+</footer>
+<!-- Image for visual context (Floating background element for editorial feel) -->
+<div class="fixed top-1/2 -right-64 -translate-y-1/2 opacity-10 pointer-events-none select-none hidden lg:block">
+<img alt="Coffee Beans" class="w-[800px] h-auto grayscale" data-alt="Close-up of premium roasted dark coffee beans with rich texture and warm lighting in an editorial minimalist style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4sMD6zF0Ao-G-fAGUPmDKZOhoSkmcvF29U9UPsg8vqYNoGz4bBrEx-oxIRRYbeCk3rhLBzKYPqvN4H8PFyS6Km_gOcQUre_6KWPO8pfEJDlkySxwdiPyo7KaL4LFv4V7sBjYePUBs-PT9Alg7Y3HGggnYV85ndLAqzx02hTMgJCsmLF8B8-TdEqbm3v-K-UDpMZJrK07lFrqNdKntGNWozbT6Mx-CMzpY9QaZstBLuIb5ViW4cwKa0282EoIFTJVMWVJXX6_oXk_x"/>
+</div>
+</body></html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Content Assets | Atelier Espresso Roaster Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;600;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#f6be39",
+                        "surface-container-highest": "#e6e2dd",
+                        "primary-fixed-dim": "#f0bba0",
+                        "on-primary-fixed": "#301404",
+                        "on-surface-variant": "#51443e",
+                        "surface-variant": "#e6e2dd",
+                        "background": "#fdf9f4",
+                        "secondary-container": "#ffc641",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#ebe8e3",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "surface-container-low": "#f7f3ee",
+                        "surface": "#fdf9f4",
+                        "on-tertiary-container": "#c79501",
+                        "tertiary-fixed": "#ffdfa0",
+                        "tertiary": "#2a1d00",
+                        "primary-fixed": "#ffdbca",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffdfa0",
+                        "on-secondary-container": "#715300",
+                        "surface-dim": "#ddd9d5",
+                        "outline": "#83746d",
+                        "outline-variant": "#d5c3bb",
+                        "tertiary-container": "#453100",
+                        "on-error": "#ffffff",
+                        "secondary": "#795900",
+                        "on-primary-fixed-variant": "#623e2a",
+                        "on-secondary-fixed-variant": "#5c4300",
+                        "surface-container": "#f1ede8",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#f0bba0",
+                        "on-tertiary-fixed": "#261a00",
+                        "inverse-on-surface": "#f4f0eb",
+                        "inverse-surface": "#31302d",
+                        "on-primary-container": "#c29279",
+                        "tertiary-fixed-dim": "#f6be39",
+                        "error": "#ba1a1a",
+                        "primary": "#341706",
+                        "on-surface": "#1c1c19",
+                        "on-background": "#1c1c19",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#fdf9f4",
+                        "primary-container": "#4d2c19",
+                        "surface-tint": "#7d553f",
+                        "on-secondary-fixed": "#261a00",
+                        "error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Noto Serif"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Noto Serif', serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface">
+<!-- Navigation Drawer (SideNav) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 gap-2 h-full w-72 rounded-r-lg bg-surface-container-low z-40 hidden md:flex">
+<div class="mb-10 px-4 pt-4">
+<h1 class="text-2xl font-headline tracking-tighter text-primary">Roaster Portal</h1>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-semibold tracking-[0.05em] uppercase text-primary opacity-60 hover:bg-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-semibold tracking-[0.05em] uppercase text-primary opacity-60 hover:bg-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">local_fire_department</span> Roasts
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-semibold tracking-[0.05em] uppercase text-primary opacity-60 hover:bg-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">inventory_2</span> Inventory
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-semibold tracking-[0.05em] uppercase bg-primary text-white rounded-lg transition-all duration-300" href="#">
+<span class="material-symbols-outlined">perm_media</span> Content Assets
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 font-label text-xs font-semibold tracking-[0.05em] uppercase text-primary opacity-60 hover:bg-primary/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</nav>
+</aside>
+<!-- Top AppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 w-full bg-[#fdf9f4]/80 backdrop-blur-xl md:pl-80">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined md:hidden text-primary">menu</span>
+<span class="text-xl font-headline font-bold tracking-tighter text-primary">Atelier Espresso</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary opacity-60 hover:opacity-100 cursor-pointer transition-opacity">search</span>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-[10px] text-white font-bold uppercase tracking-widest">RP</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-20 px-6 md:pl-80 md:pr-12 max-w-[1600px] mx-auto min-h-screen">
+<!-- Header Section -->
+<header class="mb-16">
+<p class="font-label text-xs font-semibold tracking-[0.2em] text-secondary uppercase mb-2">Partner Resources</p>
+<h2 class="text-5xl md:text-6xl font-headline text-primary tracking-tight mb-4">Content Assets</h2>
+<p class="max-w-xl text-on-surface-variant font-light leading-relaxed">A curated collection of marketing materials, brand identifiers, and high-fidelity media to help you represent Atelier Espresso with excellence.</p>
+</header>
+<!-- Bento Grid Layout for Sections -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+<!-- Section 1: Brand Identity Library (Large Asymmetric) -->
+<section class="md:col-span-8 flex flex-col gap-6">
+<div class="p-10 rounded-xl bg-surface-container-lowest shadow-[32px_0_64px_rgba(52,23,6,0.04)]">
+<div class="flex justify-between items-end mb-10">
+<div>
+<h3 class="text-3xl font-headline text-primary mb-2">Brand Identity Library</h3>
+<p class="text-sm font-label tracking-wide text-on-surface-variant">Logos, Typography, and Palette</p>
+</div>
+<button class="px-6 py-2 bg-primary text-white rounded-lg text-xs font-bold tracking-widest uppercase hover:opacity-90 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span> All Logos
+                        </button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+<div class="aspect-square rounded-xl bg-surface-container-high flex flex-col items-center justify-center p-6 border border-outline-variant/15">
+<img class="max-w-full mb-4" data-alt="Official primary logo of Atelier Espresso in deep espresso brown on a light background with elegant serif typography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoch8k97Z8RQzdCId1F3UAttkHwOrxmAdXj35TgWokdDHhoPMvoDSH1JX7rzcw-tiWkGWz1-O1Rikwcm8g7CGMFaEU_M_s2I36RGtMrxXiBUTAOvzxrCya3GlpwBy_BRugwys5a0XggFRVRPwagjPLCqEv_3qmlAJPfs5w52oASpQ6nV4mj28behuVNSaqfmv6gHqJwfValgLTVDvDddxQrj44UlEjWhOWeWtQwivYDBgDsgezAdQ5UeUodCZ5lKFKzf5XWIPVf-WD"/>
+<span class="text-[10px] font-label font-bold uppercase tracking-widest text-primary/40">Primary Logo</span>
+</div>
+<div class="aspect-square rounded-xl bg-primary flex flex-col items-center justify-center p-6 border border-outline-variant/15">
+<img class="max-w-full mb-4" data-alt="Inverted white Atelier Espresso logo on a deep espresso brown background for dark mode applications" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZi_bzQqA2ar6qPzBPoCc3UAcIqHB4lqYclQefJNArJuKvQuej7FUHgBdYmDRvK6KsXBdgSiPr-VSHaQ4J4fgUG9a7qouAgGVdB3WyIDVaLE8QMbpXaPnp8BZYP-S0wY-_Yg6AGvxUv73-G-m9gpOTz15FkmcvbKYRRGuyC7hBpFUiIQZW-ujeoF64xFCbmE7E-CiOAmcXa2v0TJ4K6SUoXSoc-3iGrdrPKWqL2_hJDZ1-0xWgvknJuu9pn5cMgPxbDwqfpaDhDUqt"/>
+<span class="text-[10px] font-label font-bold uppercase tracking-widest text-white/40">Inverted Logo</span>
+</div>
+<div class="aspect-square rounded-xl bg-surface-container-high flex flex-col items-center justify-center p-6 border border-outline-variant/15">
+<div class="w-16 h-16 bg-primary flex items-center justify-center rounded-lg mb-4">
+<span class="text-white font-headline text-3xl italic">A</span>
+</div>
+<span class="text-[10px] font-label font-bold uppercase tracking-widest text-primary/40">Monogram</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+<div>
+<h4 class="text-xs font-label font-bold tracking-[0.15em] uppercase text-secondary mb-6">Swiss Typography</h4>
+<div class="space-y-4">
+<div>
+<p class="text-3xl font-headline text-primary">Noto Serif</p>
+<p class="text-xs text-on-surface-variant italic">Headlines &amp; Prestige Content</p>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<p class="text-xl font-label font-semibold tracking-tight">Manrope</p>
+<p class="text-xs text-on-surface-variant italic">User Interface &amp; Information Design</p>
+</div>
+</div>
+</div>
+<div>
+<h4 class="text-xs font-label font-bold tracking-[0.15em] uppercase text-secondary mb-6">Color Palette</h4>
+<div class="flex gap-4">
+<div class="group relative">
+<div class="w-12 h-12 rounded-full bg-[#341706] shadow-sm"></div>
+<span class="absolute -bottom-6 left-0 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">Espresso</span>
+</div>
+<div class="group relative">
+<div class="w-12 h-12 rounded-full bg-[#fdf9f4] border border-outline-variant/20 shadow-sm"></div>
+<span class="absolute -bottom-6 left-0 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">Almond</span>
+</div>
+<div class="group relative">
+<div class="w-12 h-12 rounded-full bg-[#795900] shadow-sm"></div>
+<span class="absolute -bottom-6 left-0 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">Gold</span>
+</div>
+<div class="group relative">
+<div class="w-12 h-12 rounded-full bg-[#4d2c19] shadow-sm"></div>
+<span class="absolute -bottom-6 left-0 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">Roast</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: Product Photography (Horizontal Scroll/Grid) -->
+<div class="p-10 rounded-xl bg-surface-container-low">
+<div class="flex justify-between items-center mb-10">
+<h3 class="text-3xl font-headline text-primary">Product Photography</h3>
+<a class="text-xs font-bold tracking-widest uppercase text-primary border-b border-primary/20 pb-1 hover:border-primary transition-all" href="#">View Gallery</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="group relative overflow-hidden rounded-xl aspect-[4/5] bg-surface-container-highest">
+<img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700" data-alt="High-end editorial studio shot of Ethiopia Yirgacheffe coffee beans in a ceramic bowl with dramatic side lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ-fIplC83fNB2UqtqmFTmD-eSQTG-axLwqKv7RzJ9MbDvID_VwNespHhqJ6Mp7fNQPfe6wc3n3U-qd6YI8YmCPZq5iK9benUpOrCwqYDrvKpFAwICV4q2DlKfZVWC4PljloLO56x9YnJH3CGcrOfAINV5rv8TWMQou1VwqtgMM-z2d1fBKSGt-aU4vSsX0Pd6w0mY5IcF0H_iGCNqIt8YljYsTr6wBTfMhBK_7NE1rLA-8eUmnnmnUxuLoys3tJbZBPrBBFfHg3gY"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+<p class="text-white font-headline text-xl mb-1">Ethiopia Yirgacheffe</p>
+<p class="text-white/60 text-xs font-label uppercase tracking-widest mb-4">Studio Collection</p>
+<button class="w-full py-3 glass-card rounded text-white text-[10px] font-bold tracking-widest uppercase">Download High-Res</button>
+</div>
+</div>
+<div class="group relative overflow-hidden rounded-xl aspect-[4/5] bg-surface-container-highest">
+<img class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700" data-alt="Lifestyle photography of a person pouring specialty coffee in a minimal modern kitchen with soft morning sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeoo8_D_80KuuMRiwkhhPwBbxPFVKB0I06Rwh_jzJR5iv9owf6WbBAACHBLmUmtKGTuWP9MhifbwWsximR-ke1UIKARBSbf17otMihutOZMMgpCSoLTew-9_KxX-YbrfJfogceVtLK7hySZJwbd82A7hHjYcnR-FpTfLdAqrzV7DYjDYFGQrfCsGY7Ww5-Bd_2xP1aa5CmHwGxsDyyFf5-gWrrbuSe53qvTn3O2SCigzOpVkOqXv5Oii3SxTYkBF1IkZzahLD-JOSI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+<p class="text-white font-headline text-xl mb-1">Sidamo Reserve</p>
+<p class="text-white/60 text-xs font-label uppercase tracking-widest mb-4">Lifestyle Series</p>
+<button class="w-full py-3 glass-card rounded text-white text-[10px] font-bold tracking-widest uppercase">Download High-Res</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3 & 4: Social Kit & Educational Assets (Side Column) -->
+<aside class="md:col-span-4 flex flex-col gap-8">
+<!-- Social Media Kit -->
+<div class="p-8 rounded-xl bg-surface-container-lowest border border-outline-variant/10 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-secondary">share</span>
+<h3 class="text-xl font-headline text-primary">Social Media Kit</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low group cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="w-12 h-12 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40">auto_awesome_motion</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold tracking-tight text-primary">Instagram Stories</p>
+<p class="text-[10px] text-on-surface-variant font-medium">12 Templates (.PSD)</p>
+</div>
+<span class="material-symbols-outlined text-lg opacity-0 group-hover:opacity-100 transition-opacity">download</span>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low group cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="w-12 h-12 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40">grid_view</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold tracking-tight text-primary">Post Layouts</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Square &amp; Portrait (.AI)</p>
+</div>
+<span class="material-symbols-outlined text-lg opacity-0 group-hover:opacity-100 transition-opacity">download</span>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg bg-surface-container-low group cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="w-12 h-12 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40">mail</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold tracking-tight text-primary">Newsletter Banners</p>
+<p class="text-[10px] text-on-surface-variant font-medium">6 Variants (.PNG)</p>
+</div>
+<span class="material-symbols-outlined text-lg opacity-0 group-hover:opacity-100 transition-opacity">download</span>
+</div>
+</div>
+</div>
+<!-- Educational Assets -->
+<div class="p-8 rounded-xl bg-primary text-surface shadow-xl">
+<h3 class="text-xl font-headline mb-6">Educational Copy</h3>
+<div class="space-y-6">
+<div class="pb-6 border-b border-white/10">
+<p class="text-[10px] font-bold uppercase tracking-widest text-secondary-fixed-dim mb-2">The Specialty Narrative</p>
+<p class="text-sm font-light italic leading-relaxed text-surface-container-high">"A symphony of high-altitude terroir and artisanal roasting precision..."</p>
+<button class="mt-4 flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:text-secondary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-sm">content_copy</span> Copy Snippet
+                            </button>
+</div>
+<div class="pb-6 border-b border-white/10">
+<p class="text-[10px] font-bold uppercase tracking-widest text-secondary-fixed-dim mb-2">Brewing Guides</p>
+<p class="text-sm font-light leading-relaxed text-surface-container-high">Professional V60 and Chemex parameters for home enthusiasts.</p>
+<button class="mt-4 flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:text-secondary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span> Download Guide
+                            </button>
+</div>
+<div>
+<p class="text-[10px] font-bold uppercase tracking-widest text-secondary-fixed-dim mb-2">Sustainability Facts</p>
+<p class="text-sm font-light leading-relaxed text-surface-container-high">Direct-trade impact reports and farmer equity data.</p>
+<button class="mt-4 flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase hover:text-secondary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-sm">open_in_new</span> Access Portal
+                            </button>
+</div>
+</div>
+</div>
+<!-- Section 5: Brand Video Assets -->
+<div class="p-8 rounded-xl bg-surface-container-high border border-outline-variant/20">
+<h3 class="text-xl font-headline text-primary mb-6">Brand Video Assets</h3>
+<div class="relative rounded-lg overflow-hidden group aspect-video bg-black/10">
+<img class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-1000" data-alt="Cinematic still from a b-roll clip showing fresh roasted coffee beans falling into a cooling tray with rising steam" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDST23gjs5MpRV9--eNFEeRrMw6pG9p49sEuqCmya7Fa8yFTTB9IlXtoMy3_l0FBtV-t4V-mTUl2L_KbXR3vBJXgpmo599RwaxjssKeCmYpI-vfz29a7XLnz7EvKUhU9ACOVx0EQptqP4OOV5PtO3BYCiz5xGgQjNW50vjc0leAlA95tqJufTcfcQbjYWB8y9_M4FYBhzyVzBi0OiSRR6Uv7CZYxqE1SKsuY2VmIYno0Hzy2z02qLSRzDGI5gBOdOIc5eeISVSej_kE"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined fill-1" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full p-4 glass-card">
+<p class="text-[10px] font-bold tracking-widest uppercase text-primary">The Roasting Process (B-Roll)</p>
+<p class="text-[10px] text-on-surface-variant">0:15 • 4K • ProRes</p>
+</div>
+</div>
+<button class="w-full mt-6 py-4 bg-primary text-white rounded text-[10px] font-bold tracking-widest uppercase hover:bg-primary-container transition-colors">Download Video Library</button>
+</div>
+</aside>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-background flex justify-around items-center h-16 px-4 z-50">
+<a class="flex flex-col items-center gap-1 text-primary opacity-60" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[8px] font-bold tracking-widest uppercase">Dash</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary opacity-60" href="#">
+<span class="material-symbols-outlined">local_fire_department</span>
+<span class="text-[8px] font-bold tracking-widest uppercase">Roasts</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined">perm_media</span>
+<span class="text-[8px] font-bold tracking-widest uppercase">Assets</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary opacity-60" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[8px] font-bold tracking-widest uppercase">Menu</span>
+</a>
+</nav>
+</body></html>

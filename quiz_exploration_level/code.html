@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Manrope:wght@300;400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#4d2c19",
+                    "surface-container-high": "#ebe8e3",
+                    "secondary-fixed": "#ffdfa0",
+                    "surface-variant": "#e6e2dd",
+                    "inverse-surface": "#31302d",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fdf9f4",
+                    "secondary": "#795900",
+                    "secondary-container": "#ffc641",
+                    "on-tertiary-container": "#c79501",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#f0bba0",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "primary": "#341706",
+                    "tertiary-fixed": "#ffdfa0",
+                    "surface-container-low": "#f7f3ee",
+                    "surface-tint": "#7d553f",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "outline": "#83746d",
+                    "on-surface": "#1c1c19",
+                    "surface": "#fdf9f4",
+                    "on-secondary-fixed-variant": "#5c4300",
+                    "surface-container": "#f1ede8",
+                    "on-primary-container": "#c29279",
+                    "inverse-on-surface": "#f4f0eb",
+                    "tertiary": "#2a1d00",
+                    "surface-container-highest": "#e6e2dd",
+                    "on-background": "#1c1c19",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "background": "#fdf9f4",
+                    "tertiary-container": "#453100",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#ffdbca",
+                    "primary-fixed-dim": "#f0bba0",
+                    "outline-variant": "#d5c3bb",
+                    "on-primary-fixed": "#301404",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#715300",
+                    "on-surface-variant": "#51443e",
+                    "secondary-fixed-dim": "#f6be39",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-secondary-fixed": "#261a00",
+                    "surface-dim": "#ddd9d5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(253, 249, 244, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body selection:bg-secondary-fixed">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-[#fdf9f4] dark:bg-[#1a0b03]">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer scale-95 transition-transform duration-300">
+<span class="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">close</span>
+</div>
+<h1 class="font-notoserif font-normal tracking-tight text-lg font-serif italic text-[#341706] dark:text-[#fdf9f4]">Digital Sommelier</h1>
+<div class="w-6"></div> <!-- Spacer for center alignment -->
+</div>
+</header>
+<main class="min-h-screen pt-24 pb-32 flex flex-col items-center px-6">
+<!-- Progress Indicator -->
+<div class="w-full max-w-xl mb-16 px-4">
+<div class="flex justify-between items-center mb-4">
+<span class="text-[10px] font-sans uppercase tracking-[0.1em] text-outline">Entdeckung</span>
+<span class="text-[10px] font-sans uppercase tracking-[0.1em] text-primary">85%</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary transition-all duration-700 ease-in-out" style="width: 85%;"></div>
+</div>
+</div>
+<!-- Headline Section -->
+<div class="w-full max-w-3xl text-center mb-16">
+<h2 class="font-headline text-4xl md:text-5xl lg:text-6xl text-primary leading-tight tracking-tight mb-4">
+                Möchtest du Neues entdecken?
+            </h2>
+<p class="text-on-surface-variant font-light tracking-wide max-w-md mx-auto">
+                Deine Vorliebe für Abwechslung hilft uns, die perfekte Bohnen-Rotation für deinen Gaumen zu kuratieren.
+            </p>
+</div>
+<!-- Options Container: Asymmetric Grid -->
+<div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+<!-- Option 1: Immer Neues -->
+<button class="group relative aspect-[4/5] overflow-hidden rounded-xl bg-surface-container-lowest transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+<img alt="Close-up of vibrant green coffee cherries and diverse exotic beans on a textured surface" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="Close-up of vibrant green coffee cherries and diverse exotic beans on a textured stone surface with bright artistic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAapM8xSOb_1fndVCpdZhRdTVu1mSVnWXin0cVqw62zdyMgg3sW0n3mQDyh4BxI1LoOxO9Qgw8saL0tvWYE99OipSiL5QgOU2IM0z7BBKIVnyNjXa57k1E0DW5qjUKXH0OXJh7hk5wsRJwpeG8Oql35kwYasDXbpNDUPorM5Jz-MXyF_NgeU7x95F_zx-4njUqnKNDeCFLat7PKwejoy5634jwiyUzERRrRV0LlAGeSWnCwg0FwRTk2xFNDCHhDyYCYGW8HWfQMnsf0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 text-left w-full">
+<span class="inline-block px-3 py-1 bg-secondary text-on-primary text-[9px] uppercase tracking-widest rounded-full mb-3 opacity-0 group-hover:opacity-100 transition-opacity">Abenteuer</span>
+<h3 class="font-headline text-2xl text-on-primary">Immer Neues</h3>
+</div>
+</button>
+<!-- Option 2: Mischung (Featured Large) -->
+<button class="group relative aspect-[4/5] overflow-hidden rounded-xl bg-surface-container-lowest transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ring-2 ring-secondary/20">
+<img alt="Artistic overhead shot of two different coffee cups and roasted beans arranged symmetrically" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="Artistic overhead shot of two different coffee cups and roasted beans arranged symmetrically on a warm wood background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlJLgZqiGTyCvTmHzoVmvB-LTobogoxp7QA7PoWdoyKaJ3Q_hOsr14Ua2jH6EGlnGCqxuHWgNS4KphrjFt7HePYn9dTCoce565KmzIMLePUpQWGk4dlxPyIOj2Fyr_xqCUq-gmwFs3HtaFjGrXiL0kWgBED63F6yBXwSc-q_9xsgLw5XH6e-gfgEMDgq1dg4ejLhyeuSPC-mtk8VUsQvQzXB9daaTl1tsncDWd16EW25DRCHOIzg86IfzECQOjsoNXCqqaM6EPmJtv"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 text-left w-full">
+<span class="inline-block px-3 py-1 bg-secondary text-on-primary text-[9px] uppercase tracking-widest rounded-full mb-3">Balance</span>
+<h3 class="font-headline text-2xl text-on-primary">Mischung aus Bekannt &amp; Neu</h3>
+<div class="mt-2 h-1 w-12 bg-secondary rounded-full"></div>
+</div>
+</button>
+<!-- Option 3: Lieber konstant -->
+<button class="group relative aspect-[4/5] overflow-hidden rounded-xl bg-surface-container-lowest transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+<img alt="Minimalist scene of a single perfect steaming espresso cup in a soft sunlit morning setting" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="Minimalist scene of a single perfect steaming espresso cup in a soft sunlit morning setting with warm shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDE9-BfEbcYF78DxCZRsYSXFQ7SIGg1ztTdt_EpIfOwZCMzGeRCFCs64sqewDfUGQu4Htf78kF1kJlcMRwku3x3NgM5Pzmf_XgHJ0impwMmw6uTLy7m2mptXRYPgdMr4DyZLV27yn5fo0d6OV3FVjKCXOffKyoaSDDhhNjOFdgCTTNgOTphsquRIFixJ_zldSxeO2l0nE0nEYsFCwLkKle5YMG7eOAXyylzOW6Pb78f4brKbzowLiAMOfpimOQw1CFIvktRmyYSCX9"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 text-left w-full">
+<span class="inline-block px-3 py-1 bg-secondary text-on-primary text-[9px] uppercase tracking-widest rounded-full mb-3 opacity-0 group-hover:opacity-100 transition-opacity">Vertraut</span>
+<h3 class="font-headline text-2xl text-on-primary">Lieber konstant</h3>
+</div>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 w-full z-50 pb-8 flex justify-between px-10 items-end pointer-events-none">
+<!-- Back Button -->
+<div class="flex items-center justify-center text-[#341706] opacity-30 dark:text-[#fdf9f4] hover:scale-110 transition-transform cursor-pointer pointer-events-auto">
+<span class="material-symbols-outlined text-3xl">arrow_back</span>
+</div>
+<!-- Forward Button (Active) -->
+<div class="flex items-center justify-center bg-[#341706] text-[#fdf9f4] rounded-full w-12 h-12 dark:bg-[#fdf9f4] dark:text-[#341706] hover:scale-110 transition-transform Active:scale-90 duration-200 cursor-pointer pointer-events-auto">
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</nav>
+<!-- Background Decorative Elements -->
+<div class="fixed top-1/4 -right-20 w-96 h-96 bg-surface-container-high rounded-full blur-[100px] -z-10 opacity-40"></div>
+<div class="fixed -bottom-20 -left-20 w-[500px] h-[500px] bg-secondary-fixed/10 rounded-full blur-[120px] -z-10 opacity-30"></div>
+</body></html>
