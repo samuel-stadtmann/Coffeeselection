@@ -12,32 +12,14 @@
 --     RLS-Policies verwendet, damit wir nicht 30x dieselbe Subquery schreiben.
 --   * Trigger auf auth.users — bei jedem neuen Auth-User wird automatisch
 --     ein customers-Eintrag angelegt (kein App-Code noetig).
+--
+-- Reihenfolge wichtig: customers wird ZUERST angelegt, weil current_customer_id()
+-- darauf zugreift und 'language sql'-Funktionen zum Erstellungszeitpunkt geprueft
+-- werden.
 -- =============================================================================
 
 
--- 1) Helper-Funktion: current_customer_id() ----------------------------------
--- Gibt die customers.id des aktuell eingeloggten Auth-Users zurueck oder NULL,
--- wenn niemand eingeloggt ist (anon) oder es noch keinen customer-Eintrag gibt.
--- security definer: laeuft mit Rechten des Erstellers (postgres), umgeht damit
--- RLS auf der customers-Tabelle (sonst wuerden RLS-Policies sich selbst aufrufen).
--- stable: gleicher Output pro Query, Postgres kann das Ergebnis cachen.
-create or replace function public.current_customer_id()
-returns uuid
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select id from public.customers
-  where auth_user_id = auth.uid() and deleted_at is null
-  limit 1
-$$;
-
-comment on function public.current_customer_id() is
-  'Gibt customers.id des aktuell eingeloggten Auth-Users zurueck. Wird in RLS-Policies anderer Tabellen verwendet.';
-
-
--- 2) customers -----------------------------------------------------------------
+-- 1) customers ----------------------------------------------------------------
 create table public.customers (
   id                      uuid primary key default gen_random_uuid(),
   auth_user_id            uuid unique not null references auth.users(id) on delete cascade,
@@ -105,7 +87,7 @@ create policy "customers_all_service"
   using (true) with check (true);
 
 
--- 3) Auth-Trigger: bei neuem auth.users-Eintrag automatisch customers-Zeile -----
+-- 2) Auth-Trigger: bei neuem auth.users-Eintrag automatisch customers-Zeile ----
 -- Diese Funktion laeuft als 'security definer' = mit postgres-Rechten, kann
 -- also auch dann INSERT in public.customers machen, wenn der frisch registrierte
 -- Nutzer noch keine RLS-Permissions hat.
@@ -131,6 +113,28 @@ drop trigger if exists trg_on_auth_user_created on auth.users;
 create trigger trg_on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_auth_user();
+
+
+-- 3) Helper-Funktion: current_customer_id() ----------------------------------
+-- Gibt die customers.id des aktuell eingeloggten Auth-Users zurueck oder NULL,
+-- wenn niemand eingeloggt ist (anon) oder es noch keinen customer-Eintrag gibt.
+-- security definer: laeuft mit Rechten des Erstellers (postgres), umgeht damit
+-- RLS auf der customers-Tabelle (sonst wuerden RLS-Policies sich selbst aufrufen).
+-- stable: gleicher Output pro Query, Postgres kann das Ergebnis cachen.
+create or replace function public.current_customer_id()
+returns uuid
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select id from public.customers
+  where auth_user_id = auth.uid() and deleted_at is null
+  limit 1
+$$;
+
+comment on function public.current_customer_id() is
+  'Gibt customers.id des aktuell eingeloggten Auth-Users zurueck. Wird in RLS-Policies anderer Tabellen verwendet.';
 
 
 -- 4) customer_addresses -------------------------------------------------------
