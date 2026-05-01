@@ -1,0 +1,14 @@
+# Environment variables (NEVER commit secrets)
+.env
+.env.*
+!.env.example
+
+# Claude Code local overrides
+.claude/settings.local.json
+
+# Node / build artifacts (für späteres Frontend-Projekt)
+node_modules/
+.next/
+dist/
+build/
+.DS_Store
