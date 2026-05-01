@@ -22,30 +22,55 @@
 -- 1) Mehrsprachigkeit: FR + IT-Spalten auf Katalogen und Content-Tabellen
 -- =============================================================================
 
--- Kataloge (alle haben bereits name_de)
-alter table public.flavor_notes_catalog       add column name_fr text, add column name_it text;
-alter table public.brewing_methods_catalog    add column name_fr text, add column name_it text;
-alter table public.origins_catalog            add column name_fr text, add column name_it text;
-alter table public.varieties_catalog          add column name_fr text, add column name_it text;
-alter table public.processing_methods_catalog add column name_fr text, add column name_it text;
-alter table public.certifications_catalog     add column name_fr text, add column name_it text;
+-- Kataloge: ergaenze name_fr, name_it, name_en idempotent
+-- (Migration 002 hat einzelne dieser Spalten bereits angelegt — wir nutzen
+--  IF NOT EXISTS, damit das hier auch beim Re-Run sauber durchlaeuft.)
+alter table public.flavor_notes_catalog
+  add column if not exists name_fr text,
+  add column if not exists name_it text,
+  add column if not exists name_en text;
+
+alter table public.brewing_methods_catalog
+  add column if not exists name_fr text,
+  add column if not exists name_it text,
+  add column if not exists name_en text;
+
+alter table public.origins_catalog
+  add column if not exists name_fr text,
+  add column if not exists name_it text,
+  add column if not exists name_en text;
+
+alter table public.varieties_catalog
+  add column if not exists name_fr text,
+  add column if not exists name_it text,
+  add column if not exists name_en text;
+
+alter table public.processing_methods_catalog
+  add column if not exists name_fr text,
+  add column if not exists name_it text,
+  add column if not exists name_en text;
+
+alter table public.certifications_catalog
+  add column if not exists name_fr text,
+  add column if not exists name_it text,
+  add column if not exists name_en text;
 
 -- Roesterer + Kaffees: Beschreibungen mehrsprachig
 alter table public.roasters
-  add column short_description_fr text,
-  add column short_description_it text,
-  add column description_fr       text,
-  add column description_it       text,
-  add column story_fr             text,
-  add column story_it             text;
+  add column if not exists short_description_fr text,
+  add column if not exists short_description_it text,
+  add column if not exists description_fr       text,
+  add column if not exists description_it       text,
+  add column if not exists story_fr             text,
+  add column if not exists story_it             text;
 
 alter table public.coffees
-  add column short_description_fr text,
-  add column short_description_it text,
-  add column description_fr       text,
-  add column description_it       text,
-  add column tasting_summary_fr   text,
-  add column tasting_summary_it   text;
+  add column if not exists short_description_fr text,
+  add column if not exists short_description_it text,
+  add column if not exists description_fr       text,
+  add column if not exists description_it       text,
+  add column if not exists tasting_summary_fr   text,
+  add column if not exists tasting_summary_it   text;
 
 -- Helper-Funktion: gibt das passende Sprachfeld zurueck (Fallback DE).
 -- Beispiel-Aufruf: select public.l10n_text('de-CH', name_de, name_fr, name_it) from origins_catalog;
@@ -141,9 +166,9 @@ select
   c.farm,
   c.producer,
 
-  -- Variety
+  -- Variety (Tabelle nutzt 'name' statt 'name_de')
   v.slug        as variety_slug,
-  v.name_de     as variety_name_de,
+  v.name        as variety_name,
 
   -- Processing
   p.slug        as processing_slug,
