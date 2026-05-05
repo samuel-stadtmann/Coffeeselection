@@ -155,8 +155,13 @@ comment on function public.process_pending_ratings(int) is
 -- =============================================================================
 -- B) algorithm_config: reclassification_threshold eintragen (falls noch nicht da)
 -- =============================================================================
-insert into public.algorithm_config (key, value_numeric)
-values ('reclassification_threshold', 3)
+insert into public.algorithm_config (key, value_numeric, description)
+values (
+  'reclassification_threshold',
+  3,
+  'Anzahl negativer Bewertungen ("would_drink_again=no") in 90 Tagen, '
+  'ab der eine Reklassifikation des Kunden vorgeschlagen wird (Kap. 6.5).'
+)
 on conflict (key) do nothing;
 
 
