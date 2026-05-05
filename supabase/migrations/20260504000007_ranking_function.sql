@@ -240,12 +240,7 @@ as $$
     where r.rn <= count_roaster
   ),
   customer_allergens as (
-    select array_agg(allergen) as allergens
-    from public.customer_aroma_preferences
-    where customer_id = p_customer_id and false
-    -- Hinweis: Allergene-Tabelle pro Kunde existiert nicht direkt — Restriktionen
-    -- liegen aktuell in customers.requires_*. Sobald customer_allergens-Tabelle
-    -- existiert, hier ergaenzen. Vorerst leeres Array.
+    select array[]::text[] as allergens
   ),
   quality_threshold as (
     select coalesce((select value_numeric::int from public.algorithm_config where key = 'quality_threshold_active'), 75) as min_score
