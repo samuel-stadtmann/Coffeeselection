@@ -21,7 +21,7 @@
 -- Wir muessen erst auth.users-Zeilen anlegen, weil customers.auth_user_id FK ist.
 -- Im echten Flow uebernimmt das Supabase Auth.
 
-do $$
+do $e2e$
 declare
   v_taste_type_id smallint;
   v_auth_uid uuid;
@@ -40,7 +40,7 @@ begin
     )
     values (
       v_auth_uid, 'authenticated', 'authenticated', v_email,
-      '$$dummy$$', now(), now(), now(),
+      'dummy_password_not_real', now(), now(), now(),
       '{"provider":"test"}'::jsonb, '{}'::jsonb
     )
     on conflict (id) do nothing;
@@ -64,7 +64,7 @@ begin
     )
     on conflict (email) do nothing;
   end loop;
-end $$;
+end $e2e$;
 
 
 -- =============================================================================
