@@ -4,17 +4,21 @@
 
 @layer base {
   body {
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Merriweather', serif;
     -webkit-font-smoothing: antialiased;
-    background-color: #fdf9f4;
-    color: #1c1c19;
+    background-color: #F9F5F0;
+    color: #4D2C19;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Noto Serif', serif;
+    font-family: 'Manrope', 'Montserrat', sans-serif;
   }
 }
 
 @layer utilities {
+  .editorial-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+  }
   .glass-nav {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
