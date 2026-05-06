@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-const LOGO =
-  "https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp";
+const LOGO = "/logo.png";
 const HERO =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBvySg3Uf4lIr5-6yDourpO1iHmSl4aNwlTw2vUqWLLsXTR2owxYQPnvYY_fGQw_8MJ9gOoVJhPLdSiywoMPlVXb7ydqT4-EEd-jaiFKi-e6hih5dYFPY2wSZ2XMGoSz2v_4EtSVrvraFIhMMMZzbDxXU9oJz1R1q56fSmCRpqUcuecTpmR7u1k7iIxHHSsZG1oRzB_ABrePOMz1akMTgJjZDheHKafFnhGYLfXzk4J4-0t1M3WMYJhXqzL6gGeg_YgCV3AVKxNlw";
 const ROASTERY =
@@ -35,31 +34,31 @@ export default function HomePage() {
     <div className="bg-[#F9F5F0] text-on-surface font-body selection:bg-tertiary selection:text-white">
       {/* TopNavBar */}
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/85 backdrop-blur-xl transition-all duration-300">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-8 py-4 w-full">
+        <nav className="flex justify-between items-center max-w-7xl mx-auto px-8 py-5 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection Logo" className="h-16 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection Logo" className="h-20 w-auto object-contain" src={LOGO} />
           </Link>
-          <div className="hidden md:flex items-center space-x-10">
+          <div className="hidden md:flex items-center space-x-12">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
-                className="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase"
+                className="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-sm tracking-[0.18em] uppercase font-semibold"
               >
                 {l.label}
               </Link>
             ))}
           </div>
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-7">
             <Link href="/checkout/review">
-              <span className="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">shopping_bag</span>
+              <span className="material-symbols-outlined text-primary text-3xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">shopping_bag</span>
             </Link>
             <Link href="/dashboard">
-              <span className="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">person</span>
+              <span className="material-symbols-outlined text-primary text-3xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">person</span>
             </Link>
             <Link
               href="/quiz"
-              className="bg-primary text-white px-6 py-2 text-[10px] uppercase tracking-widest font-label font-bold rounded-lg shadow-sm hover:opacity-90 transition-all"
+              className="bg-primary text-white px-8 py-3 text-sm uppercase tracking-[0.18em] font-label font-bold rounded-lg shadow-sm hover:opacity-90 transition-all"
             >
               Start Quiz
             </Link>
@@ -305,8 +304,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div>
             <div className="flex flex-col gap-4 mb-6">
-              <img src={LOGO} alt="Coffee Selection Logo" className="h-12 w-auto object-contain self-start" />
-              <span className="text-xl font-black text-primary font-headline uppercase tracking-tight">Coffee Selection</span>
+              <img src={LOGO} alt="Coffee Selection Logo" className="h-16 w-auto object-contain self-start" />
             </div>
             <p className="font-body text-sm text-on-surface-variant leading-relaxed mb-6">
               Wir kuratieren den besten Schweizer Specialty Coffee für Genießer und Entdecker.
