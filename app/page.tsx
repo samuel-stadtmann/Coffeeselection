@@ -36,7 +36,7 @@ export default function HomePage() {
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/85 backdrop-blur-xl transition-all duration-300">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-8 py-5 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection Logo" className="h-28 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection Logo" className="h-40 w-auto object-contain" src={LOGO} />
           </Link>
           <div className="hidden md:flex items-center space-x-12">
             {navLinks.map((l) => (
@@ -66,7 +66,7 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main className="pt-36 bg-[#F9F5F0]">
+      <main className="pt-48 bg-[#F9F5F0]">
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-8 editorial-grid items-center gap-12 bg-[#F9F5F0] mb-16">
           <div className="col-span-12 lg:col-span-5 pt-12">
@@ -304,7 +304,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div>
             <div className="flex flex-col gap-4 mb-6">
-              <img src={LOGO} alt="Coffee Selection Logo" className="h-24 w-auto object-contain self-start" />
+              <img src={LOGO} alt="Coffee Selection Logo" className="h-32 w-auto object-contain self-start" />
             </div>
             <p className="font-body text-sm text-on-surface-variant leading-relaxed mb-6">
               Wir kuratieren den besten Schweizer Specialty Coffee für Genießer und Entdecker.
