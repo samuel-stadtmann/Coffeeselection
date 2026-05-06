@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&amp;family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#4D2C19", // Dark Brown
+              "background": "#F9F5F0", // Warm Off-white
+              "accent": "#D4A017", // Gold
+              "on-surface": "#4D2C19",
+              "surface-container": "#F1EDE8",
+              "outline": "#D4A017",
+            },
+            fontFamily: {
+              "headline": ["Montserrat", "sans-serif"],
+              "body": ["Merriweather", "serif"],
+              "label": ["Montserrat", "sans-serif"],
+              "nav-font": ["Manrope", "sans-serif"],
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+        }
+        .editorial-shadow {
+            box-shadow: 0 12px 40px rgba(77, 44, 25, 0.06)
+        }
+    </style>
+</head>
+<body class="bg-[#F9F5F0] text-on-surface font-body selection:bg-accent selection:text-white">
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-[#F9F5F0]/90 backdrop-blur-xl border-b border-primary/10 flex justify-between items-center px-8 py-4 max-w-full">
+<div class="flex items-center gap-3">
+<img alt="Coffee Selection Logo" class="h-10 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+<span class="text-2xl font-bold tracking-tight text-[#4D2C19] font-nav-font hidden lg:block">Coffee Selection</span>
+</div>
+<div class="hidden md:flex gap-10 items-center">
+<a class="text-[#4D2C19] hover:text-accent transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Our Roasts</a>
+<a class="text-[#4D2C19] hover:text-accent transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Subscriptions</a>
+<a class="text-[#4D2C19] hover:text-accent transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Origins</a>
+<a class="text-accent border-b-2 border-accent pb-1 font-label text-[10px] tracking-widest uppercase" href="#">The Ritual</a>
+<a class="text-[#4D2C19] hover:text-accent transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Brewing Guides</a>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-accent transition-colors">shopping_bag</span>
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-accent transition-colors">person</span>
+<button class="bg-primary text-white px-6 py-2 text-[10px] uppercase tracking-widest font-label font-bold rounded-lg shadow-sm hover:bg-accent transition-all">
+        Subscribe
+    </button>
+</div>
+</nav>
+<main class="pt-24">
+<!-- Hero Section -->
+<section class="px-8 mb-32 max-w-7xl mx-auto pt-16">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-16 items-center">
+<div class="md:col-span-5 order-2 md:order-1">
+<div class="flex items-center gap-4 mb-6">
+<span class="h-[1px] w-12 bg-accent"></span>
+<span class="font-headline text-xs tracking-[0.3em] text-primary/60 uppercase font-bold">Premium Roaster Spotlight</span>
+</div>
+<h1 class="font-headline text-5xl md:text-7xl font-extrabold tracking-tight text-primary mb-8 leading-[1.1]">
+                    Miro Coffee: <span class="italic font-body font-normal block text-accent">Zürcher Präzision trifft Kaffeekunst</span>
+</h1>
+<p class="text-xl text-primary/80 leading-relaxed max-w-md font-light">
+                    Aus dem Herzen Zürichs bringt Miro Coffee eine neue Welle der Kaffeekultur in die Schweiz. Wissenschaftliche Genauigkeit trifft auf handwerkliche Leidenschaft für das perfekte Cup-Profil.
+                </p>
+<div class="mt-10 flex items-center gap-6">
+<div class="w-16 h-16 rounded-full border border-accent flex items-center justify-center text-accent hover:bg-accent hover:text-background transition-all cursor-pointer">
+<span class="material-symbols-outlined">play_arrow</span>
+</div>
+<span class="font-headline text-xs font-bold tracking-widest uppercase">The Miro Story (2:14)</span>
+</div>
+</div>
+<div class="md:col-span-7 order-1 md:order-2">
+<div class="relative group">
+<img alt="close-up of a modern minimalist coffee roastery with stainless steel equipment and warm wooden accents in Zurich" class="w-full aspect-[4/5] object-cover rounded-lg shadow-[0_32px_64px_-16px_rgba(77,44,25,0.15)] transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdx4d5D41but2DjfRnVc1_JHvyqXViCSXZs9R7EbuUyEDufL872GU2A08NsmqPg27BaItvOHn3VPV1Vuqr8ueAe2ODzYWoYwiH4A7kRvR0rGMqye-f6SU9Ba643ciVCsMeU0ezPGfsjhHhRd2qN3MD-kAd6er5F1EMZdZgVVpGj2uzxWTYEjRTrQSQ_-ydBNKTtUXLD7pazTef7j_u1V7wETR6Q6YMUlpxSecJHBsY6E1tPWLgh6t4tjsa-DLnplQGsJ2H0eowqA"/>
+<div class="absolute -bottom-10 -left-10 bg-white p-10 rounded-lg shadow-2xl hidden lg:block border border-primary/5">
+<span class="block font-headline text-5xl font-black text-accent mb-1">01</span>
+<span class="block font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-primary/60">Established in Zurich</span>
+<div class="mt-4 flex gap-1">
+<span class="w-1.5 h-1.5 bg-accent rounded-full"></span>
+<span class="w-1.5 h-1.5 bg-primary/20 rounded-full"></span>
+<span class="w-1.5 h-1.5 bg-primary/20 rounded-full"></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Roaster Story Section -->
+<section class="bg-[#F9F5F0] py-40 px-8">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
+<div class="space-y-10">
+<h2 class="font-headline text-4xl font-bold text-primary tracking-tight leading-tight">Die Geschichte hinter der Bohne</h2>
+<div class="space-y-8 text-primary/80 leading-loose text-lg font-light">
+<p>Was als kleines Experiment in einer Zürcher Garage begann, hat sich zu einer der angesehensten Mikroröstereien der Schweiz entwickelt. Miro Coffee wurde von der Vision getrieben, die Transparenz und Qualität des Weines in die Kaffeewelt zu übertragen.</p>
+<p>Jede Charge wird mit chirurgischer Präzision geröstet, wobei modernste Software die Temperaturkurven überwacht, während das erfahrene Gehör des Röstmeisters den perfekten "First Crack" abwartet – ein Moment, in dem Chemie zu Kunst wird.</p>
+</div>
+<div class="flex gap-20 pt-6">
+<div>
+<span class="block font-headline text-4xl font-extrabold text-accent mb-1">100%</span>
+<span class="block font-headline text-[11px] tracking-[0.2em] uppercase font-bold text-primary/60">Direkter Handel</span>
+</div>
+<div>
+<span class="block font-headline text-4xl font-extrabold text-accent mb-1">Micro</span>
+<span class="block font-headline text-[11px] tracking-[0.2em] uppercase font-bold text-primary/60">Batch Roasting</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-6">
+<img alt="barista in a white apron carefully weighing green coffee beans" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQdQJSttVw2WCY-0owdEPGugSOTlx8A7Aa3ksY9RdncHLLvAaXe1gcHyyYUt4qWW0s-YNGWHFJqYWs7QHoZQEmeCZfUwFU0dXOfmnCggwd1HdrbD7bP0nBeM_VP8TD6mnM0Ep9mk396tdua18mpObp7T4uIdUGTJU24V0EmCdKED7Iq0FcQLrhp46Hel6HiAe4JrI3PA3FALdc4ZcLAibuZEyMbuhCBGCJnDY7SQRy2oP2catHxLUjHBfb2b2-vZTcPUvrmiPitw"/>
+<div class="p-6 bg-background rounded-lg border border-primary/5">
+<p class="font-body italic text-sm text-primary/70">"Präzision ist kein Ziel, sondern eine Voraussetzung."</p>
+</div>
+</div>
+<div class="pt-12 space-y-6">
+<img alt="steam rising from fresh espresso" class="w-full aspect-[3/4] object-cover rounded-lg shadow-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyWCOXm-Pbao9WlGvCJcSLWj3gZAhVi1kn1MRqNaqW4vGkEoU2M3SR_VvRg0xzPux2jD0wWfIktSYQJpIKj_sFTc_h37qvdSW5NOPYj2Zx5BPOsh14jXI2D4cRWkAJWF5Mu53qRDkU2uc-KVVVwyoZ6FsbAdFsibzH0f2wn9I5MSjwZnAX4lHJXG5e-oi5F40GiWCPnd3DeIMBY1iE6-9w4KJfHhEsRDaaCQHyhBT_LMdFqtIziupx-N6csdmY95fa9Nu5Ugg8og"/>
+<div class="aspect-square bg-primary text-background flex flex-col items-center justify-center p-8 rounded-lg text-center">
+<span class="material-symbols-outlined text-4xl mb-3 text-accent">verified</span>
+<span class="font-headline text-[10px] tracking-widest uppercase font-bold">Swiss Quality Seal</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Roasting Philosophy -->
+<section class="py-40 px-8 max-w-7xl mx-auto">
+<div class="text-center mb-24">
+<h2 class="font-headline text-5xl font-extrabold text-primary mb-6 tracking-tight">Röstphilosophie</h2>
+<div class="w-24 h-1 bg-accent mx-auto mb-8"></div>
+<p class="max-w-2xl mx-auto text-xl text-primary/70 italic font-light leading-relaxed">"Wir rösten nicht dunkel oder hell. Wir rösten so, dass das Terroir der Bohne die Hauptrolle spielt."</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-white p-12 rounded-lg editorial-shadow border border-primary/5 group hover:border-accent/50 transition-colors duration-500">
+<div class="w-16 h-16 bg-[#F9F5F0] rounded-full flex items-center justify-center mb-10 group-hover:bg-accent/10 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">science</span>
+</div>
+<h3 class="font-headline text-xl font-extrabold text-primary mb-6">Labor-Präzision</h3>
+<p class="text-primary/70 leading-relaxed font-light">Jeder Röstvorgang wird digital erfasst und analysiert, um eine gleichbleibende Exzellenz über alle Chargen hinweg zu garantieren.</p>
+</div>
+<div class="bg-white p-12 rounded-lg editorial-shadow border border-primary/5 group hover:border-accent/50 transition-colors duration-500">
+<div class="w-16 h-16 bg-[#F9F5F0] rounded-full flex items-center justify-center mb-10 group-hover:bg-accent/10 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">eco</span>
+</div>
+<h3 class="font-headline text-xl font-extrabold text-primary mb-6">Ethik &amp; Herkunft</h3>
+<p class="text-primary/70 leading-relaxed font-light">Langfristige Partnerschaften mit Farmern sind für uns wichtiger als kurzfristige Gewinne. Wir zahlen weit über dem Fairtrade-Preis.</p>
+</div>
+<div class="bg-white p-12 rounded-lg editorial-shadow border border-primary/5 group hover:border-accent/50 transition-colors duration-500">
+<div class="w-16 h-16 bg-[#F9F5F0] rounded-full flex items-center justify-center mb-10 group-hover:bg-accent/10 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">palette</span>
+</div>
+<h3 class="font-headline text-xl font-extrabold text-primary mb-6">Aroma-Profil</h3>
+<p class="text-primary/70 leading-relaxed font-light">Wir suchen nach den komplexen, fruchtigen und floralen Noten, die hochwertigen Specialty Coffee ausmachen.</p>
+</div>
+</div>
+<!-- Gauge Component -->
+<div class="mt-32 max-w-4xl mx-auto bg-surface-container p-16 rounded-lg border border-primary/5 relative overflow-hidden">
+<h4 class="font-headline text-xs tracking-[0.3em] uppercase text-center mb-16 font-extrabold text-primary/70">Miro's Signature Roast Spectrum</h4>
+<div class="space-y-12">
+<div class="relative pt-6">
+<div class="flex justify-between text-[11px] font-headline font-bold uppercase tracking-widest mb-4 text-primary/60">
+<span>Light (Nordic)</span>
+<span class="text-accent">Miro Signature Range</span>
+<span>Dark (Italian)</span>
+</div>
+<div class="h-2 bg-primary/10 rounded-full relative">
+<div class="absolute top-0 left-[20%] right-[45%] h-full bg-accent/30 rounded-full"></div>
+<div class="absolute top-1/2 -translate-y-1/2 left-[35%] w-6 h-6 bg-accent rounded-full border-[6px] border-white shadow-lg"></div>
+</div>
+<p class="text-center mt-8 text-sm text-primary/60 italic font-light">Wir bewegen uns bewusst im "Sweet Spot" der Aromenentwicklung.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Available Coffees -->
+<section class="py-40 bg-[#F9F5F0]">
+<div class="px-8 max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 gap-6">
+<div>
+<div class="flex items-center gap-3 mb-4">
+<span class="h-px w-8 bg-accent"></span>
+<span class="font-headline text-[10px] tracking-[0.3em] text-primary/60 uppercase font-bold">Curated Selection</span>
+</div>
+<h2 class="font-headline text-5xl font-extrabold text-primary tracking-tight">Aktuelle Röstungen</h2>
+</div>
+<a class="flex items-center gap-3 font-headline text-xs tracking-[0.2em] uppercase font-black text-primary hover:text-accent transition-all group" href="#">
+                    Alle Kaffees entdecken 
+                    <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-32">
+<!-- Product Card 1 -->
+<div class="group">
+<div class="bg-white p-10 relative overflow-visible rounded-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border border-primary/5">
+<div class="relative mb-10 -mt-20">
+<img alt="coffee bean bag" class="w-full aspect-square object-cover rounded-lg shadow-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjSCMSnTzbpZPFiEoeVlBRxqp6UBK918UFvza0NjzPmKdEZpnyPejn9jOH7lfWGJrS5xBP5Jm2EbTAOykmNqkvfKpQYabQ_S-0O2CkuFDTSpuJymmxhwpAZ_A2NGp4GXPhg2fqpomZgoPmfmYknKJwCa5mVgpne6CD4P8rgOMD3K8MQCXaH16J8kpzjfb9eNClpr3YLfakPEL2ZA3OkG52ZNRe0g284z5T2xFExLNayx3ZLvBKkZsZo1Zg15m1a_Ku9z5EYOYh7A"/>
+<div class="absolute top-4 right-4 bg-accent px-3 py-1 rounded text-[10px] font-headline font-bold uppercase tracking-widest text-white">New Season</div>
+</div>
+<span class="font-headline text-[10px] tracking-[0.2em] uppercase text-accent font-black">ETHIOPIA • GUJI</span>
+<h3 class="font-headline text-2xl font-extrabold text-primary mt-3 mb-4">Aleta Wondo</h3>
+<div class="flex flex-wrap gap-3 mb-10">
+<span class="bg-surface-container px-3 py-1 text-[9px] font-headline font-bold uppercase tracking-widest rounded-full text-primary/60">Heirloom</span>
+<span class="bg-surface-container px-3 py-1 text-[9px] font-headline font-bold uppercase tracking-widest rounded-full text-primary/60">Washed</span>
+</div>
+<div class="flex justify-between items-center pt-8 border-t border-primary/10">
+<div class="flex flex-col">
+<span class="text-[10px] text-primary/40 font-headline uppercase font-bold mb-1">Price</span>
+<span class="font-headline font-black text-xl text-primary">CHF 18.50</span>
+</div>
+<button class="bg-primary text-background px-8 py-3 text-[10px] font-headline font-black uppercase tracking-widest rounded-lg hover:bg-accent transition-colors">Wählen</button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group">
+<div class="bg-white p-10 relative overflow-visible rounded-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border border-primary/5">
+<div class="relative mb-10 -mt-20">
+<img alt="coffee package" class="w-full aspect-square object-cover rounded-lg shadow-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU35jLSJXrNLdhOmK8k3tcNE_nrnAA-u-yugTsv0xinzxYNsRPfQclOlzJVumMpihr5XJbAVkw_eMUGuhLcEgjI5O-N59cGwk2sTQkxp35uK5J983uVN7uYTQj7gAsF2Wlz-qOTfOg0Q1iitqUJjUTJNg2_RbZXmrfMH3j5uTcm3lJKkhriv0BgyfgErQgbujY1LLQQF1_O5i-by8SMNVFHJmv43tiJV_tz4E-fnanKaetlk1Ui1xcf_qa-xVsJGNMy9bwrgbOkQ"/>
+<div class="absolute top-4 right-4 bg-accent px-3 py-1 rounded text-[10px] font-headline font-bold uppercase tracking-widest text-white">Top Pick</div>
+</div>
+<span class="font-headline text-[10px] tracking-[0.2em] uppercase text-accent font-black">COLOMBIA • HUILA</span>
+<h3 class="font-headline text-2xl font-extrabold text-primary mt-3 mb-4">La Esperanza</h3>
+<div class="flex flex-wrap gap-3 mb-10">
+<span class="bg-surface-container px-3 py-1 text-[9px] font-headline font-bold uppercase tracking-widest rounded-full text-primary/60">Caturra</span>
+<span class="bg-surface-container px-3 py-1 text-[9px] font-headline font-bold uppercase tracking-widest rounded-full text-primary/60">Honey</span>
+</div>
+<div class="flex justify-between items-center pt-8 border-t border-primary/10">
+<div class="flex flex-col">
+<span class="text-[10px] text-primary/40 font-headline uppercase font-bold mb-1">Price</span>
+<span class="font-headline font-black text-xl text-primary">CHF 21.00</span>
+</div>
+<button class="bg-primary text-background px-8 py-3 text-[10px] font-headline font-black uppercase tracking-widest rounded-lg hover:bg-accent transition-colors">Wählen</button>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group">
+<div class="bg-white p-10 relative overflow-visible rounded-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border border-primary/5">
+<div class="relative mb-10 -mt-20">
+<img alt="coffee beans" class="w-full aspect-square object-cover rounded-lg shadow-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIxyRhqXCjfGgsS62-Odk3guPH7glRdGCUA8FqMCdcW4kOB6WqSwBv0govd48xhhIq05V83vDC4wAfdSAmvB5bVUzl2IBL-nWOh53t9GFq8T6e62qDlcUM7Zp5hjzPIOMDgIt29wczKn4eiW3X2dWsvGOCEm4ykWGz8uvqS0tAQC2a2SPz5MxZfGvl04hRITEQ4bsX2SxGfbddx65hqt9oJbK03pJypdktR4CwUh_OVHDMHTJ3HLcp4yYoRI8IVhnHH-6ZLWSBqA"/>
+</div>
+<span class="font-headline text-[10px] tracking-[0.2em] uppercase text-accent font-black">BRAZIL • ESPIRITO</span>
+<h3 class="font-headline text-2xl font-extrabold text-primary mt-3 mb-4">Fazenda Rainha</h3>
+<div class="flex flex-wrap gap-3 mb-10">
+<span class="bg-surface-container px-3 py-1 text-[9px] font-headline font-bold uppercase tracking-widest rounded-full text-primary/60">Yellow Bourbon</span>
+<span class="bg-surface-container px-3 py-1 text-[9px] font-headline font-bold uppercase tracking-widest rounded-full text-primary/60">Natural</span>
+</div>
+<div class="flex justify-between items-center pt-8 border-t border-primary/10">
+<div class="flex flex-col">
+<span class="text-[10px] text-primary/40 font-headline uppercase font-bold mb-1">Price</span>
+<span class="font-headline font-black text-xl text-primary">CHF 16.00</span>
+</div>
+<button class="bg-primary text-background px-8 py-3 text-[10px] font-headline font-black uppercase tracking-widest rounded-lg hover:bg-accent transition-colors">Wählen</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter CTA -->
+<section class="py-40 px-8">
+<div class="max-w-5xl mx-auto bg-primary rounded-3xl p-24 text-center text-background shadow-2xl relative overflow-hidden">
+<div class="relative z-10">
+<div class="inline-block bg-white/10 backdrop-blur-sm px-4 py-1 rounded-full text-[10px] font-headline font-bold uppercase tracking-[0.2em] mb-8 border border-white/20">Insider Access</div>
+<h2 class="font-headline text-5xl font-extrabold mb-8 tracking-tight leading-tight">Entdecken Sie Ihren neuen Lieblingskaffee</h2>
+<p class="text-background/70 mb-12 max-w-xl mx-auto text-lg font-light leading-relaxed">Melden Sie sich für unser Journal an und erhalten Sie exklusive Einblicke in limitierte Miro Röstungen.</p>
+<form class="flex flex-col md:flex-row gap-4 max-w-lg mx-auto" onsubmit="event.preventDefault()">
+<input class="flex-1 bg-white/10 border-0 border-b-2 border-white/30 focus:ring-0 focus:border-accent text-background placeholder:text-background/40 py-4 px-0 transition-all text-lg" placeholder="E-Mail Adresse" type="email"/>
+<button class="bg-accent text-primary font-headline font-black px-12 py-4 rounded-xl uppercase text-xs tracking-[0.2em] hover:bg-background transition-all shadow-xl">Anmelden</button>
+</form>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#F9F5F0] w-full border-t border-primary/10">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-16 px-12 py-32 max-w-7xl mx-auto">
+<div class="md:col-span-4">
+<div class="flex items-center gap-3 mb-10">
+<img alt="Coffee Selection Logo" class="h-14 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+</div>
+<p class="font-body text-lg text-primary/70 leading-loose max-w-sm font-light">
+                Wir kuratieren die anspruchsvollsten Kaffeeröstereien der Schweiz für ein unvergleichliches Gourmet-Erlebnis.
+            </p>
+<div class="flex gap-6 mt-10">
+<a class="w-10 h-10 rounded-full border border-primary/10 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-primary/60" href="#"><span class="material-symbols-outlined text-xl">share</span></a>
+<a class="w-10 h-10 rounded-full border border-primary/10 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-primary/60" href="#"><span class="material-symbols-outlined text-xl">camera</span></a>
+</div>
+</div>
+<div class="md:col-span-2">
+<h4 class="font-headline uppercase tracking-[0.3em] text-[10px] font-black mb-10 text-primary">Entdecken</h4>
+<ul class="space-y-5">
+<li><a class="font-body text-sm text-primary/60 hover:text-accent transition-colors" href="#">Alle Röster</a></li>
+<li><a class="font-body text-sm text-primary/60 hover:text-accent transition-colors" href="#">Abonnements</a></li>
+<li><a class="font-body text-sm text-primary/60 hover:text-accent transition-colors" href="#">Brewing Guide</a></li>
+</ul>
+</div>
+<div class="md:col-span-2">
+<h4 class="font-headline uppercase tracking-[0.3em] text-[10px] font-black mb-10 text-primary">Unternehmen</h4>
+<ul class="space-y-5">
+<li><a class="font-body text-sm text-primary/60 hover:text-accent transition-colors" href="#">Sustainability</a></li>
+<li><a class="font-body text-sm text-primary/60 hover:text-accent transition-colors" href="#">Transparency</a></li>
+<li><a class="font-body text-sm text-primary/60 hover:text-accent transition-colors" href="#">Journal</a></li>
+</ul>
+</div>
+<div class="md:col-span-4">
+<h4 class="font-headline uppercase tracking-[0.3em] text-[10px] font-black mb-10 text-primary">Zertifizierte Qualität</h4>
+<div class="p-8 bg-white/50 rounded-xl border border-primary/5">
+<p class="text-xs text-primary/50 leading-relaxed font-light italic">"Unser Versprechen: Nur Kaffees mit einem SCA Score von 85+ finden den Weg in unsere Selektion."</p>
+<div class="flex items-center gap-4 mt-6">
+<span class="font-headline text-[10px] font-black uppercase tracking-widest text-accent">Official Partner of Swiss Specialty Coffee</span>
+</div>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-12 py-12 border-t border-primary/5 flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="font-headline uppercase tracking-widest text-[9px] font-bold text-primary/40">
+            © 2024 Coffee Selection AG. Swiss Precision in Every Bean.
+        </p>
+<div class="flex gap-8">
+<a class="font-headline text-[9px] uppercase tracking-widest font-bold text-primary/40 hover:text-accent transition-colors" href="#">Impressum</a>
+<a class="font-headline text-[9px] uppercase tracking-widest font-bold text-primary/40 hover:text-accent transition-colors" href="#">Datenschutz</a>
+</div>
+</div>
+</footer>
+</body></html>

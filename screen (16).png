@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Review | Coffee Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#ffdfa0",
+              "inverse-primary": "#f0bba0",
+              "tertiary": "#2a1d00",
+              "on-surface": "#1c1c19",
+              "secondary-fixed": "#eee1c9",
+              "outline": "#83746d",
+              "surface-container-lowest": "#ffffff",
+              "surface-bright": "#fdf9f4",
+              "on-tertiary": "#ffffff",
+              "on-secondary-container": "#6b624f",
+              "on-error": "#ffffff",
+              "surface-variant": "#e6e2dd",
+              "surface-tint": "#7d553f",
+              "on-surface-variant": "#51443e",
+              "on-error-container": "#93000a",
+              "primary-fixed-dim": "#f0bba0",
+              "outline-variant": "#d5c3bb",
+              "on-tertiary-container": "#c79501",
+              "primary": "#341706",
+              "surface": "#fdf9f4",
+              "surface-container": "#f1ede8",
+              "primary-fixed": "#ffdbca",
+              "error-container": "#ffdad6",
+              "on-secondary": "#ffffff",
+              "secondary-container": "#ebdec6",
+              "inverse-on-surface": "#f4f0eb",
+              "on-secondary-fixed": "#211b0c",
+              "surface-container-low": "#f7f3ee",
+              "secondary-fixed-dim": "#d1c5ae",
+              "on-primary-fixed": "#301404",
+              "background": "#F9F5F0",
+              "surface-container-highest": "#e6e2dd",
+              "surface-container-high": "#ebe8e3",
+              "error": "#ba1a1a",
+              "surface-dim": "#ddd9d5",
+              "on-tertiary-fixed": "#261a00",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "on-background": "#1c1c19",
+              "inverse-surface": "#31302d",
+              "tertiary-fixed-dim": "#f6be39",
+              "tertiary-container": "#453100",
+              "primary-container": "#4d2c19",
+              "on-primary-fixed-variant": "#623e2a",
+              "on-secondary-fixed-variant": "#4e4634",
+              "on-primary": "#ffffff",
+              "secondary": "#665d4b",
+              "on-primary-container": "#c29279"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Noto Serif"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-completed { color: #341706; }
+        .step-active { color: #341706; border-bottom: 2px solid #D4A017; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-[#F9F5F0] text-on-surface font-body selection:bg-tertiary-fixed">
+<!-- TopNavBar (Updated to match SCREEN_99 style) -->
+<header class="fixed top-0 w-full z-50 bg-[#F9F5F0]/85 backdrop-blur-xl transition-all duration-300">
+<nav class="flex justify-between items-center max-w-7xl mx-auto px-8 py-4 w-full">
+<div class="flex items-center space-x-2">
+<img alt="Coffee Selection Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+<span class="text-2xl font-bold tracking-tight text-[#4D2C19] font-headline">Coffee Selection</span>
+</div>
+<div class="hidden md:flex items-center space-x-10">
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">How it works</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Roasters</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Learn</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Reviews</a>
+</div>
+<div class="flex items-center space-x-6">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">shopping_bag</span>
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">person</span>
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-6 py-2 text-[10px] uppercase tracking-widest font-label font-bold rounded-lg shadow-sm hover:opacity-90 transition-all">
+                    Account
+                </button>
+</div>
+</nav>
+</header>
+<main class="pt-24 pb-12 px-4 md:px-8 max-w-7xl mx-auto min-h-screen bg-[#F9F5F0]">
+<!-- Checkout Steps -->
+<div class="flex items-center justify-between max-w-xl mx-auto mb-12">
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold">Shipping</span>
+</div>
+<div class="flex-1 h-[1px] bg-primary-container/30 mx-4 mb-6"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold">Payment</span>
+</div>
+<div class="flex-1 h-[1px] bg-outline-variant mx-4 mb-6"></div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full border-2 border-primary flex items-center justify-center text-primary font-bold">
+                    3
+                </div>
+<span class="font-label text-[10px] uppercase tracking-widest font-bold text-primary">Review</span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start bg-[#F9F5F0]">
+<!-- Left Column: Details -->
+<div class="lg:col-span-7 space-y-12">
+<!-- Review Section Title -->
+<header>
+<h1 class="font-headline text-4xl font-bold text-primary tracking-tight mb-4">Review your selection</h1>
+<p class="text-on-surface-variant max-w-md">Almost there. Please confirm your precision roast selection and delivery details before we process your order.</p>
+</header>
+<!-- Order Items -->
+<div class="space-y-6">
+<h2 class="font-label text-xs uppercase tracking-[0.2em] font-bold text-primary">Your Basket</h2>
+<div class="bg-surface-container-low p-6 flex gap-6 relative group border border-transparent hover:border-outline-variant/30 transition-all">
+<div class="w-32 h-40 bg-surface-container overflow-hidden">
+<img alt="artisanal coffee bag" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsNDGt-FHKlWxfW_-oROdIp_eIkHSmC_pYuNG808-8uLV2ujoo5k74JjDOCF8JvWzG0GEUTwwEyR0ZZ2mgs3f4_IHpcYGBS61rrAHt1MYiXOH1mV-1n4kIPLpjA8uDFt6x5rEEDpEXUKVddACpv5QHQrLK1b-QpAWtJ-NhdFkKbSZmVfn_73pIKgd0GhqjSe6kWcZxhqF--4FbY5q6AV7-xqdB-C7LVtigjvlOnhXiyAjSgzS4i1XwUfD8uZuIftemirnuBw-zYg"/>
+</div>
+<div class="flex flex-col justify-between py-2">
+<div>
+<h3 class="font-headline text-xl font-bold text-primary">Ethiopian Yirgacheffe</h3>
+<p class="text-sm text-on-surface-variant font-serif italic mb-2">Heirloom Varietal • Light Roast</p>
+<div class="flex items-center gap-4 text-xs font-label uppercase tracking-widest mt-4">
+<span class="bg-surface-container-highest px-2 py-1">250g</span>
+<span class="bg-surface-container-highest px-2 py-1">Whole Bean</span>
+</div>
+</div>
+<span class="font-headline text-lg font-bold">CHF 24.00</span>
+</div>
+<button class="absolute top-6 right-6 text-outline-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="bg-surface-container-low p-6 flex gap-6 relative group border border-transparent hover:border-outline-variant/30 transition-all">
+<div class="w-32 h-40 bg-surface-container overflow-hidden">
+<img alt="dark roasted coffee beans" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpLkZZIdrYwnWriHlTCwtXBByN5f-jvQjBWBOUB9cmYFqAes4gfzI0zZnXti_4fEq8DCqzlhwtjbaZ7Gv1IE7ZBcl1Yf7RHj7lgik3TesfnaVWq2TNl0foxe-lQWBBEq6o6Zq6SVOaRqb2sG1QA9qBpsQToO9xlOIu1UhUUwKWNlaKIsO912qkWRbvvgaRykDGaTAWV3RCC0cPjEkguZgs2kIWHt76pY5eToYG5yecdYgBs62XJIjDeKdYFqmSCZpl_OTdpHHIdw"/>
+</div>
+<div class="flex flex-col justify-between py-2">
+<div>
+<h3 class="font-headline text-xl font-bold text-primary">Swiss Alpine Blend</h3>
+<p class="text-sm text-on-surface-variant font-serif italic mb-2">Bourbon • Medium-Dark Roast</p>
+<div class="flex items-center gap-4 text-xs font-label uppercase tracking-widest mt-4">
+<span class="bg-surface-container-highest px-2 py-1">500g</span>
+<span class="bg-surface-container-highest px-2 py-1">Espresso Grind</span>
+</div>
+</div>
+<span class="font-headline text-lg font-bold">CHF 38.00</span>
+</div>
+<button class="absolute top-6 right-6 text-outline-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Subscription Upsell -->
+<div class="bg-primary-container text-on-primary p-8 rounded-none flex flex-col md:flex-row items-center justify-between gap-6 ring-1 ring-primary/10">
+<div class="space-y-1">
+<h4 class="font-headline text-lg font-bold">Switch to Subscription</h4>
+<p class="text-sm opacity-80">Never run out of Swiss-roasted excellence. Cancel anytime.</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label text-xs font-bold tracking-widest uppercase text-tertiary-fixed-dim">Save CHF 4 per delivery</span>
+<label class="relative inline-flex items-center cursor-pointer group">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-14 h-7 bg-primary rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-tertiary-fixed-dim ring-2 ring-transparent peer-focus:ring-white"></div>
+</label>
+</div>
+</div>
+<!-- Delivery & Payment Info Review -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 border-t border-outline-variant/20">
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="font-label text-[10px] uppercase tracking-widest font-bold text-outline">Shipping To</h3>
+<button class="text-[10px] uppercase tracking-widest font-bold text-tertiary-fixed-dim hover:text-primary transition-colors">EDIT</button>
+</div>
+<p class="font-serif">Marc-Antoine Rossi<br/>Bahnhofstrasse 12<br/>8001 Zürich, Switzerland</p>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="font-label text-[10px] uppercase tracking-widest font-bold text-outline">Payment Method</h3>
+<button class="text-[10px] uppercase tracking-widest font-bold text-tertiary-fixed-dim hover:text-primary transition-colors">EDIT</button>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">credit_card</span>
+<p class="font-serif">Visa ending in •••• 4242</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Sticky Summary -->
+<div class="lg:col-span-5">
+<div class="sticky top-24 space-y-6">
+<div class="bg-surface-container p-8 shadow-sm">
+<h2 class="font-headline text-2xl font-bold text-primary mb-8">Order Summary</h2>
+<div class="space-y-4 mb-8">
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant font-serif">Subtotal</span>
+<span class="font-bold">CHF 62.00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant font-serif">Swiss Carbon-Neutral Delivery</span>
+<span class="font-bold text-green-700">FREE</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-on-surface-variant font-serif">VAT (7.7%)</span>
+<span class="font-bold">CHF 5.12</span>
+</div>
+</div>
+<div class="pt-6 border-t border-outline-variant/30 mb-8">
+<div class="flex justify-between items-baseline">
+<span class="font-headline text-lg font-bold text-primary">Total</span>
+<div class="text-right">
+<span class="font-headline text-3xl font-bold text-primary">CHF 67.12</span>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">Inclusive of all taxes</p>
+</div>
+</div>
+</div>
+<!-- Payment Buttons -->
+<div class="space-y-4">
+<button class="w-full bg-primary text-on-primary py-5 font-label font-bold uppercase tracking-widest hover:bg-[#4D2C19] transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-primary/20">
+                                Confirm Order
+                                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+<div class="flex items-center gap-4 py-2">
+<div class="flex-1 h-[1px] bg-outline-variant/30"></div>
+<span class="text-[10px] uppercase font-bold tracking-widest text-outline">Express Checkout</span>
+<div class="flex-1 h-[1px] bg-outline-variant/30"></div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<button class="bg-black text-white py-4 flex items-center justify-center rounded-lg hover:bg-zinc-900 transition-colors">
+<img alt="Apple Pay" class="h-6 invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKM0Zhx1JiRBLcgABQvVcPo_1W-evz0Ub_VV8EZ7mliMhdLLXw49iBXQjgMDUzhp7VT79z4BVKBz7KjBIdHfxO3c36vumJuhidYHZm1Tp8q3of_NOMAB49OCGgdjDaDZt4ntM3YlmL2gDi22NXzvmAxh3CsQUeyU2mzyVxWSXIsDmCFNfUFH_me_jGWLDYXVFc4rvRLlfBod11P-4VdnWlvxvXUBiFAIFLWiDYvmeO7qekrwrTU7tfQHyj4tsgA4K2XeZ5yfIUpg"/>
+</button>
+<button class="bg-[#00A1E2] text-white py-4 flex items-center justify-center rounded-lg hover:bg-[#0091cb] transition-colors">
+<span class="font-bold tracking-tighter text-xl font-headline">TWINT</span>
+</button>
+</div>
+</div>
+<!-- Trust Markers -->
+<div class="mt-8 flex items-center justify-center gap-6 opacity-60">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-xl">verified_user</span>
+<span class="text-[8px] uppercase tracking-[0.2em] mt-1">Secure SSL</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-xl">package_2</span>
+<span class="text-[8px] uppercase tracking-[0.2em] mt-1">Swiss Post</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-xl">eco</span>
+<span class="text-[8px] uppercase tracking-[0.2em] mt-1">Carbon Neutral</span>
+</div>
+</div>
+</div>
+<!-- Additional Promo -->
+<div class="bg-[#ffdfa0]/20 border border-[#ffdfa0] p-6 flex items-start gap-4">
+<span class="material-symbols-outlined text-[#5c4300]">redeem</span>
+<div class="space-y-1">
+<h5 class="text-sm font-bold text-[#5c4300] uppercase tracking-widest">Complimentary Samples</h5>
+<p class="text-xs text-[#5c4300]/80 font-serif">We've added two 20g taster packs of our latest Colombian roasts to your order.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-[#f7f3ee] border-t border-[#d5c3bb]/20">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 px-12 py-20 max-w-7xl mx-auto">
+<div class="space-y-6">
+<div class="flex items-center gap-3">
+<img alt="Logo" class="h-8 w-auto grayscale opacity-80" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+</div>
+<p class="font-serif text-[#4D2C19]/60 max-w-xs">Curating the world's most precise roasts for the discerning Swiss palate. Every bean is a journey from origin to excellence.</p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-4">
+<h4 class="font-label uppercase tracking-widest text-xs font-bold text-[#4D2C19]">Company</h4>
+<nav class="flex flex-col gap-2">
+<a class="font-serif text-sm text-[#4D2C19]/60 hover:text-[#4D2C19] underline decoration-[#D4A017] underline-offset-4 transition-opacity" href="#">Sustainability</a>
+<a class="font-serif text-sm text-[#4D2C19]/60 hover:text-[#4D2C19] underline decoration-[#D4A017] underline-offset-4 transition-opacity" href="#">Newsletter</a>
+</nav>
+</div>
+<div class="space-y-4">
+<h4 class="font-label uppercase tracking-widest text-xs font-bold text-[#4D2C19]">Legal</h4>
+<nav class="flex flex-col gap-2">
+<a class="font-serif text-sm text-[#4D2C19]/60 hover:text-[#4D2C19] underline decoration-[#D4A017] underline-offset-4 transition-opacity" href="#">Privacy Policy</a>
+<a class="font-serif text-sm text-[#4D2C19]/60 hover:text-[#4D2C19] underline decoration-[#D4A017] underline-offset-4 transition-opacity" href="#">Terms of Service</a>
+</nav>
+</div>
+</div>
+<div class="flex flex-col justify-between">
+<div class="space-y-4">
+<h4 class="font-label uppercase tracking-widest text-xs font-bold text-[#4D2C19]">Newsletter</h4>
+<div class="relative">
+<input class="w-full bg-transparent border-b-2 border-outline-variant/20 py-2 focus:border-primary focus:ring-0 outline-none font-serif text-sm transition-all" placeholder="Email address" type="email"/>
+<button class="absolute right-0 bottom-2 text-primary">
+<span class="material-symbols-outlined">east</span>
+</button>
+</div>
+</div>
+<p class="text-[10px] uppercase tracking-widest text-[#4D2C19]/40 mt-8">© 2024 Coffee Selection. Swiss Precision in Every Bean.</p>
+</div>
+</div>
+</footer>
+</body></html>
