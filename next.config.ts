@@ -12,8 +12,9 @@ const nextConfig: NextConfig = {
       // /quiz (no path) → start
       { source: "/quiz", destination: "/quiz/start", permanent: false },
       // New strategic sitemap → existing routes (until full rebuild)
-      { source: "/account/dashboard", destination: "/dashboard", permanent: false },
-      { source: "/account/:path*", destination: "/dashboard", permanent: false },
+      { source: "/dashboard", destination: "/account/dashboard", permanent: false },
+      { source: "/insights", destination: "/account/taste-profile", permanent: false },
+      { source: "/account", destination: "/account/dashboard", permanent: false },
       { source: "/checkout/cart", destination: "/checkout/shipping", permanent: false },
       { source: "/recommendation/result", destination: "/match-result", permanent: false },
       { source: "/recommendation/:path*", destination: "/match-result", permanent: false },
