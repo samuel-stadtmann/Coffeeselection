@@ -13,8 +13,8 @@ const AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCJlUN1xK0KJwNNVENRQno7wc5FvaY7oL5iwXuVxIW_IdVsV4FIw9gYU3bt2mJUxvPhxZ0u8MfB6cqbUEJWCcBOMhkgiTTC6_Jorsm3TErptYJxI-yCHNIeJy_vYhY22JV3LDvXyKPMcm4iQdl_6pARd4kL7W5CdY-HUArpP57CQQUjuEtq1mpmyl-1gvLEtg7HTBuEtprPOPp-DkKEyJuSHz6qG94cU5jS64NZyjFk97kQZX-WkmpqFNeq4-3rCDRPvrBGQ6KuJA";
 
 const navLinks = [
-  { href: "/quiz", label: "Quiz" },
-  { href: "/taste-types/der-klassiker", label: "Geschmackstypen" },
+  { href: "/quiz/question-1-brewing-method", label: "Quiz" },
+  { href: "/taste-types", label: "Geschmackstypen" },
   { href: "/learn/best-coffee-switzerland", label: "Magazine" },
   { href: "/subscription/how-it-works", label: "Subscription" },
 ];
@@ -85,7 +85,7 @@ export default function HomePage() {
               <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">shopping_bag</span>
             </Link>
             <Link
-              href="/quiz/start"
+              href="/quiz/question-1-brewing-method"
               className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
             >
               Quiz starten
@@ -109,7 +109,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/quiz/start"
+                href="/quiz/question-1-brewing-method"
                 className="bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all text-center"
               >
                 Jetzt Geschmackstyp entdecken
@@ -192,7 +192,7 @@ export default function HomePage() {
             </div>
             <div className="text-center mt-16">
               <Link
-                href="/quiz/start"
+                href="/quiz/question-1-brewing-method"
                 className="inline-flex items-center gap-3 bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
               >
                 Quiz starten <span className="material-symbols-outlined text-base">arrow_forward</span>
@@ -216,13 +216,13 @@ export default function HomePage() {
               </p>
             </div>
             <Link
-              href="/quiz/start"
+              href="/quiz/question-1-brewing-method"
               className="font-headline text-[11px] font-bold uppercase tracking-[0.3em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-2"
             >
               Quiz starten →
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {tasteTypes.map((t) => (
               <Link
                 key={t.slug}
@@ -237,6 +237,15 @@ export default function HomePage() {
                 </span>
               </Link>
             ))}
+          </div>
+          <div className="text-center">
+            <Link
+              href="/quiz/question-1-brewing-method"
+              className="inline-flex items-center gap-3 bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
+            >
+              Deinen Geschmackstyp jetzt entdecken
+              <span className="material-symbols-outlined text-base">arrow_forward</span>
+            </Link>
           </div>
         </section>
 
@@ -300,7 +309,7 @@ export default function HomePage() {
                       &ldquo;Diese Saison empfehlen wir den &lsquo;Sidamo&rsquo; von Stoll für seine unvergleichlichen Zitrusnoten.&rdquo;
                     </p>
                   </div>
-                  <Link href="/quiz/start" className="text-tertiary font-headline font-bold uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 hover:translate-x-2 transition-transform mt-6">
+                  <Link href="/quiz/question-1-brewing-method" className="text-tertiary font-headline font-bold uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 hover:translate-x-2 transition-transform mt-6">
                     Match finden <span className="material-symbols-outlined text-lg">arrow_forward</span>
                   </Link>
                 </div>
@@ -349,7 +358,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-sm text-on-surface-variant mb-6">2x 250g monatlich, inkl. Versand</p>
                 <Link
-                  href="/quiz/start"
+                  href="/quiz/question-1-brewing-method"
                   className="block text-center w-full bg-primary text-on-primary py-4 font-headline font-bold uppercase tracking-widest text-[10px] hover:bg-black transition-all"
                 >
                   Geschmackstyp finden &amp; bestellen
@@ -506,7 +515,7 @@ export default function HomePage() {
               60 Sekunden. 12 Fragen. Dein Geschmackstyp und der Kaffee, der zu dir gehört.
             </p>
             <Link
-              href="/quiz/start"
+              href="/quiz/question-1-brewing-method"
               className="inline-block bg-tertiary text-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
             >
               Quiz jetzt starten
@@ -531,7 +540,7 @@ export default function HomePage() {
           <div>
             <h4 className="text-[11px] uppercase tracking-[0.3em] mb-6 text-primary font-headline font-bold">Discover</h4>
             <ul className="space-y-3 font-headline text-[11px] font-bold uppercase tracking-widest">
-              <li><Link href="/quiz/start" className="text-on-surface-variant hover:text-tertiary transition-colors">Quiz</Link></li>
+              <li><Link href="/quiz/question-1-brewing-method" className="text-on-surface-variant hover:text-tertiary transition-colors">Quiz</Link></li>
               <li><Link href="/taste-types/der-klassiker" className="text-on-surface-variant hover:text-tertiary transition-colors">Geschmackstypen</Link></li>
               <li><Link href="/roasters" className="text-on-surface-variant hover:text-tertiary transition-colors">Röster</Link></li>
               <li><Link href="/coffee/discovery-box" className="text-on-surface-variant hover:text-tertiary transition-colors">Discovery Box</Link></li>
@@ -572,7 +581,7 @@ export default function HomePage() {
 
       {/* Sticky Mobile CTA */}
       <Link
-        href="/quiz/start"
+        href="/quiz/question-1-brewing-method"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
         Quiz starten · 60 Sek
