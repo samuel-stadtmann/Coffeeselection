@@ -14,10 +14,11 @@ const AVATAR =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuCJlUN1xK0KJwNNVENRQno7wc5FvaY7oL5iwXuVxIW_IdVsV4FIw9gYU3bt2mJUxvPhxZ0u8MfB6cqbUEJWCcBOMhkgiTTC6_Jorsm3TErptYJxI-yCHNIeJy_vYhY22JV3LDvXyKPMcm4iQdl_6pARd4kL7W5CdY-HUArpP57CQQUjuEtq1mpmyl-1gvLEtg7HTBuEtprPOPp-DkKEyJuSHz6qG94cU5jS64NZyjFk97kQZX-WkmpqFNeq4-3rCDRPvrBGQ6KuJA";
 
 const navLinks = [
-  { href: "/quiz/question-1-brewing-method", label: "Quiz" },
+  { href: "/coffee", label: "Coffees" },
   { href: "/taste-types", label: "Geschmackstypen" },
-  { href: "/learn/best-coffee-switzerland", label: "Magazine" },
-  { href: "/subscription/how-it-works", label: "Subscription" },
+  { href: "/roasters", label: "Röster" },
+  { href: "/compare", label: "Vergleiche" },
+  { href: "/learn", label: "Magazine" },
 ];
 
 const tasteTypes = [
@@ -568,7 +569,8 @@ export default function HomePage() {
             <h4 className="text-[11px] uppercase tracking-[0.3em] mb-6 text-primary font-headline font-bold">Discover</h4>
             <ul className="space-y-3 font-headline text-[11px] font-bold uppercase tracking-widest">
               <li><Link href="/quiz/question-1-brewing-method" className="text-on-surface-variant hover:text-tertiary transition-colors">Quiz</Link></li>
-              <li><Link href="/taste-types/der-klassiker" className="text-on-surface-variant hover:text-tertiary transition-colors">Geschmackstypen</Link></li>
+              <li><Link href="/coffee" className="text-on-surface-variant hover:text-tertiary transition-colors">Alle Coffees</Link></li>
+              <li><Link href="/taste-types" className="text-on-surface-variant hover:text-tertiary transition-colors">Geschmackstypen</Link></li>
               <li><Link href="/roasters" className="text-on-surface-variant hover:text-tertiary transition-colors">Röster</Link></li>
               <li><Link href="/coffee/discovery-box" className="text-on-surface-variant hover:text-tertiary transition-colors">Discovery Box</Link></li>
             </ul>
@@ -576,7 +578,8 @@ export default function HomePage() {
           <div>
             <h4 className="text-[11px] uppercase tracking-[0.3em] mb-6 text-primary font-headline font-bold">Learn</h4>
             <ul className="space-y-3 font-headline text-[11px] font-bold uppercase tracking-widest">
-              <li><Link href="/learn/what-is-specialty-coffee" className="text-on-surface-variant hover:text-tertiary transition-colors">Magazine</Link></li>
+              <li><Link href="/learn" className="text-on-surface-variant hover:text-tertiary transition-colors">Magazine</Link></li>
+              <li><Link href="/compare" className="text-on-surface-variant hover:text-tertiary transition-colors">Vergleiche</Link></li>
               <li><Link href="/learn/coffee-flavor-wheel" className="text-on-surface-variant hover:text-tertiary transition-colors">Flavor Wheel</Link></li>
               <li><Link href="/faq" className="text-on-surface-variant hover:text-tertiary transition-colors">FAQ</Link></li>
             </ul>
