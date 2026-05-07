@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 const LOGO = "/logo.png";
 const HERO =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBXoR-PUcwRpX90ByFqkCWcjPpcEEETiXPBMbk9Ld5nFgt_nXaBFZfZTNyGSjhQkrjnDsBLTRQWeqt4VN0TQr1WBNwzsDTrU4qNgxTCRay6sxsmu84CDRLYUJZ8E9OXI202fZi_4TK2PkJih6zW9aWQEE3-_H2kLTo_k5vxlyFi0W2sByzZGpxt3nNJu3LCXtXefZc-swkmbe-4Qe58IpA_bHC2apoj08Zr5EoaGLS0GQmM9UsAWA_g4kfazuRjohGU84KSnT7UoQ";
+const COFFEE_IMG =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
 export const metadata: Metadata = {
   title: "Discovery Abo — Specialty Coffee monatlich entdecken | Coffee Selection",
@@ -11,13 +13,29 @@ export const metadata: Metadata = {
   keywords: ["coffee abo schweiz", "specialty coffee subscription", "discovery box", "kaffee abonnement", "monatliches kaffee abo"],
 };
 
+const navLinks = [
+  { href: "/quiz/question-1-brewing-method", label: "Quiz" },
+  { href: "/taste-types", label: "Geschmackstypen" },
+  { href: "/learn/best-coffee-switzerland", label: "Magazine" },
+  { href: "/subscription/discovery", label: "Subscription" },
+];
+
 const benefits = [
   { icon: "auto_awesome", title: "Kuratiert für deinen Geschmackstyp", desc: "Unser Algorithmus wählt jeden Monat zwei Kaffees, die exakt zu deinem Profil passen — von 16 Schweizer Top-Röstereien." },
   { icon: "explore", title: "Echte Entdeckungen", desc: "Du bekommst Kaffees, die du sonst nie gefunden hättest. Rare Lots, neue Aufbereitungen, saisonale Highlights." },
   { icon: "schedule", title: "Volle Flexibilität", desc: "Pausieren, Intervall ändern oder kündigen — alles mit einem Klick. Keine Mindestlaufzeit." },
   { icon: "loyalty", title: "Abonnenten-Preise", desc: "15% Rabatt gegenüber Einzelbestellung. Plus Zugang zu limitierten 'Rare Batches' nur für Mitglieder." },
-  { icon: "local_shipping", title: "Versand inklusive", desc: "Schweizweit kostenlos. Röstfrisch in 2–4 Werktagen direkt von der Rösterei in deinen Briefkasten." },
+  { icon: "local_shipping", title: "Versand ab CHF 100 kostenlos", desc: "Schweizweit liefern wir röstfrisch in 2–4 Werktagen. Ab einem Bestellwert von CHF 100 ist der Versand inklusive — sonst CHF 6.90." },
   { icon: "favorite", title: "Profil lernt mit", desc: "Bewerte jede Lieferung — der Algorithmus wird mit jeder Bewertung präziser. Deine zehnte Lieferung trifft besser als deine erste." },
+];
+
+const bestsellers = [
+  { slug: "ethiopia-yirgacheffe", name: "Ethiopia Yirgacheffe", roaster: "Miro Coffee", origin: "Äthiopien", tagline: "Jasmin · Limette · Beeren", price: "CHF 23.80", originalPrice: "CHF 28", badge: "Bestseller" },
+  { slug: "brasil-cerrado", name: "Brasil Cerrado", roaster: "Miro Coffee", origin: "Brasilien", tagline: "Schokolade · Nuss · Karamell", price: "CHF 18.70", originalPrice: "CHF 22", badge: "Klassiker" },
+  { slug: "kenya-aa-nyeri", name: "Kenya AA Nyeri", roaster: "Vertical Coffee", origin: "Kenia", tagline: "Schwarze Johannisbeere · Tomate", price: "CHF 27.20", originalPrice: "CHF 32", badge: null },
+  { slug: "espresso-tradizionale", name: "Espresso Tradizionale", roaster: "Stoll Kaffee", origin: "Blend", tagline: "Kakao · Karamell · Tabak", price: "CHF 20.40", originalPrice: "CHF 24", badge: null },
+  { slug: "costa-rica-honey", name: "Costa Rica Honey", roaster: "Vertical Coffee", origin: "Costa Rica", tagline: "Honig · Mandarine · Honigmelone", price: "CHF 23.80", originalPrice: "CHF 28", badge: null },
+  { slug: "panama-geisha", name: "Panama Geisha", roaster: "Sweven Coffee", origin: "Panama", tagline: "Bergamotte · Pfirsich · Tee", price: "CHF 40.80", originalPrice: "CHF 48", badge: "Rare Lot" },
 ];
 
 const steps = [
@@ -29,7 +47,7 @@ const steps = [
 const faq = [
   { q: "Was ist im Discovery Abo enthalten?", a: "Pro Lieferung erhältst du 2 verschiedene Specialty Coffees (250g oder 500g je Sorte, je nach gewählter Menge), perfekt auf deinen Geschmackstyp abgestimmt. Plus eine Karte mit Brüh-Tipps und Aromen-Beschreibung." },
   { q: "Kann ich das Abo jederzeit pausieren?", a: "Ja. In deinem Konto kannst du jederzeit pausieren (z. B. während Ferien), das Intervall ändern oder komplett kündigen. Es gibt keine Mindestlaufzeit." },
-  { q: "Was kostet das Abo?", a: "Discovery Abo startet bei CHF 24.00 pro Lieferung (250g + 250g, Versand inkl.). 500g-Variante CHF 45.20, 1kg-Variante CHF 86.50. Alle Preise inkl. 15% Abo-Rabatt." },
+  { q: "Was kostet das Abo?", a: "Discovery Abo startet bei CHF 24.00 pro Lieferung (250g + 250g). Ab einem Bestellwert von CHF 100 ist der Versand kostenlos, sonst CHF 6.90. Alle Abo-Preise enthalten 15% Mitglieder-Rabatt." },
   { q: "Kann ich auch nur einmal bestellen?", a: "Ja. Du kannst jeden Match-Kaffee auch einmalig bestellen — ohne Abo, ohne Bindung. Im Abo sparst du allerdings 15%." },
   { q: "Was passiert bei der ersten Lieferung?", a: "Sofort nach Bestellung wird dein erstes Set geröstet und versendet. Folgelieferungen kommen automatisch im gewählten Intervall — du siehst alle Termine in deinem Konto." },
   { q: "Kann ich Geschmackstyp wechseln?", a: "Ja, jederzeit. Wenn sich dein Geschmack entwickelt, machst du das Quiz neu — die nächste Lieferung passt sich an." },
@@ -38,17 +56,37 @@ const faq = [
 export default function DiscoverySubscriptionPage() {
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
+      {/* Header — full nav like home */}
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-40 md:h-52 w-auto object-contain -my-6 md:-my-10" src={LOGO} />
+            <img alt="Coffee Selection Logo" className="h-40 md:h-52 w-auto object-contain -my-6 md:-my-10 mr-8" src={LOGO} />
           </Link>
-          <Link
-            href="/quiz/question-1-brewing-method"
-            className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
-          >
-            Quiz starten
-          </Link>
+          <div className="hidden lg:flex items-center space-x-10">
+            {navLinks.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-primary hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-[14px]"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </div>
+          <div className="flex items-center space-x-4 md:space-x-6">
+            <Link href="/account/dashboard" className="hidden md:block">
+              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">person</span>
+            </Link>
+            <Link href="/checkout/cart">
+              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">shopping_bag</span>
+            </Link>
+            <Link
+              href="/quiz/question-1-brewing-method"
+              className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
+            >
+              Quiz starten
+            </Link>
+          </div>
         </nav>
       </header>
 
@@ -157,44 +195,82 @@ export default function DiscoverySubscriptionPage() {
         {/* Pricing */}
         <section className="bg-surface-variant py-20 md:py-24">
           <div className="max-w-5xl mx-auto px-6 md:px-8">
-            <div className="text-center mb-12">
-              <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
-                Preise
-              </span>
-              <h2 className="text-3xl md:text-4xl text-primary mb-4 uppercase tracking-tight font-headline font-bold">
-                Wähle deine Menge
-              </h2>
-              <p className="text-on-surface-variant">Alle Preise pro Lieferung, inkl. Versand, mit Abo-Rabatt</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+              <div className="max-w-xl">
+                <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
+                  Bestsellers
+                </span>
+                <h2 className="text-3xl md:text-4xl text-primary mb-4 uppercase tracking-tight font-headline font-bold">
+                  Direkt zum Abo — ohne Quiz
+                </h2>
+                <p className="text-on-surface-variant">
+                  Du weißt, was du willst? Wähle direkt einen unserer beliebtesten Specialty Coffees als Abo. Mit 15% Mitglieder-Rabatt.
+                </p>
+              </div>
+              <Link
+                href="/quiz/question-1-brewing-method"
+                className="font-headline text-[11px] font-bold uppercase tracking-[0.3em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-2 whitespace-nowrap"
+              >
+                Lieber Quiz machen →
+              </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { size: "250g", price: "CHF 24", note: "1 Sorte · Solo-Genießer", popular: false },
-                { size: "500g", price: "CHF 45", note: "2 Sorten · Beliebteste Wahl", popular: true },
-                { size: "1 kg", price: "CHF 86", note: "4 Packungen · Vieltrinker", popular: false },
-              ].map((p) => (
-                <div key={p.size} className={`p-8 ${p.popular ? "bg-primary text-on-primary" : "bg-white"} relative`}>
-                  {p.popular && (
-                    <span className="absolute -top-3 left-8 bg-tertiary text-primary px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold">
-                      Top
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {bestsellers.map((c) => (
+                <div key={c.slug} className="bg-white shadow-sm hover:shadow-xl transition-all flex flex-col group">
+                  <Link href={`/coffee/${c.slug}`} className="block relative aspect-[4/3] overflow-hidden bg-surface-container-low">
+                    <img src={COFFEE_IMG} alt={c.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    {c.badge && (
+                      <span className="absolute top-4 left-4 bg-tertiary text-primary px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold">
+                        {c.badge}
+                      </span>
+                    )}
+                    <span className="absolute top-4 right-4 bg-primary text-on-primary px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold">
+                      -15% Abo
                     </span>
-                  )}
-                  <h3 className={`font-headline text-2xl mb-2 uppercase font-bold ${p.popular ? "text-tertiary" : "text-primary"}`}>{p.size}</h3>
-                  <p className={`font-headline font-bold text-4xl mb-3 ${p.popular ? "text-on-primary" : "text-primary"}`}>{p.price}</p>
-                  <p className={`text-xs mb-6 ${p.popular ? "text-on-primary/70" : "text-on-surface-variant"}`}>{p.note}</p>
-                  <Link
-                    href="/quiz/question-1-brewing-method"
-                    className={`block text-center w-full py-3 font-headline font-bold text-xs uppercase tracking-widest transition-all ${
-                      p.popular ? "bg-tertiary text-primary hover:bg-white" : "bg-primary text-on-primary hover:bg-black"
-                    }`}
-                  >
-                    Abo starten
                   </Link>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">{c.origin}</span>
+                    <Link href={`/coffee/${c.slug}`}>
+                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg group-hover:text-tertiary transition-colors">
+                        {c.name}
+                      </h3>
+                    </Link>
+                    <p className="text-xs text-on-surface-variant mb-1">{c.roaster}</p>
+                    <p className="text-sm text-on-surface-variant italic mb-6 flex-1">{c.tagline}</p>
+                    <div className="flex items-baseline gap-2 mb-4">
+                      <span className="font-headline font-bold text-2xl text-primary">{c.price}</span>
+                      <span className="font-headline text-sm text-on-surface-variant line-through">{c.originalPrice}</span>
+                      <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant ml-auto">/ 250g</span>
+                    </div>
+                    <Link
+                      href="/checkout/payment"
+                      className="block text-center w-full bg-primary text-on-primary py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
+                    >
+                      Abo starten · Direkt zum Shop
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>
-            <p className="text-center text-xs text-on-surface-variant mt-8">
-              Lieferintervalle: wöchentlich · alle 2 Wochen · monatlich · alle 6 Wochen
-            </p>
+
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="bg-white p-5">
+                <span className="material-symbols-outlined text-tertiary text-2xl mb-2 block">autorenew</span>
+                <p className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Lieferintervall frei wählbar</p>
+                <p className="text-xs text-on-surface-variant mt-1">Wöchentlich bis alle 6 Wochen</p>
+              </div>
+              <div className="bg-white p-5">
+                <span className="material-symbols-outlined text-tertiary text-2xl mb-2 block">local_shipping</span>
+                <p className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Versand ab CHF 100 gratis</p>
+                <p className="text-xs text-on-surface-variant mt-1">Sonst CHF 6.90, schweizweit</p>
+              </div>
+              <div className="bg-white p-5">
+                <span className="material-symbols-outlined text-tertiary text-2xl mb-2 block">pause_circle</span>
+                <p className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">Pausieren jederzeit</p>
+                <p className="text-xs text-on-surface-variant mt-1">Keine Mindestlaufzeit, kein Risiko</p>
+              </div>
+            </div>
           </div>
         </section>
 
