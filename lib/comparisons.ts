@@ -19,18 +19,18 @@ export type Comparison = {
   related: string[];
 };
 
-const IMG_LIGHT =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAY2O-anAQphHP12QvSMRlb2TQ2LotVt3khFGmiqNn5BP1EvEFXoUXNzYJVoaRWaK6jkJSUhmaBWTLg06JEe5cnlD8juKbgCqXypGBd65goXMtQOrtymjajAV2YAdY-b7tzTAokhCaWcGZSYOdtnXVqCkrxEdkq5lZvqJD4HGZArUxSgtgSmhbNEY4_nkRWu8r_tf7ssjnAemr3j6AbKvLEnvattwapfkJejfSVMirl7u3j8i5yS2iDKG2ZpQPcIJRn-METX1b-Qd9b";
-const IMG_DARK =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBN8IgtovkYQlygVeCT7-HQJ3MxBIeXLHA7DLDxl1WsR_OhCTGdjP5WesE-1cuQRX2vSR__im3sOEI3Io4OQIaVy0Id7JoExY3qQQYId3uFZ0QVQ97HAEuACLlAIx1qmx6h9H7xFKRyQu1GTx1w87_FIcnKzg7zHh6N1JV8CH_0r5HSJp1bQCci05GFg8a9-XCnRtJRO_Y0T3nVzh4tLab0BxXGH_-yl0BwzYHtUSYMv6Gj_lGWgVZf3eVU60m2PPVUZdFKNue8cwtB";
+import { IMG_BEANS_LIGHT, IMG_BEANS_DARK, IMG_POUR_OVER, IMG_ESPRESSO_PULL, IMG_BERRIES, IMG_CHOCOLATE } from "./images";
+
+const IMG_LIGHT = IMG_BEANS_LIGHT;
+const IMG_DARK = IMG_BEANS_DARK;
 
 export const comparisons: Comparison[] = [
   {
     slug: "fruity-vs-chocolatey-coffee",
     title: "Fruchtiger vs. schokoladiger Kaffee",
     subtitle: "Lebendige Beeren oder warme Kakaonoten — was passt zu dir?",
-    a: { name: "Fruchtig", tagline: "Beerig · Hell · Lebendig", icon: "nutrition", image: IMG_LIGHT, matchType: "der-fruchtfreund" },
-    b: { name: "Schokoladig", tagline: "Kakao · Karamell · Warm", icon: "cake", image: IMG_DARK, matchType: "der-suesse" },
+    a: { name: "Fruchtig", tagline: "Beerig · Hell · Lebendig", icon: "nutrition", image: IMG_BERRIES, matchType: "der-fruchtfreund" },
+    b: { name: "Schokoladig", tagline: "Kakao · Karamell · Warm", icon: "cake", image: IMG_CHOCOLATE, matchType: "der-suesse" },
     intro: "Der wohl wichtigste Geschmacks-Wegscheid im Specialty Coffee. Auf der einen Seite die hellen, lebendigen Aromen aus Äthiopien und Kenia. Auf der anderen die warmen, schokoladigen Profile aus Brasilien, Kolumbien und Honduras. Beide sind hervorragend — aber sie sprechen unterschiedliche Geschmackstypen an.",
     table: [
       { label: "Aromen-Familie", a: "Beeren, Zitrus, Floral", b: "Schokolade, Karamell, Nuss" },
@@ -66,8 +66,8 @@ export const comparisons: Comparison[] = [
     slug: "filter-vs-espresso",
     title: "Filter vs. Espresso",
     subtitle: "Klarheit oder Konzentration — zwei Welten der Kaffeezubereitung",
-    a: { name: "Filter", tagline: "Klar · Aromatisch · Sanft", icon: "water_drop", image: IMG_LIGHT },
-    b: { name: "Espresso", tagline: "Konzentriert · Cremig · Intensiv", icon: "coffee_maker", image: IMG_DARK },
+    a: { name: "Filter", tagline: "Klar · Aromatisch · Sanft", icon: "water_drop", image: IMG_POUR_OVER },
+    b: { name: "Espresso", tagline: "Konzentriert · Cremig · Intensiv", icon: "coffee_maker", image: IMG_ESPRESSO_PULL },
     intro: "Filter und Espresso sind zwei komplett verschiedene Auffassungen davon, was Kaffee sein soll. Filter ist Klarheit und Transparenz. Espresso ist Konzentration und Charakter. Beide haben ihre Berechtigung — die Wahl hängt von deinem Lebensstil ab.",
     table: [
       { label: "Druck", a: "0 bar (Schwerkraft)", b: "9 bar" },

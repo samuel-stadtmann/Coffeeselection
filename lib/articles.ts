@@ -22,8 +22,12 @@ export type Article = {
   related: string[];
 };
 
-const IMG =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
+import {
+  IMG_BEANS_MACRO, IMG_POUR_OVER, IMG_ESPRESSO_PULL, IMG_BEANS_BAG, IMG_BEANS_LIGHT, IMG_BEANS_DARK,
+  IMG_LATTE_ART, IMG_ESPRESSO_MACHINE, IMG_PACKAGE, IMG_FLOWERS, IMG_CUPPING,
+} from "./images";
+
+const IMG = IMG_BEANS_MACRO;
 
 export const articles: Article[] = [
   {
@@ -33,7 +37,7 @@ export const articles: Article[] = [
     excerpt: "Specialty Coffee ist mehr als ein Marketing-Begriff. Erfahre was die SCA-Definition bedeutet und warum 80+ Punkte alles ändern.",
     readingTime: "5 Min",
     publishedAt: "2025-04-15",
-    image: IMG,
+    image: IMG_BEANS_MACRO,
     seoTitle: "Was ist Specialty Coffee? — Definition, Bedeutung, Unterschied",
     seoDescription: "Specialty Coffee einfach erklärt: SCA-Bewertung ab 80 Punkten, Direct Trade, Single Origin. Der komplette Guide für Schweizer Genießer.",
     keywords: ["specialty coffee", "was ist specialty coffee", "sca cupping", "single origin", "direct trade"],
@@ -63,7 +67,7 @@ export const articles: Article[] = [
     excerpt: "Brühmethode, Geschmacksprofil, Röstgrad — die drei Faktoren, die deine Kaffeewahl bestimmen sollten.",
     readingTime: "4 Min",
     publishedAt: "2025-04-10",
-    image: IMG,
+    image: IMG_PACKAGE,
     seoTitle: "Kaffee auswählen — der ultimative Guide für Specialty Coffee",
     seoDescription: "Wie wähle ich den richtigen Kaffee? Brühmethode, Geschmacksprofil, Röstgrad — der Schweizer Sommelier-Guide.",
     keywords: ["kaffee auswählen", "richtigen kaffee finden", "specialty coffee guide", "kaffee kaufen tipps"],
@@ -93,7 +97,7 @@ export const articles: Article[] = [
     excerpt: "Von Beere bis Tabak: Wie du Kaffee-Aromen systematisch erkennst — und endlich die Notes auf den Verpackungen verstehst.",
     readingTime: "6 Min",
     publishedAt: "2025-04-05",
-    image: IMG,
+    image: IMG_FLOWERS,
     seoTitle: "Coffee Flavor Wheel — Aromen-Wheel erklärt | Coffee Selection",
     seoDescription: "Das SCA Flavor Wheel macht Kaffee-Aromen systematisch erkennbar. Von Beere zu Tabak — der komplette Sensorik-Guide.",
     keywords: ["coffee flavor wheel", "kaffee aromen", "sca flavor wheel", "tasting notes kaffee", "kaffee verkosten"],
@@ -131,7 +135,7 @@ export const articles: Article[] = [
     excerpt: "Mehr als nur Druck vs. Schwerkraft: Warum Espresso und Filter zwei völlig verschiedene Welten sind.",
     readingTime: "4 Min",
     publishedAt: "2025-03-28",
-    image: IMG,
+    image: IMG_ESPRESSO_PULL,
     seoTitle: "Espresso vs. Filterkaffee — Unterschied einfach erklärt",
     seoDescription: "Espresso vs. Filter: Druck, Mahlgrad, Aroma, Koffein. Was der Unterschied wirklich ausmacht und welcher Kaffee sich für welche Methode eignet.",
     keywords: ["espresso vs filterkaffee", "filter vs espresso", "unterschied espresso filter", "espresso filterkaffee"],
@@ -164,7 +168,7 @@ export const articles: Article[] = [
     excerpt: "Mehr Koffein bei hell oder dunkel? Warum dunkel nicht stärker schmeckt — und wie du die richtige Röststufe findest.",
     readingTime: "4 Min",
     publishedAt: "2025-03-20",
-    image: IMG,
+    image: IMG_BEANS_LIGHT,
     seoTitle: "Helle vs. dunkle Röstung — Unterschied & welche ist besser?",
     seoDescription: "Hell oder dunkel? Mythen über Koffein-Gehalt, Röstgrade erklärt, Geschmacksunterschiede und welche Röstung zu deinem Geschmackstyp passt.",
     keywords: ["helle dunkle röstung", "hell vs dunkel kaffee", "röstgrad kaffee", "light roast vs dark roast"],
@@ -200,7 +204,7 @@ export const articles: Article[] = [
     excerpt: "Säure ist nicht gleich sauer. Warum lebendige Säure das Markenzeichen guter Specialty Coffees ist — und was tun bei empfindlichem Magen.",
     readingTime: "5 Min",
     publishedAt: "2025-03-15",
-    image: IMG,
+    image: IMG_CUPPING,
     seoTitle: "Säure im Kaffee erklärt — Magenfreundlicher Specialty Coffee",
     seoDescription: "Was bedeutet Säure im Kaffee? Welche Bohnen sind säurearm? Komplette Erklärung mit Tipps für magenempfindliche Genießer.",
     keywords: ["kaffee säure", "säurearmer kaffee", "magenfreundlicher kaffee", "kaffee säuregehalt"],
@@ -235,7 +239,7 @@ export const articles: Article[] = [
     excerpt: "Vollautomat = günstiger Filterkaffee? Falsch. Welche Bohnen wirklich passen und warum die meisten Empfehlungen Quatsch sind.",
     readingTime: "5 Min",
     publishedAt: "2025-03-08",
-    image: IMG,
+    image: IMG_ESPRESSO_MACHINE,
     seoTitle: "Bester Kaffee für Vollautomaten — Specialty Coffee Empfehlungen",
     seoDescription: "Vollautomat-Kaffee einfach erklärt: Welcher Röstgrad, welche Bohnen, welche Mahlgrade. Schweizer Specialty-Empfehlungen für Jura, DeLonghi & Co.",
     keywords: ["bester kaffee vollautomat", "vollautomat kaffee", "specialty coffee vollautomat", "kaffeebohnen vollautomat"],
@@ -269,7 +273,7 @@ export const articles: Article[] = [
     excerpt: "Schritt-für-Schritt: Wie du mit dem Hario V60 einen Filterkaffee brühst, der wie ein Top-Café schmeckt. Mit Rezept.",
     readingTime: "6 Min",
     publishedAt: "2025-03-01",
-    image: IMG,
+    image: IMG_POUR_OVER,
     seoTitle: "V60 brühen — Anleitung Pour Over für Specialty Coffee",
     seoDescription: "Wie brüht man V60 Filterkaffee? Komplettes Rezept: Mahlgrad, Wassertemperatur, Pour-Technik. Schritt-für-Schritt-Anleitung.",
     keywords: ["v60 brühen", "v60 anleitung", "pour over kaffee", "hario v60 rezept", "filterkaffee anleitung"],
@@ -313,7 +317,7 @@ export const articles: Article[] = [
     excerpt: "Mahlgrad, Tampendruck, Brühzeit: Die drei Stellschrauben für den perfekten Espresso. Mit Rezept und Troubleshooting.",
     readingTime: "5 Min",
     publishedAt: "2025-02-22",
-    image: IMG,
+    image: IMG_LATTE_ART,
     seoTitle: "Espresso brühen — perfekter Espresso aus dem Siebträger",
     seoDescription: "Wie brüht man perfekten Espresso? Mahlgrad, Druck, Brühzeit. Schritt-für-Schritt-Anleitung mit Troubleshooting.",
     keywords: ["espresso brühen", "siebträger anleitung", "espresso rezept", "perfekter espresso"],
@@ -349,7 +353,7 @@ export const articles: Article[] = [
     excerpt: "Discovery vs. Klassisch, Lieferintervalle, Pausieren — der komplette Guide für Schweizer Coffee-Abonnements.",
     readingTime: "4 Min",
     publishedAt: "2025-02-15",
-    image: IMG,
+    image: IMG_BEANS_BAG,
     seoTitle: "Kaffee-Abo erklärt — wie funktionieren Coffee Subscriptions?",
     seoDescription: "Kaffee-Abonnement Schweiz: Wie funktioniert es, was kostet es, kann ich pausieren? Der komplette Guide für Specialty Coffee Subscriptions.",
     keywords: ["kaffee abo", "coffee subscription", "kaffeeabonnement schweiz", "specialty coffee abo"],
@@ -387,7 +391,7 @@ export const articles: Article[] = [
     excerpt: "Die 8 besten Schweizer Specialty-Röstereien im Überblick. Wer macht den besten Espresso? Welche Bohnen lohnen sich wirklich?",
     readingTime: "7 Min",
     publishedAt: "2025-02-08",
-    image: IMG,
+    image: IMG_BEANS_DARK,
     seoTitle: "Beste Kaffee Schweiz 2025 — Top Specialty Coffee Röster",
     seoDescription: "Die besten Schweizer Specialty Coffee Röstereien 2025: Miro Coffee, Vertical, Stoll, La Cabra, Sweven. Komplette Übersicht & Empfehlungen.",
     keywords: ["bester kaffee schweiz", "specialty coffee schweiz", "schweizer kaffeeröster", "beste rösterei schweiz"],

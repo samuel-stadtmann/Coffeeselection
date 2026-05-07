@@ -3,8 +3,19 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cities, cityBySlug } from "@/lib/cities";
 import { roasterBySlug } from "@/lib/roasters";
+import { IMG_ZURICH, IMG_BERN, IMG_BASEL, IMG_GENEVA, IMG_LUCERNE, IMG_ZUG, IMG_SWITZERLAND } from "@/lib/images";
 
 const LOGO = "/logo.png";
+
+const CITY_IMAGES: Record<string, string> = {
+  "coffee-subscription-zurich": IMG_ZURICH,
+  "coffee-subscription-bern": IMG_BERN,
+  "coffee-subscription-basel": IMG_BASEL,
+  "coffee-subscription-geneva": IMG_GENEVA,
+  "coffee-subscription-lucerne": IMG_LUCERNE,
+  "coffee-subscription-zug": IMG_ZUG,
+  "coffee-subscription-switzerland": IMG_SWITZERLAND,
+};
 
 export function generateStaticParams() {
   return cities.map((c) => ({ slug: c.slug }));
@@ -53,18 +64,22 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
           </nav>
         </div>
 
-        {/* Hero */}
-        <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-16">
-          <div className="text-center max-w-4xl mx-auto">
-            <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-6 block">
-              <span className="material-symbols-outlined text-base align-middle mr-1">location_on</span>
-              {city.region} · {city.population} Einwohner
-            </span>
-            <h1 className="text-4xl md:text-6xl text-primary leading-[1.1] mb-6 font-headline font-bold uppercase tracking-tight">
-              Coffee Subscription<br /><span className="text-tertiary">{city.city}</span>
-            </h1>
-            <p className="text-lg text-on-surface-variant leading-relaxed">{city.hero}</p>
+        {/* Hero with city image */}
+        <section className="max-w-7xl mx-auto px-6 md:px-8 py-8 md:py-12">
+          <div className="aspect-[21/9] md:aspect-[3/1] overflow-hidden bg-surface-container relative shadow-2xl">
+            <img src={CITY_IMAGES[city.slug] || IMG_SWITZERLAND} alt={city.city} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 text-on-primary">
+              <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[10px] md:text-[11px] mb-3 block">
+                <span className="material-symbols-outlined text-base align-middle mr-1">location_on</span>
+                {city.region} · {city.population} Einwohner
+              </span>
+              <h1 className="text-3xl md:text-5xl lg:text-6xl leading-[1.05] font-headline font-bold uppercase tracking-tight">
+                Coffee Subscription<br /><span className="text-tertiary">{city.city}</span>
+              </h1>
+            </div>
           </div>
+          <p className="text-lg text-on-surface-variant leading-relaxed max-w-3xl mx-auto text-center mt-8 md:mt-12">{city.hero}</p>
         </section>
 
         {/* Delivery Info Strip */}

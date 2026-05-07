@@ -4,7 +4,7 @@ import MobileNav from "@/components/MobileNav";
 import Footer from "@/components/Footer";
 
 const HERO_IMG =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuDSb4m6IGOUeMwA4Yg9ULM6o03fNDEOBwl5QFpTistR845sK9zaWSx38ve29l3nhbEam7NGDdwLdqqZ1rXkSi7xLsfJ4-hQmUkdVf6CrdYBtPIBEREwGTBm0a0UQWDANAA-CpXQJqmW2Scx7j0sP98X_gTaK6MO3z0jiBenMOymOD8FKr2AubntZfPypvUL7FF0nX7rliGh792VC74TpGapin2Cgv-ByVBHBu2HJs6dVpE96gcBmWFm5agCUeGaT6UaBg5woxih6WH2";
+  "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=1600&q=80";
 
 const categories = [
   {

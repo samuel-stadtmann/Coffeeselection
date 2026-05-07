@@ -179,7 +179,7 @@ export default function PaymentPage() {
                 <h2 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-6">Bestellung</h2>
                 <div className="flex gap-4 pb-6 mb-6 border-b border-surface-container">
                   <div className="w-20 h-20 bg-surface-container-low overflow-hidden shrink-0">
-                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL" alt="Coffee" className="w-full h-full object-cover" />
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80" alt="Coffee" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-sm mb-1">Ethiopia Yirgacheffe</h4>
