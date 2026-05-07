@@ -14,7 +14,7 @@ export default function RootLayout({
     <html lang="de" className="light">
       <head>
         <link
-          href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Montserrat:wght@400;600;700;800;900&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Noto+Serif:wght@400;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap"
           rel="stylesheet"
         />
         <link
