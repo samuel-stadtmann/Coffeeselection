@@ -68,7 +68,7 @@ export default function ThankYouPage() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/dashboard"
+              href="/login?next=/account/dashboard"
               className="flex-1 py-4 bg-primary text-white font-label font-semibold rounded-xl uppercase tracking-widest text-sm text-center"
             >
               Mein Konto

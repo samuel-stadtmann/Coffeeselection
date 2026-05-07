@@ -6,7 +6,7 @@ const items = [
   { href: "/", label: "Home", icon: "home" },
   { href: "/brewing-guides", label: "Roasters", icon: "local_cafe" },
   { href: "/quiz", label: "Match", icon: "temp_preferences_custom" },
-  { href: "/dashboard", label: "Account", icon: "person" },
+  { href: "/login?next=/account/dashboard", label: "Account", icon: "person" },
 ];
 
 export default function MobileNav() {
