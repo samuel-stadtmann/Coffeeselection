@@ -74,7 +74,7 @@ export default function DiscoverySubscriptionPage() {
             ))}
           </div>
           <div className="flex items-center space-x-4 md:space-x-6">
-            <Link href="/account/dashboard" className="hidden md:block">
+            <Link href="/login?next=/account/dashboard" className="hidden md:block">
               <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">person</span>
             </Link>
             <Link href="/checkout/cart">

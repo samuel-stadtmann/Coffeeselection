@@ -48,7 +48,7 @@ export default function MatchResultPage() {
           <Link href="/" className="flex items-center">
             <img alt="Coffee Selection" className="h-40 md:h-52 w-auto object-contain -my-6 md:-my-10" src={LOGO} />
           </Link>
-          <Link href="/account/dashboard" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors">
+          <Link href="/login?next=/account/dashboard" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors">
             Mein Konto
           </Link>
         </div>
