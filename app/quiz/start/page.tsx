@@ -14,7 +14,7 @@ export default function QuizStartPage() {
   return (
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
       <QuizHeader />
-      <main className="flex-1 flex items-center justify-center pt-44 md:pt-56 pb-16 px-6 md:px-8">
+      <main className="flex-1 flex items-center justify-center pt-28 md:pt-32 pb-16 px-6 md:px-8">
         <div className="max-w-5xl w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-6 block">

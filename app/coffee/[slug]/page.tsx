@@ -35,7 +35,7 @@ export default async function CoffeeDetailPage({ params }: { params: Promise<{ s
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-40 md:h-52 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection" className="h-40 md:h-52 w-auto object-contain -my-6 md:-my-10" src={LOGO} />
           </Link>
           <Link
             href="/checkout/payment"
@@ -46,7 +46,7 @@ export default async function CoffeeDetailPage({ params }: { params: Promise<{ s
         </nav>
       </header>
 
-      <main className="pt-44 md:pt-56">
+      <main className="pt-28 md:pt-32">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
