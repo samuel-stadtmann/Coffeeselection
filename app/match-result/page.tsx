@@ -231,7 +231,7 @@ export default function MatchResultPage() {
                   inkl. Versand · {orderType === "subscription" ? "jederzeit pausieren oder kündigen" : "keine Bindung"}
                 </p>
                 <Link
-                  href="/checkout/payment"
+                  href="/checkout/cart"
                   className="block w-full text-center bg-tertiary text-primary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
                 >
                   {orderType === "subscription" ? "Abo starten" : "Jetzt bestellen"}
@@ -264,7 +264,7 @@ export default function MatchResultPage() {
 
       {/* Sticky Mobile CTA */}
       <Link
-        href="/checkout/payment"
+        href="/checkout/cart"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-tertiary text-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl"
       >
         {orderType === "subscription" ? `Abo starten · CHF ${totalPrice}` : `Bestellen · CHF ${totalPrice}`}

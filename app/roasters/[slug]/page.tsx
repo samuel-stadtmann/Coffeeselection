@@ -137,17 +137,6 @@ export default async function RoasterDetailPage({ params }: { params: Promise<{ 
               {roaster.tagline}
             </h2>
             <p className="text-lg text-on-surface-variant leading-relaxed">{roaster.story}</p>
-
-            {/* Founder card */}
-            <div className="mt-12 bg-white p-6 md:p-8 shadow-sm flex items-center gap-6">
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-surface-container shrink-0">
-                <img src={roaster.portrait} alt={roaster.founderName} className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-lg">{roaster.founderName}</h4>
-                <p className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mt-1">{roaster.founderRole}</p>
-              </div>
-            </div>
           </div>
         </section>
 

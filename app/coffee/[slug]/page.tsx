@@ -117,29 +117,24 @@ export default async function CoffeeDetailPage({ params }: { params: Promise<{ s
 
               {/* Price + CTA */}
               <div className="bg-primary text-on-primary p-6 md:p-8">
-                <div className="flex justify-between items-end mb-6">
-                  <div>
-                    <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block">Preis · 250g</span>
-                    <span className="font-headline font-bold text-3xl md:text-4xl text-tertiary">{coffee.price}</span>
-                  </div>
-                  <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">
-                    {coffee.matchScore}% Match
-                  </span>
+                <div className="mb-6">
+                  <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block">Preis · 250g</span>
+                  <span className="font-headline font-bold text-3xl md:text-4xl text-tertiary">{coffee.price}</span>
                 </div>
                 <Link
-                  href="/checkout/payment"
+                  href="/checkout/cart"
                   className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
                 >
                   In den Warenkorb · Einmalig
                 </Link>
                 <Link
-                  href="/subscription/discovery"
+                  href="/match-result"
                   className="block w-full text-center border-2 border-tertiary text-tertiary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
                 >
-                  Abo starten · -15% Sparen
+                  Abo konfigurieren · -15% Sparen
                 </Link>
                 <p className="text-xs text-on-primary/60 text-center mt-4">
-                  Inkl. Versand · röstfrisch in 2–4 Werktagen
+                  Versand ab CHF 100 kostenlos · röstfrisch in 2–4 Werktagen
                 </p>
               </div>
             </div>
