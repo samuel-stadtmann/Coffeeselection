@@ -9,8 +9,9 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // /quiz (no path) → start
+      { source: "/quiz", destination: "/quiz/start", permanent: false },
       // New strategic sitemap → existing routes (until full rebuild)
-      { source: "/quiz/start", destination: "/quiz", permanent: false },
       { source: "/account/dashboard", destination: "/dashboard", permanent: false },
       { source: "/account/:path*", destination: "/dashboard", permanent: false },
       { source: "/checkout/cart", destination: "/checkout/shipping", permanent: false },
