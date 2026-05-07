@@ -7,21 +7,39 @@ const LOGO = "/logo.png";
 const COFFEE_IMG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
-// TODO: replace with real cart state from Supabase / localStorage / Shopify
-const PRICE_PER_UNIT = 28;
+const PRICE_PER_250G = 28;
 const FREE_SHIPPING_THRESHOLD = 100;
 const SHIPPING_COST = 6.9;
 
+const sizes = [
+  { id: "250g", label: "250g", multiplier: 1, note: "1 Sorte" },
+  { id: "500g", label: "500g", multiplier: 1.9, note: "2 Sorten" },
+  { id: "1kg", label: "1 kg", multiplier: 3.6, note: "4 Pkg · -10%" },
+];
+
+const intervals = [
+  { id: "weekly", label: "Wöchentlich", note: "Für Vieltrinker" },
+  { id: "biweekly", label: "Alle 2 Wochen", note: "Beliebteste Wahl", popular: true },
+  { id: "monthly", label: "Monatlich", note: "Standard" },
+  { id: "6weeks", label: "Alle 6 Wochen", note: "Für Genießer" },
+];
+
 export default function CartPage() {
   const router = useRouter();
-  const [orderType] = useState<"once" | "subscription">("once");
+  const [orderType, setOrderType] = useState<"once" | "subscription">("once");
   const [qty, setQty] = useState(1);
+  const [size, setSize] = useState("250g");
+  const [interval, setInterval] = useState("biweekly");
 
-  const subtotal = PRICE_PER_UNIT * qty;
+  const sizeMultiplier = sizes.find((s) => s.id === size)?.multiplier ?? 1;
+  const unitPrice = orderType === "subscription" ? PRICE_PER_250G * sizeMultiplier : PRICE_PER_250G;
+  const itemTotal = unitPrice * (orderType === "once" ? qty : 1);
+  const discount = orderType === "subscription" ? itemTotal * 0.15 : 0;
+  const subtotal = itemTotal - discount;
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const subscriptionDiscount = orderType === "subscription" ? subtotal * 0.15 : 0;
-  const total = (subtotal - subscriptionDiscount + shipping).toFixed(2);
+  const total = (subtotal + shipping).toFixed(2);
   const amountToFreeShipping = (FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2);
+  const intervalLabel = intervals.find((i) => i.id === interval)?.label;
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
@@ -69,13 +87,97 @@ export default function CartPage() {
               Dein Warenkorb
             </h1>
             <p className="text-on-surface-variant">
-              {orderType === "subscription" ? "Abo · alle 2 Wochen" : "Einmalige Bestellung"}
+              {orderType === "subscription" ? `Abo · ${intervalLabel} · ${size}` : `Einmalige Bestellung · ${qty}× 250g`}
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Items column */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Order Type Toggle */}
+              <div className="bg-white p-6 md:p-8 shadow-sm">
+                <h3 className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-3">
+                  Bestelltyp
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setOrderType("once")}
+                    className={`p-5 text-left transition-all border-2 ${
+                      orderType === "once"
+                        ? "border-tertiary bg-tertiary/5"
+                        : "border-surface-container bg-white hover:border-tertiary/40"
+                    }`}
+                  >
+                    <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Einmal</h4>
+                    <p className="text-xs text-on-surface-variant">Nur diese Lieferung, kein Abo</p>
+                  </button>
+                  <button
+                    onClick={() => setOrderType("subscription")}
+                    className={`relative p-5 text-left transition-all border-2 ${
+                      orderType === "subscription"
+                        ? "border-tertiary bg-tertiary/5"
+                        : "border-surface-container bg-white hover:border-tertiary/40"
+                    }`}
+                  >
+                    <span className="absolute -top-3 left-3 bg-tertiary text-white px-2 py-0.5 font-headline text-[9px] uppercase tracking-widest font-bold">
+                      -15% Sparen
+                    </span>
+                    <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Abo</h4>
+                    <p className="text-xs text-on-surface-variant">Regelmäßig liefern, jederzeit pausieren</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Subscription Configurator — appears only when abo selected */}
+              {orderType === "subscription" && (
+                <>
+                  <div className="bg-white p-6 md:p-8 shadow-sm border-l-4 border-tertiary">
+                    <h3 className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-3">
+                      Menge pro Lieferung
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {sizes.map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() => setSize(s.id)}
+                          className={`p-4 text-center transition-all border-2 ${
+                            size === s.id ? "border-tertiary bg-tertiary/5" : "border-surface-container bg-white hover:border-tertiary/40"
+                          }`}
+                        >
+                          <h4 className="font-headline font-bold text-primary uppercase tracking-tight">{s.label}</h4>
+                          <p className="text-[10px] text-on-surface-variant mt-1 font-headline uppercase tracking-widest">{s.note}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-6 md:p-8 shadow-sm border-l-4 border-tertiary">
+                    <h3 className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-3">
+                      Lieferintervall
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {intervals.map((iv) => (
+                        <button
+                          key={iv.id}
+                          onClick={() => setInterval(iv.id)}
+                          className={`relative p-4 text-left transition-all border-2 ${
+                            interval === iv.id ? "border-tertiary bg-tertiary/5" : "border-surface-container bg-white hover:border-tertiary/40"
+                          }`}
+                        >
+                          {iv.popular && (
+                            <span className="absolute -top-2 right-2 bg-primary text-white px-2 py-0.5 font-headline text-[9px] uppercase tracking-widest font-bold">
+                              Top
+                            </span>
+                          )}
+                          <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">{iv.label}</h4>
+                          <p className="text-[10px] text-on-surface-variant mt-1">{iv.note}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Cart Item */}
               <div className="bg-white p-6 md:p-8 shadow-sm flex gap-4 md:gap-6">
                 <div className="w-24 h-24 md:w-32 md:h-32 bg-surface-container-low overflow-hidden shrink-0">
@@ -88,10 +190,12 @@ export default function CartPage() {
                       <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg md:text-xl mt-1">
                         Ethiopia Yirgacheffe
                       </h3>
-                      <p className="text-xs text-on-surface-variant mt-1">Miro Coffee Roasters · 250g</p>
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        Miro Coffee Roasters · {orderType === "subscription" ? size : "250g"}
+                      </p>
                       {orderType === "subscription" && (
                         <span className="inline-block mt-2 bg-tertiary/15 text-tertiary px-2 py-1 font-headline text-[9px] uppercase tracking-widest font-bold">
-                          Abo · alle 2 Wochen · -15%
+                          Abo · {intervalLabel} · -15%
                         </span>
                       )}
                     </div>
@@ -121,9 +225,11 @@ export default function CartPage() {
                         </button>
                       </div>
                     ) : (
-                      <div className="font-headline text-xs text-on-surface-variant uppercase tracking-widest">Pro Lieferung: 1 Sorte</div>
+                      <div className="font-headline text-xs text-on-surface-variant uppercase tracking-widest">
+                        Pro Lieferung: {size}
+                      </div>
                     )}
-                    <span className="font-headline font-bold text-primary text-xl">CHF {(PRICE_PER_UNIT * qty).toFixed(2)}</span>
+                    <span className="font-headline font-bold text-primary text-xl">CHF {itemTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -172,13 +278,15 @@ export default function CartPage() {
                 <h2 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-6">Zusammenfassung</h2>
                 <div className="space-y-3 text-sm pb-6 mb-6 border-b border-surface-container">
                   <div className="flex justify-between">
-                    <span className="text-on-surface-variant">Zwischensumme ({qty} {qty === 1 ? "Stück" : "Stück"})</span>
-                    <span className="font-headline font-bold text-primary">CHF {subtotal.toFixed(2)}</span>
+                    <span className="text-on-surface-variant">
+                      {orderType === "subscription" ? `Pro Lieferung (${size})` : `${qty}× 250g`}
+                    </span>
+                    <span className="font-headline font-bold text-primary">CHF {itemTotal.toFixed(2)}</span>
                   </div>
-                  {subscriptionDiscount > 0 && (
+                  {discount > 0 && (
                     <div className="flex justify-between">
                       <span className="text-tertiary font-headline text-xs uppercase tracking-widest font-bold">Abo-Rabatt (-15%)</span>
-                      <span className="text-tertiary font-headline font-bold">− CHF {subscriptionDiscount.toFixed(2)}</span>
+                      <span className="text-tertiary font-headline font-bold">− CHF {discount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -190,10 +298,14 @@ export default function CartPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex justify-between items-end mb-6">
+                <div className="flex justify-between items-end mb-2">
                   <span className="font-headline font-bold text-primary uppercase tracking-tight">Total</span>
                   <span className="font-headline font-bold text-2xl text-tertiary">CHF {total}</span>
                 </div>
+                {orderType === "subscription" && (
+                  <p className="text-xs text-on-surface-variant mb-6">Pro Lieferung · {intervalLabel}</p>
+                )}
+                {orderType === "once" && <div className="mb-6" />}
                 <button
                   onClick={() => router.push("/checkout/shipping")}
                   className="block w-full text-center bg-primary text-on-primary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
