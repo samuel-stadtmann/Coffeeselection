@@ -27,7 +27,6 @@ const nextConfig: NextConfig = {
       { source: "/coffee", destination: "/subscription/discovery", permanent: false },
       { source: "/coffee/discovery-box", destination: "/subscription/discovery", permanent: false },
       { source: "/coffee/new-arrivals", destination: "/subscription/discovery", permanent: false },
-      { source: "/compare/:path*", destination: "/brewing-guides", permanent: false },
       { source: "/seo-city/:path*", destination: "/", permanent: false },
       { source: "/reviews", destination: "/insights", permanent: false },
       { source: "/partner-with-us", destination: "/contact", permanent: false },
