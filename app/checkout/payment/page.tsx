@@ -34,7 +34,7 @@ export default function PaymentPage() {
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-[80px] md:h-[100px] w-auto object-contain -my-2 md:-my-3" src={LOGO} />
+            <img alt="Coffee Selection" className="h-40 md:h-52 w-auto object-contain" src={LOGO} />
           </Link>
           <div className="flex items-center gap-2 text-on-surface-variant">
             <span className="material-symbols-outlined text-base text-tertiary">lock</span>
@@ -43,7 +43,7 @@ export default function PaymentPage() {
         </div>
       </header>
 
-      <main className="pt-24 pb-12">
+      <main className="pt-44 md:pt-56 pb-12">
         <div className="max-w-3xl mx-auto px-6 md:px-8 mb-10">
           <div className="flex items-center gap-2">
             {[

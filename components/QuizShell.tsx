@@ -9,7 +9,7 @@ export function QuizHeader({ step, totalSteps }: { step?: number; totalSteps?: n
     <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
       <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
         <Link href="/" className="flex items-center">
-          <img alt="Coffee Selection" className="h-[80px] md:h-[100px] w-auto object-contain -my-2 md:-my-3" src={LOGO} />
+          <img alt="Coffee Selection" className="h-40 md:h-52 w-auto object-contain" src={LOGO} />
         </Link>
         {step && totalSteps && (
           <div className="hidden md:block font-headline text-[11px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">

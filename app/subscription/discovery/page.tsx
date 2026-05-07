@@ -41,7 +41,7 @@ export default function DiscoverySubscriptionPage() {
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-[100px] md:h-[140px] w-auto object-contain -my-4 md:-my-6" src={LOGO} />
+            <img alt="Coffee Selection" className="h-40 md:h-52 w-auto object-contain" src={LOGO} />
           </Link>
           <Link
             href="/quiz/question-1-brewing-method"
@@ -52,7 +52,7 @@ export default function DiscoverySubscriptionPage() {
         </nav>
       </header>
 
-      <main className="pt-20 md:pt-24">
+      <main className="pt-44 md:pt-56">
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
@@ -243,7 +243,7 @@ export default function DiscoverySubscriptionPage() {
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-20 w-auto object-contain -my-4" src={LOGO} />
+            <img alt="Coffee Selection" className="h-40 md:h-56 w-auto object-contain" src={LOGO} />
           </Link>
           <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
         </div>

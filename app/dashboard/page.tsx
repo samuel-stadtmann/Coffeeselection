@@ -11,7 +11,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background font-sans">
       <Nav />
 
-      <main className="pt-24 pb-32 px-4 max-w-4xl mx-auto">
+      <main className="pt-44 md:pt-56 pb-32 px-4 max-w-4xl mx-auto">
         {/* Greeting */}
         <div className="mb-8">
           <h1 className="font-headline font-serif text-3xl text-on-surface mb-1">
