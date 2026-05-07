@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { tasteTypes, tasteTypeBySlug } from "@/lib/taste-types";
+import { slugify } from "@/lib/coffees";
 
 const LOGO = "/logo.png";
 
@@ -168,27 +169,40 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {type.coffees.map((c) => (
-                <div key={c.name} className="bg-white p-8 shadow-md hover:shadow-xl transition-shadow group">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{c.origin}</span>
-                    <span className="bg-tertiary text-white px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold">
-                      {c.matchScore}% Match
-                    </span>
-                  </div>
-                  <h3 className="text-xl text-primary mb-2 uppercase tracking-tight font-headline font-bold">{c.name}</h3>
-                  <p className="text-sm text-on-surface-variant mb-6">{c.roaster}</p>
-                  <div className="flex justify-between items-center pt-4 border-t border-primary/10">
-                    <span className="font-headline font-bold text-primary text-xl">{c.price}</span>
-                    <Link
-                      href="/quiz/start"
-                      className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary hover:text-primary transition-colors"
-                    >
-                      Match starten →
+              {type.coffees.map((c) => {
+                const coffeeSlug = slugify(c.name);
+                return (
+                  <div key={c.name} className="bg-white shadow-md hover:shadow-xl transition-shadow group flex flex-col">
+                    <Link href={`/coffee/${coffeeSlug}`} className="block p-8 flex-1">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{c.origin}</span>
+                        <span className="bg-tertiary text-white px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold">
+                          {c.matchScore}% Match
+                        </span>
+                      </div>
+                      <h3 className="text-xl text-primary mb-2 uppercase tracking-tight font-headline font-bold group-hover:text-tertiary transition-colors">{c.name}</h3>
+                      <p className="text-sm text-on-surface-variant mb-6">{c.roaster}</p>
+                      <div className="pt-4 border-t border-primary/10">
+                        <span className="font-headline font-bold text-primary text-xl">{c.price}</span>
+                      </div>
                     </Link>
+                    <div className="grid grid-cols-2 border-t border-primary/10">
+                      <Link
+                        href={`/coffee/${coffeeSlug}`}
+                        className="text-center py-4 font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-bold"
+                      >
+                        Details
+                      </Link>
+                      <Link
+                        href="/checkout/payment"
+                        className="text-center py-4 font-headline text-[10px] uppercase tracking-widest bg-primary text-on-primary hover:bg-black transition-colors font-bold"
+                      >
+                        In den Shop
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
