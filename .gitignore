@@ -3,6 +3,9 @@
 out/
 build/
 
+# Vercel
+.vercel/
+
 # Dependencies
 node_modules/
 
