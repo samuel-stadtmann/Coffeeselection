@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { roasters } from "@/lib/roasters";
 
 const LOGO = "/logo.png";
 const HERO =
@@ -53,6 +54,14 @@ const seoArticles = [
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  // Random 3 roasters per page load (client-side to avoid SSR mismatch)
+  const [featured, setFeatured] = useState(() => roasters.slice(0, 3));
+  useEffect(() => {
+    const shuffled = [...roasters].sort(() => Math.random() - 0.5);
+    setFeatured(shuffled.slice(0, 3));
+  }, []);
+  const [hero, side1, side2] = featured;
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface selection:bg-tertiary selection:text-white pb-20 md:pb-0">
@@ -272,47 +281,65 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="grid grid-cols-12 gap-6 md:gap-8">
-              <div className="col-span-12 md:col-span-7 bg-surface-container relative overflow-hidden group shadow-lg min-h-[500px]">
+              {/* Featured large — random hero roaster */}
+              <Link
+                href={`/roasters/${hero.slug}`}
+                className="col-span-12 md:col-span-7 bg-surface-container relative overflow-hidden group shadow-lg min-h-[500px]"
+              >
                 <img
-                  src={ROASTERY}
-                  alt="Miro Coffee Roastery"
+                  src={hero.image}
+                  alt={hero.name}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent" />
                 <div className="absolute bottom-10 left-10 right-10 text-on-primary">
                   <span className="font-headline text-[10px] uppercase tracking-[0.5em] mb-4 block text-tertiary font-bold">
-                    Zürich · Direct Trade
+                    {hero.city} · seit {hero.founded}
                   </span>
-                  <h3 className="text-3xl mb-3 font-headline font-bold">Miro Coffee Roasters</h3>
+                  <h3 className="text-3xl mb-3 font-headline font-bold">{hero.name}</h3>
                   <p className="text-on-primary/80 max-w-sm text-sm leading-relaxed">
-                    Pioniere in Sachen Direct Trade und nordischem Röststil.
+                    {hero.tagline}.
                   </p>
+                  <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold mt-4 inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    Profil ansehen <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </span>
                 </div>
-              </div>
+              </Link>
+
+              {/* Right column — 2 random side roasters */}
               <div className="col-span-12 md:col-span-5 flex flex-col gap-6 md:gap-8">
-                <div className="flex-1 bg-white p-8 md:p-10 flex flex-col justify-between border-l-8 border-tertiary shadow-md">
+                <Link
+                  href={`/roasters/${side1.slug}`}
+                  className="flex-1 bg-white p-8 md:p-10 flex flex-col justify-between border-l-8 border-tertiary shadow-md group hover:shadow-xl transition-all"
+                >
                   <div>
-                    <h3 className="text-xl text-primary mb-4 uppercase tracking-tight font-headline font-bold">Vertical Coffee</h3>
+                    <h3 className="text-xl text-primary mb-4 uppercase tracking-tight font-headline font-bold group-hover:text-tertiary transition-colors">{side1.name}</h3>
                     <p className="text-on-surface-variant text-sm leading-relaxed">
-                      Präzision aus den Alpen. Spezialisiert auf Single Origins mit klarem Charakter.
+                      {side1.shortDesc}
                     </p>
                   </div>
                   <div className="flex gap-3 mt-6">
-                    <span className="px-3 py-1 bg-surface-container text-primary font-headline text-[9px] font-bold uppercase tracking-widest">Bern</span>
-                    <span className="px-3 py-1 bg-surface-container text-primary font-headline text-[9px] font-bold uppercase tracking-widest">Bio</span>
+                    <span className="px-3 py-1 bg-surface-container text-primary font-headline text-[9px] font-bold uppercase tracking-widest">{side1.city}</span>
+                    {side1.values.slice(0, 1).map((v) => (
+                      <span key={v} className="px-3 py-1 bg-surface-container text-primary font-headline text-[9px] font-bold uppercase tracking-widest">{v}</span>
+                    ))}
                   </div>
-                </div>
-                <div className="flex-1 bg-primary text-on-primary p-8 md:p-10 flex flex-col justify-between shadow-md">
+                </Link>
+                <Link
+                  href={`/roasters/${side2.slug}`}
+                  className="flex-1 bg-primary text-on-primary p-8 md:p-10 flex flex-col justify-between shadow-md group hover:bg-black transition-colors"
+                >
                   <div>
-                    <h3 className="text-xl mb-3 text-tertiary uppercase tracking-tight font-headline font-bold">Sommelier-Tipp</h3>
-                    <p className="italic text-sm leading-relaxed">
-                      &ldquo;Diese Saison empfehlen wir den &lsquo;Sidamo&rsquo; von Stoll für seine unvergleichlichen Zitrusnoten.&rdquo;
+                    <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">{side2.city} · seit {side2.founded}</span>
+                    <h3 className="text-xl mb-3 text-tertiary uppercase tracking-tight font-headline font-bold">{side2.name}</h3>
+                    <p className="italic text-sm leading-relaxed text-on-primary/80">
+                      &ldquo;{side2.tagline}.&rdquo;
                     </p>
                   </div>
-                  <Link href="/quiz/question-1-brewing-method" className="text-tertiary font-headline font-bold uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 hover:translate-x-2 transition-transform mt-6">
-                    Match finden <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                  </Link>
-                </div>
+                  <span className="text-tertiary font-headline font-bold uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 group-hover:translate-x-2 transition-transform mt-6">
+                    Mehr erfahren <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
