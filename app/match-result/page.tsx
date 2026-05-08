@@ -168,17 +168,13 @@ async function getRecommendedCoffeeForType(
   supabase: ReturnType<typeof createClient>,
   taste_type_id: number
 ): Promise<RecommendedCoffee | null> {
-  const tasteType = tasteTypeById(taste_type_id);
-  if (!tasteType) return null;
-
-  const profile = Object.fromEntries(tasteType.profile.map((p) => [p.label, p.value]));
-  const target = {
-    acidity: profile["Säure"] ?? 50,
-    body: profile["Körper"] ?? 50,
-    sweetness: profile["Süße"] ?? 50,
-    bitterness: profile["Bitterkeit"] ?? 50,
-    complexity: profile["Komplexität"] ?? 50,
-  };
+  // Profil des Geschmackstyps aus DB (1–5 Skala)
+  const { data: target } = await supabase
+    .from("taste_types")
+    .select("acidity, body, sweetness, bitterness, complexity")
+    .eq("id", taste_type_id)
+    .maybeSingle();
+  if (!target) return null;
 
   const { data, error } = await supabase
     .from("coffees")
@@ -198,11 +194,11 @@ async function getRecommendedCoffeeForType(
   const ranked = data
     .map((c) => {
       const dist =
-        Math.abs((c.acidity ?? 50) - target.acidity) +
-        Math.abs((c.body ?? 50) - target.body) +
-        Math.abs((c.sweetness ?? 50) - target.sweetness) +
-        Math.abs((c.bitterness ?? 50) - target.bitterness) +
-        Math.abs((c.complexity ?? 50) - target.complexity);
+        Math.abs((c.acidity ?? 3) - (target.acidity ?? 3)) +
+        Math.abs((c.body ?? 3) - (target.body ?? 3)) +
+        Math.abs((c.sweetness ?? 3) - (target.sweetness ?? 3)) +
+        Math.abs((c.bitterness ?? 3) - (target.bitterness ?? 3)) +
+        Math.abs((c.complexity ?? 3) - (target.complexity ?? 3));
       return { coffee: c, dist };
     })
     .sort((a, b) => a.dist - b.dist);
@@ -390,17 +386,21 @@ export default function MatchResultPage() {
                     { label: "Komplexität", value: coffee.complexity },
                   ]
                     .filter((p) => p.value != null)
-                    .map((p) => (
-                      <div key={p.label}>
-                        <div className="flex justify-between mb-2">
-                          <span className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
-                          <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                    .map((p) => {
+                      // DB-Werte sind 1–5 Skala
+                      const pct = Math.max(0, Math.min(100, (p.value as number) * 20));
+                      return (
+                        <div key={p.label}>
+                          <div className="flex justify-between mb-2">
+                            <span className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
+                            <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold">{p.value} / 5</span>
+                          </div>
+                          <div className="h-1 bg-surface-container relative overflow-hidden">
+                            <div className="h-full bg-tertiary transition-all duration-1000" style={{ width: `${pct}%` }} />
+                          </div>
                         </div>
-                        <div className="h-1 bg-surface-container relative overflow-hidden">
-                          <div className="h-full bg-tertiary transition-all duration-1000" style={{ width: `${p.value}%` }} />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               </div>
               {coffee.roaster && (

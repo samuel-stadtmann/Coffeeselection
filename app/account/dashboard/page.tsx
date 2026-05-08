@@ -231,17 +231,21 @@ export default function AccountDashboardPage() {
                         { label: "Komplexität", value: profile.complexity },
                       ]
                         .filter((p) => p.value != null)
-                        .map((p) => (
-                          <div key={p.label}>
-                            <div className="flex justify-between mb-1">
-                              <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
-                              <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                        .map((p) => {
+                          // DB-Werte sind 1–5 Skala → in % umrechnen für Anzeige + Bar
+                          const pct = Math.max(0, Math.min(100, (p.value as number) * 20));
+                          return (
+                            <div key={p.label}>
+                              <div className="flex justify-between mb-1">
+                                <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
+                                <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{p.value} / 5</span>
+                              </div>
+                              <div className="h-1 bg-surface-container relative overflow-hidden">
+                                <div className="h-full bg-tertiary" style={{ width: `${pct}%` }} />
+                              </div>
                             </div>
-                            <div className="h-1 bg-surface-container relative overflow-hidden">
-                              <div className="h-full bg-tertiary" style={{ width: `${p.value}%` }} />
-                            </div>
-                          </div>
-                        ))
+                          );
+                        })
                     ) : (
                       <p className="text-sm text-on-surface-variant">Profil sichtbar nach dem Quiz.</p>
                     )}
