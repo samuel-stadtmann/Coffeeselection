@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getAllCoffees, getCoffeeBySlug } from "@/lib/coffees";
+import { getCoffeeBySlug, getCoffeeSlugsForStatic } from "@/lib/db/coffees";
 import { coffeeCategories, categoryBySlug, getCoffeesForCategory } from "@/lib/coffee-categories";
 
 const LOGO = "/logo.png";
-const COFFEE_IMG =
+const COFFEE_FALLBACK_IMG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
-export function generateStaticParams() {
-  const coffees = getAllCoffees().map((c) => ({ slug: c.slug }));
+export async function generateStaticParams() {
+  const coffees = await getCoffeeSlugsForStatic();
   const cats = coffeeCategories.map((c) => ({ slug: c.slug }));
   return [...coffees, ...cats];
 }
@@ -20,12 +20,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (cat) {
     return { title: cat.seoTitle, description: cat.seoDescription, keywords: cat.keywords };
   }
-  const c = getCoffeeBySlug(slug);
+  const c = await getCoffeeBySlug(slug);
   if (!c) return {};
+  const origin = c.origin_name_de ?? "Specialty";
   return {
-    title: `${c.name} — ${c.roaster} | Coffee Selection`,
-    description: `${c.name} aus ${c.origin}, geröstet von ${c.roaster}. Specialty Coffee, Direct Trade, ${c.price}.`,
-    keywords: [c.name.toLowerCase(), c.origin.toLowerCase(), c.roaster.toLowerCase(), "specialty coffee", "schweizer kaffee"],
+    title: `${c.name} — ${c.roaster_name} | Coffee Selection`,
+    description: `${c.name} aus ${origin}, geröstet von ${c.roaster_name}. Specialty Coffee, Direct Trade, CHF ${Number(c.price_chf).toFixed(2)}.`,
+    keywords: [c.name.toLowerCase(), origin.toLowerCase(), c.roaster_name.toLowerCase(), "specialty coffee", "schweizer kaffee"],
   };
 }
 
@@ -122,7 +123,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                     className="group bg-white shadow-sm hover:shadow-xl transition-all flex flex-col"
                   >
                     <div className="aspect-[4/3] overflow-hidden bg-surface-container-low">
-                      <img src={COFFEE_IMG} alt={c.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img src={COFFEE_FALLBACK_IMG} alt={c.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-6 flex-1 flex flex-col">
                       <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">{c.origin}</span>
@@ -204,9 +205,15 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
   }
 
   // Coffee detail page — render product view
-  const coffee = getCoffeeBySlug(slug);
+  const coffee = await getCoffeeBySlug(slug);
   if (!coffee) notFound();
-  const primaryType = coffee.tasteTypes[0];
+
+  const origin = coffee.origin_name_de ?? "Specialty";
+  const priceLabel = `CHF ${Number(coffee.price_chf).toFixed(2)}`;
+  const aromas = coffee.flavor_slugs ?? [];
+  const brewing = coffee.recommended_brewing_slugs ?? [];
+  const description =
+    coffee.description ?? coffee.short_description ?? coffee.tasting_summary ?? "";
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
@@ -216,7 +223,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
             <Link href="/" className="hover:text-tertiary transition-colors">Home</Link>
             <span>/</span>
-            <Link href={`/taste-types/${primaryType.slug}`} className="hover:text-tertiary transition-colors">{primaryType.name}</Link>
+            <Link href={`/roasters/${coffee.roaster_slug}`} className="hover:text-tertiary transition-colors">{coffee.roaster_name}</Link>
             <span>/</span>
             <span className="text-primary">{coffee.name}</span>
           </nav>
@@ -226,47 +233,53 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
             <div>
               <div className="aspect-square overflow-hidden bg-surface-container-low shadow-2xl">
-                <img src={COFFEE_IMG} alt={coffee.name} className="w-full h-full object-cover" />
+                <img src={coffee.image_url || COFFEE_FALLBACK_IMG} alt={coffee.name} className="w-full h-full object-cover" />
               </div>
             </div>
 
             <div className="lg:sticky lg:top-28 lg:self-start space-y-8">
               <div>
                 <Link
-                  href={`/taste-types/${primaryType.slug}`}
+                  href={`/roasters/${coffee.roaster_slug}`}
                   className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 inline-block hover:text-primary transition-colors"
                 >
-                  Für {primaryType.name}
+                  {coffee.roaster_name}
                 </Link>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.1] mb-4 font-headline font-bold uppercase tracking-tight">
                   {coffee.name}
                 </h1>
                 <p className="font-headline text-on-surface-variant uppercase tracking-widest text-sm mb-6">
-                  {coffee.roaster} · {coffee.origin}
+                  {origin}{coffee.region ? ` · ${coffee.region}` : ""}{coffee.processing_name_de ? ` · ${coffee.processing_name_de}` : ""}
                 </p>
-                <p className="text-base md:text-lg text-on-surface-variant leading-relaxed">
-                  {primaryType.heroDesc.split(".")[0]}. Dieser Kaffee wurde sorgfältig von {coffee.roaster} geröstet — Direct Trade, röstfrisch, in Kleinmengen.
-                </p>
+                {description && (
+                  <p className="text-base md:text-lg text-on-surface-variant leading-relaxed">{description}</p>
+                )}
               </div>
 
-              <div>
-                <h3 className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-3">Aromen-Profil</h3>
-                <div className="flex flex-wrap gap-2">
-                  {primaryType.aromas.slice(0, 5).map((a) => (
-                    <span key={a} className="bg-white border border-tertiary/30 px-4 py-2 font-headline text-[10px] uppercase tracking-widest font-bold text-primary">
-                      {a}
-                    </span>
-                  ))}
+              {aromas.length > 0 && (
+                <div>
+                  <h3 className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-3">Aromen-Profil</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {aromas.slice(0, 6).map((a) => (
+                      <span key={a} className="bg-white border border-tertiary/30 px-4 py-2 font-headline text-[10px] uppercase tracking-widest font-bold text-primary">
+                        {a}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="bg-white p-6 md:p-8 shadow-md grid grid-cols-2 gap-4">
                 {[
-                  { label: "Herkunft", value: coffee.origin },
-                  { label: "Röster", value: coffee.roaster },
-                  { label: "Brühmethoden", value: primaryType.brewing.slice(0, 2).join(", ") },
-                  { label: "Trade", value: "Direct Trade" },
-                ].map((s) => (
+                  { label: "Herkunft", value: origin },
+                  { label: "Röster", value: coffee.roaster_name },
+                  ...(coffee.variety_name ? [{ label: "Varietät", value: coffee.variety_name }] : []),
+                  ...(coffee.processing_name_de ? [{ label: "Aufbereitung", value: coffee.processing_name_de }] : []),
+                  ...(coffee.altitude_m_min ? [{ label: "Höhe", value: `${coffee.altitude_m_min}${coffee.altitude_m_max ? `–${coffee.altitude_m_max}` : ""} m` }] : []),
+                  ...(coffee.harvest_year ? [{ label: "Ernte", value: String(coffee.harvest_year) }] : []),
+                  ...(coffee.roast_level ? [{ label: "Röstgrad", value: coffee.roast_level }] : []),
+                  ...(brewing.length ? [{ label: "Brühmethoden", value: brewing.slice(0, 3).join(", ") }] : []),
+                ].slice(0, 6).map((s) => (
                   <div key={s.label}>
                     <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold block mb-1">
                       {s.label}
@@ -278,8 +291,8 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
 
               <div className="bg-primary text-on-primary p-6 md:p-8">
                 <div className="mb-6">
-                  <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block">Preis · 250g</span>
-                  <span className="font-headline font-bold text-3xl md:text-4xl text-tertiary">{coffee.price}</span>
+                  <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block">Preis · {coffee.weight_g}g</span>
+                  <span className="font-headline font-bold text-3xl md:text-4xl text-tertiary">{priceLabel}</span>
                 </div>
                 <Link
                   href="/checkout/cart"
@@ -301,17 +314,30 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
           </div>
         </section>
 
-        <section className="bg-surface-container-low py-16 md:py-20 border-y border-primary/5">
-          <div className="max-w-3xl mx-auto px-6 md:px-8">
-            <h2 className="text-2xl md:text-3xl text-primary mb-6 uppercase tracking-tight font-headline font-bold text-center">
-              Über diesen Kaffee
-            </h2>
-            <p className="text-lg text-on-surface-variant leading-relaxed">{primaryType.longDesc}</p>
-            <p className="text-lg text-on-surface-variant leading-relaxed mt-6">
-              <strong className="text-primary">{coffee.roaster}</strong> röstet diesen {coffee.origin}-Kaffee in kleinen Chargen. Du erhältst ihn röstfrisch — die Bohnen werden erst nach deiner Bestellung verpackt.
-            </p>
-          </div>
-        </section>
+        {(coffee.description || coffee.tasting_summary) && (
+          <section className="bg-surface-container-low py-16 md:py-20 border-y border-primary/5">
+            <div className="max-w-3xl mx-auto px-6 md:px-8">
+              <h2 className="text-2xl md:text-3xl text-primary mb-6 uppercase tracking-tight font-headline font-bold text-center">
+                Über diesen Kaffee
+              </h2>
+              {coffee.description && (
+                <p className="text-lg text-on-surface-variant leading-relaxed">{coffee.description}</p>
+              )}
+              {coffee.tasting_summary && (
+                <p className="text-lg text-on-surface-variant leading-relaxed mt-6">
+                  <strong className="text-primary">Tasting Notes — </strong>
+                  {coffee.tasting_summary}
+                </p>
+              )}
+              {coffee.farm && (
+                <p className="text-base text-on-surface-variant leading-relaxed mt-6">
+                  <strong className="text-primary">Farm:</strong> {coffee.farm}
+                  {coffee.producer ? ` · Produzent: ${coffee.producer}` : ""}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="bg-primary text-on-primary py-16">
           <div className="max-w-3xl mx-auto px-6 md:px-8 text-center">
@@ -322,7 +348,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
               href="/checkout/cart"
               className="inline-block bg-tertiary text-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
             >
-              Jetzt bestellen · {coffee.price}
+              Jetzt bestellen · {priceLabel}
             </Link>
           </div>
         </section>

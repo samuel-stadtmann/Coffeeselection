@@ -1,12 +1,15 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { roasters, allCities } from "@/lib/roasters";
+import { getRoasters } from "@/lib/db/roasters";
+import { getCoffees } from "@/lib/db/coffees";
 
 const LOGO = "/logo.png";
+const ROASTER_FALLBACK_IMG =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuDsi0Cm5pc68_wHYzSlE9JU3hSFfItOBscVq7fRgSVQF2O2c1qq3Lur8RIyfH1J56Xmysu8_-LJxl3wpeTypHOshuMB_3c8-5Z-yuccHxOvjlh1rBBx9aJ_L6xn0ES5e12zVKtvjtl1pI1K-J8kdzYr-ifacUyJTZrRDt5L4C7tyBQLYyKcpkoNC0Go4fagorT6mBPJdkR5u6AGDLnIFfYxzAiKDRRtiCr6pss5eRNI3-kBz3TRwC3MXJQNVV9oH7rHgXvPfiZieg";
 
 export const metadata: Metadata = {
   title: "Alle Röster — Schweizer Specialty Coffee | Coffee Selection",
-  description: "Alle 8 Schweizer Specialty-Coffee-Röstereien auf einen Blick: Miro Coffee, Vertical, Stoll, La Cabra, Sweven, Atelier Espresso, Boncourt, Drop Coffee.",
+  description: "Alle Schweizer Specialty-Coffee-Röstereien auf einen Blick.",
   keywords: ["schweizer kaffeeröster", "specialty coffee schweiz", "kaffeerösterei schweiz", "direct trade kaffee"],
 };
 
@@ -17,7 +20,14 @@ const navLinks = [
   { href: "/subscription/discovery", label: "Subscription" },
 ];
 
-export default function RoastersOverviewPage() {
+export default async function RoastersOverviewPage() {
+  const roasters = await getRoasters();
+  const allCoffees = await getCoffees();
+  const coffeesByRoaster = allCoffees.reduce<Record<string, number>>((acc, c) => {
+    acc[c.roaster_slug] = (acc[c.roaster_slug] ?? 0) + 1;
+    return acc;
+  }, {});
+  const allCities = Array.from(new Set(roasters.map((r) => r.city).filter(Boolean) as string[])).sort();
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
@@ -63,7 +73,7 @@ export default function RoastersOverviewPage() {
             Alle Röster
           </h1>
           <p className="text-lg text-on-surface-variant leading-relaxed max-w-2xl mx-auto">
-            Wir arbeiten mit den führenden {roasters.length} Specialty-Coffee-Röstereien der Schweiz zusammen. Jede mit einer eigenen Handschrift, eigenem Stil, eigener Geschichte.
+            Wir arbeiten mit {roasters.length} Specialty-Coffee-Röstereien der Schweiz zusammen. Jede mit einer eigenen Handschrift, eigenem Stil, eigener Geschichte.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-8">
             {allCities.map((c) => (
@@ -85,14 +95,14 @@ export default function RoastersOverviewPage() {
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-surface-container-low">
                   <img
-                    src={r.image}
+                    src={r.hero_image_url || r.logo_url || ROASTER_FALLBACK_IMG}
                     alt={r.name}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
                     <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-1">
-                      {r.city} · seit {r.founded}
+                      {r.city ?? r.country}
                     </span>
                     <h3 className="font-headline font-bold text-on-primary uppercase tracking-tight text-xl">
                       {r.name}
@@ -100,22 +110,14 @@ export default function RoastersOverviewPage() {
                   </div>
                 </div>
                 <div className="p-6 flex-1 flex flex-col">
-                  <p className="font-headline text-tertiary uppercase tracking-widest text-xs mb-3 font-bold">
-                    {r.tagline}
-                  </p>
-                  <p className="text-sm text-on-surface-variant leading-relaxed mb-4 flex-1">
-                    {r.shortDesc}
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {r.values.slice(0, 3).map((v) => (
-                      <span key={v} className="bg-surface-container px-2 py-1 font-headline text-[9px] uppercase tracking-widest font-bold text-on-surface-variant">
-                        {v}
-                      </span>
-                    ))}
-                  </div>
+                  {r.short_description && (
+                    <p className="text-sm text-on-surface-variant leading-relaxed mb-4 flex-1">
+                      {r.short_description}
+                    </p>
+                  )}
                   <div className="flex justify-between items-center pt-4 border-t border-surface-container">
                     <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">
-                      {r.coffees.length} Kaffees
+                      {coffeesByRoaster[r.slug] ?? 0} Kaffees
                     </span>
                     <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold group-hover:text-primary transition-colors flex items-center gap-1">
                       Mehr <span className="material-symbols-outlined text-base">arrow_forward</span>

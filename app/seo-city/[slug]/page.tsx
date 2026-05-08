@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cities, cityBySlug } from "@/lib/cities";
-import { roastersForCity } from "@/lib/roasters";
-import { coffeesForCity } from "@/lib/coffees";
+import { getRoastersByCity } from "@/lib/db/roasters";
+import { getCoffeesByCity } from "@/lib/db/coffees";
 import { IMG_ZURICH, IMG_BERN, IMG_BASEL, IMG_GENEVA, IMG_LUCERNE, IMG_ZUG, IMG_SWITZERLAND } from "@/lib/images";
 
 const LOGO = "/logo.png";
@@ -34,9 +34,9 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   const city = cityBySlug(slug);
   if (!city) notFound();
 
-  // Auto-derived from roaster.city + coffee.roaster — keine Hardcoding-Pflege nötig
-  const localRoasters = roastersForCity(city.city);
-  const localCoffees = coffeesForCity(city.city);
+  // Auto-derived: roasters in der Stadt → ihre Coffees aus DB
+  const localRoasters = await getRoastersByCity(city.city);
+  const localCoffees = await getCoffeesByCity(city.city);
   const otherCities = cities.filter((c) => c.slug !== slug && c.slug !== "coffee-subscription-switzerland").slice(0, 4);
 
   return (
@@ -126,14 +126,14 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
                     className="group bg-white shadow-sm hover:shadow-xl transition-all"
                   >
                     <div className="aspect-[4/3] overflow-hidden">
-                      <img src={r.image} alt={r.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      <img src={r.hero_image_url || r.logo_url || ""} alt={r.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     </div>
                     <div className="p-6">
-                      <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">{r.city} · seit {r.founded}</span>
+                      <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">{r.city ?? r.country}</span>
                       <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl group-hover:text-tertiary transition-colors mb-2">
                         {r.name}
                       </h3>
-                      <p className="text-sm text-on-surface-variant leading-relaxed">{r.shortDesc}</p>
+                      {r.short_description && <p className="text-sm text-on-surface-variant leading-relaxed">{r.short_description}</p>}
                     </div>
                   </Link>
                 ))}
@@ -161,14 +161,14 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
                   href={`/coffee/${c.slug}`}
                   className="group bg-white shadow-sm hover:shadow-xl transition-all p-6 flex flex-col"
                 >
-                  <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">{c.origin}</span>
+                  <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">{c.origin_name_de ?? "Specialty"}</span>
                   <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-1 group-hover:text-tertiary transition-colors">
                     {c.name}
                   </h3>
-                  <p className="text-xs text-on-surface-variant mb-3">{c.roaster}</p>
-                  <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.tasteTypes[0]?.tagline}</p>
+                  <p className="text-xs text-on-surface-variant mb-3">{c.roaster_name}</p>
+                  <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.tasting_summary ?? c.short_description ?? ""}</p>
                   <div className="flex justify-between items-center pt-3 border-t border-surface-container">
-                    <span className="font-headline font-bold text-primary">{c.price}</span>
+                    <span className="font-headline font-bold text-primary">CHF {Number(c.price_chf).toFixed(2)}</span>
                     <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </Link>

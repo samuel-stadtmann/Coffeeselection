@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { coffeeCategories } from "@/lib/coffee-categories";
-import { getAllCoffees } from "@/lib/coffees";
+import { getCoffees } from "@/lib/db/coffees";
 
 const LOGO = "/logo.png";
-const COFFEE_IMG =
+const COFFEE_FALLBACK_IMG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
 export const metadata: Metadata = {
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   keywords: ["specialty coffee schweiz", "kaffeeauswahl", "kaffee online kaufen schweiz"],
 };
 
-export default function CoffeesOverviewPage() {
-  const allCoffees = getAllCoffees();
+export default async function CoffeesOverviewPage() {
+  const allCoffees = await getCoffees();
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
@@ -80,17 +80,17 @@ export default function CoffeesOverviewPage() {
                   className="group bg-white shadow-sm hover:shadow-xl transition-all flex flex-col"
                 >
                   <div className="aspect-[4/3] overflow-hidden">
-                    <img src={COFFEE_IMG} alt={c.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <img src={c.image_url || COFFEE_FALLBACK_IMG} alt={c.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
-                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">{c.origin}</span>
+                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">{c.origin_name_de ?? "Specialty"}</span>
                     <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1 group-hover:text-tertiary transition-colors">
                       {c.name}
                     </h3>
-                    <p className="text-xs text-on-surface-variant mb-3">{c.roaster}</p>
-                    <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.tasteTypes[0]?.tagline}</p>
+                    <p className="text-xs text-on-surface-variant mb-3">{c.roaster_name}</p>
+                    <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.tasting_summary ?? c.short_description ?? ""}</p>
                     <div className="flex justify-between items-center pt-3 border-t border-surface-container">
-                      <span className="font-headline font-bold text-primary">{c.price}</span>
+                      <span className="font-headline font-bold text-primary">CHF {Number(c.price_chf).toFixed(2)}</span>
                       <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary group-hover:translate-x-1 transition-transform">→</span>
                     </div>
                   </div>
