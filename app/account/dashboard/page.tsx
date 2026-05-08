@@ -14,6 +14,14 @@ type CustomerRow = {
   created_at: string;
 };
 
+type TasteProfile = {
+  acidity: number | null;
+  body: number | null;
+  sweetness: number | null;
+  bitterness: number | null;
+  complexity: number | null;
+};
+
 const subscription = {
   active: true,
   product: "Discovery Abo · 500g",
@@ -43,6 +51,7 @@ const recommendation = {
 export default function AccountDashboardPage() {
   const [paused, setPaused] = useState(false);
   const [customer, setCustomer] = useState<CustomerRow | null>(null);
+  const [profile, setProfile] = useState<TasteProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,6 +68,15 @@ export default function AccountDashboardPage() {
         .eq("auth_user_id", auth.user.id)
         .single();
       setCustomer(data);
+      // Wenn taste_type_id gesetzt: Archetyp-Profil aus DB laden
+      if (data?.taste_type_id != null) {
+        const { data: tt } = await supabase
+          .from("taste_types")
+          .select("acidity, body, sweetness, bitterness, complexity")
+          .eq("id", data.taste_type_id)
+          .maybeSingle();
+        setProfile(tt as TasteProfile | null);
+      }
       setLoading(false);
     })();
   }, []);
@@ -204,18 +222,26 @@ export default function AccountDashboardPage() {
                     </Link>
                   </div>
                   <div className="space-y-3">
-                    {tasteType ? (
-                      tasteType.profile.map((p) => (
-                        <div key={p.label}>
-                          <div className="flex justify-between mb-1">
-                            <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
-                            <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                    {hasTasteType && profile ? (
+                      [
+                        { label: "Säure", value: profile.acidity },
+                        { label: "Süße", value: profile.sweetness },
+                        { label: "Körper", value: profile.body },
+                        { label: "Bitterkeit", value: profile.bitterness },
+                        { label: "Komplexität", value: profile.complexity },
+                      ]
+                        .filter((p) => p.value != null)
+                        .map((p) => (
+                          <div key={p.label}>
+                            <div className="flex justify-between mb-1">
+                              <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
+                              <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                            </div>
+                            <div className="h-1 bg-surface-container relative overflow-hidden">
+                              <div className="h-full bg-tertiary" style={{ width: `${p.value}%` }} />
+                            </div>
                           </div>
-                          <div className="h-1 bg-surface-container relative overflow-hidden">
-                            <div className="h-full bg-tertiary" style={{ width: `${p.value}%` }} />
-                          </div>
-                        </div>
-                      ))
+                        ))
                     ) : (
                       <p className="text-sm text-on-surface-variant">Profil sichtbar nach dem Quiz.</p>
                     )}
