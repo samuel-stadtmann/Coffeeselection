@@ -194,10 +194,10 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
                         Details
                       </Link>
                       <Link
-                        href="/checkout/payment"
+                        href="/checkout/cart"
                         className="text-center py-4 font-headline text-[10px] uppercase tracking-widest bg-primary text-on-primary hover:bg-black transition-colors font-bold"
                       >
-                        In den Shop
+                        In den Warenkorb
                       </Link>
                     </div>
                   </div>
