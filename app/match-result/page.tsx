@@ -116,8 +116,9 @@ async function persistAndScoreQuiz(
   const primary = ranked[0];
   const secondary = ranked[1];
   // confidence als 0–1 Fraktion mit 3 Nachkommastellen (Spalte ist NUMERIC(4,3), max 9.999).
-  // UI multipliziert mit 100 für %-Anzeige.
-  const confidence = Number(primary.normalized.toFixed(3));
+  // Hartes Cap auf 0.999 als Sicherheitsnetz gegen Edge-Cases.
+  const confidence = Math.min(0.999, Math.max(0, Number(primary.normalized.toFixed(3))));
+  console.log("[quiz] writing", { type: primary.type, score: primary.score, secondary_score: secondary?.score, confidence });
 
   // 4) Response Resultat-Felder
   await supabase
