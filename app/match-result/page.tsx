@@ -191,14 +191,24 @@ async function getRecommendedCoffeeForType(
   }
   if (!data || data.length === 0) return null;
 
-  const ranked = data
+  // Nur Coffees mit komplettem Sensorik-Profil ranken — sonst verfälscht NULL den Match
+  const ratable = data.filter(
+    (c) =>
+      c.acidity != null &&
+      c.body != null &&
+      c.sweetness != null &&
+      c.bitterness != null &&
+      c.complexity != null
+  );
+
+  const ranked = ratable
     .map((c) => {
       const dist =
-        Math.abs((c.acidity ?? 3) - (target.acidity ?? 3)) +
-        Math.abs((c.body ?? 3) - (target.body ?? 3)) +
-        Math.abs((c.sweetness ?? 3) - (target.sweetness ?? 3)) +
-        Math.abs((c.bitterness ?? 3) - (target.bitterness ?? 3)) +
-        Math.abs((c.complexity ?? 3) - (target.complexity ?? 3));
+        Math.abs((c.acidity as number) - (target.acidity ?? 3)) +
+        Math.abs((c.body as number) - (target.body ?? 3)) +
+        Math.abs((c.sweetness as number) - (target.sweetness ?? 3)) +
+        Math.abs((c.bitterness as number) - (target.bitterness ?? 3)) +
+        Math.abs((c.complexity as number) - (target.complexity ?? 3));
       return { coffee: c, dist };
     })
     .sort((a, b) => a.dist - b.dist);
