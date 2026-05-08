@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const LOGO = "/logo.png";
 
@@ -14,12 +15,50 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setInfo(null);
     setSubmitting(true);
-    // TODO: wire up Supabase Auth — for now just continue to result
-    setTimeout(() => router.push(next), 600);
+
+    const supabase = createClient();
+
+    if (mode === "signup") {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { first_name: name },
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        },
+      });
+      if (signUpError) {
+        setError(signUpError.message);
+        setSubmitting(false);
+        return;
+      }
+      // Email-Confirmation aktiv? Dann gibt's keine session, sondern eine Bestätigungs-Mail.
+      if (!data.session) {
+        setInfo("Wir haben dir eine Bestätigungs-Mail geschickt. Klick auf den Link, dann geht's weiter.");
+        setSubmitting(false);
+        return;
+      }
+      router.push(next);
+      router.refresh();
+      return;
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) {
+      setError(signInError.message);
+      setSubmitting(false);
+      return;
+    }
+    router.push(next);
+    router.refresh();
   };
 
   return (
@@ -123,6 +162,17 @@ function LoginForm() {
                 <Link href="#" className="text-tertiary hover:text-primary underline">AGB</Link> und{" "}
                 <Link href="/privacy" className="text-tertiary hover:text-primary underline">Datenschutzerklärung</Link>.
               </p>
+            )}
+
+            {error && (
+              <div className="bg-error/10 border-l-4 border-error px-4 py-3 text-sm text-primary">
+                {error}
+              </div>
+            )}
+            {info && (
+              <div className="bg-tertiary/10 border-l-4 border-tertiary px-4 py-3 text-sm text-primary">
+                {info}
+              </div>
             )}
 
             <button
