@@ -67,7 +67,7 @@ export async function persistQuizForCurrentUser(
     .from("quiz_responses")
     .insert({
       customer_id: customer.id,
-      version: "v1",
+      version: "v1.0",
       is_active: true,
     })
     .select("id")

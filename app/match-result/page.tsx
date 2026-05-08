@@ -53,7 +53,7 @@ async function persistAndScoreQuiz(
   // 1) Response-Row anlegen
   const { data: response, error: respErr } = await supabase
     .from("quiz_responses")
-    .insert({ customer_id: customerId, version: "v1", is_active: true })
+    .insert({ customer_id: customerId, version: "v1.0", is_active: true })
     .select("id")
     .single();
   if (respErr || !response) {
