@@ -72,7 +72,7 @@ export default function HomePage() {
           <Link href="/" className="flex items-center">
             <img
               alt="Coffee Selection Logo"
-              className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8"
+              className="h-72 md:h-96 w-auto object-contain -my-16 md:-my-24 mr-8"
               src={LOGO}
             />
           </Link>
