@@ -7,18 +7,25 @@ import type { TasteType } from "@/lib/taste-types";
 import { getLocalAnswers, clearLocalAnswers, type LocalQuizAnswer } from "@/lib/quiz-storage";
 
 const LOGO = "/logo.png";
-const IMG_BEANS =
+const IMG_BEANS_FALLBACK =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
-const IMG_ROASTER =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA-S5G-G2GyXwDSqhZUBVhEPzzhn6fmZjVav9MDmLRnTGguG1RMynNRtrMwDGxCBzjzoSF6OlAEDCOy47VHoi3ZWOP_lDsJTt9l2vjncVB3sPlBZ3_iqCO-t_b8t2mON0PC8klJhq85bKvLFqxRzhU2nTAf0ddAOBci5HMOPNI9RT9Fu8G5Oozu9c8wMB_n5dCv9mHBMPAzqbXs-rjZ3u7WxXvwScbAcg355mQw3rzPzcT7rHe-wZUyVGsAr1SxpcScic3PHn3AlmzX";
 
-const tasteProfile = [
-  { label: "Säure", value: 85 },
-  { label: "Süße", value: 70 },
-  { label: "Körper", value: 40 },
-  { label: "Bitterkeit", value: 20 },
-  { label: "Komplexität", value: 90 },
-];
+type RecommendedCoffee = {
+  id: string;
+  slug: string;
+  name: string;
+  image_url: string | null;
+  tasting_summary: string | null;
+  price_chf: number;
+  weight_g: number;
+  aroma_families: string[] | null;
+  acidity: number | null;
+  body: number | null;
+  sweetness: number | null;
+  bitterness: number | null;
+  complexity: number | null;
+  roaster: { name: string; slug: string; city: string | null; logo_url: string | null } | null;
+};
 
 const PRICE_PER_250G = 28;
 const intervals = [
@@ -42,17 +49,20 @@ async function persistAndScoreQuiz(
   supabase: ReturnType<typeof createClient>,
   customerId: string,
   answers: LocalQuizAnswer[]
-): Promise<number | null> {
+): Promise<{ tasteTypeId: number | null; error: string | null }> {
   // 1) Response-Row anlegen
-  const { data: response } = await supabase
+  const { data: response, error: respErr } = await supabase
     .from("quiz_responses")
     .insert({ customer_id: customerId, version: "v1", is_active: true })
     .select("id")
     .single();
-  if (!response) return null;
+  if (respErr || !response) {
+    console.error("[quiz] insert quiz_responses failed", respErr);
+    return { tasteTypeId: null, error: respErr?.message ?? "quiz_responses insert blocked" };
+  }
 
   // 2) Antworten als Zeilen
-  await supabase.from("quiz_answers").insert(
+  const { error: ansErr } = await supabase.from("quiz_answers").insert(
     answers.map((a) => ({
       response_id: response.id,
       question_code: a.question_code,
@@ -60,6 +70,10 @@ async function persistAndScoreQuiz(
       is_imputed: false,
     }))
   );
+  if (ansErr) {
+    console.error("[quiz] insert quiz_answers failed", ansErr);
+    return { tasteTypeId: null, error: ansErr.message };
+  }
 
   // 3) Scoring-Regeln laden, lokal aggregieren
   const { data: scoringRules } = await supabase
@@ -88,7 +102,10 @@ async function persistAndScoreQuiz(
     }))
     .sort((a, b) => b.normalized - a.normalized);
 
-  if (ranked.length === 0) return null;
+  if (ranked.length === 0) {
+    console.error("[quiz] no scoring matches found");
+    return { tasteTypeId: null, error: "Keine Scoring-Regeln getroffen — bitte Quiz neu starten." };
+  }
 
   const primary = ranked[0];
   const secondary = ranked[1];
@@ -108,7 +125,7 @@ async function persistAndScoreQuiz(
     .eq("id", response.id);
 
   // 5) Customer updaten
-  await supabase
+  const { error: custErr } = await supabase
     .from("customers")
     .update({
       taste_type_id: primary.type,
@@ -116,40 +133,133 @@ async function persistAndScoreQuiz(
       confidence,
     })
     .eq("id", customerId);
+  if (custErr) {
+    console.error("[quiz] update customers failed", custErr);
+    return { tasteTypeId: null, error: custErr.message };
+  }
 
-  return primary.type;
+  return { tasteTypeId: primary.type, error: null };
 }
+
+/**
+ * Findet aus den 16 Coffees in der DB den, dessen Profil
+ * (acidity/body/sweetness/bitterness/complexity) am nächsten am
+ * Geschmackstyp-Profil liegt — Manhattan-Distanz auf 5 Achsen.
+ * Zukünftig ersetzbar durch pgvector-Match auf taste_embedding.
+ */
+async function getRecommendedCoffeeForType(
+  supabase: ReturnType<typeof createClient>,
+  taste_type_id: number
+): Promise<RecommendedCoffee | null> {
+  const tasteType = tasteTypeById(taste_type_id);
+  if (!tasteType) return null;
+
+  const profile = Object.fromEntries(tasteType.profile.map((p) => [p.label, p.value]));
+  const target = {
+    acidity: profile["Säure"] ?? 50,
+    body: profile["Körper"] ?? 50,
+    sweetness: profile["Süße"] ?? 50,
+    bitterness: profile["Bitterkeit"] ?? 50,
+    complexity: profile["Komplexität"] ?? 50,
+  };
+
+  const { data, error } = await supabase
+    .from("coffees")
+    .select(
+      `id, slug, name, image_url, tasting_summary, price_chf, weight_g,
+       acidity, body, sweetness, bitterness, complexity, aroma_families,
+       roaster:roasters(name, slug, city, logo_url)`
+    )
+    .eq("status", "active")
+    .is("deleted_at", null);
+  if (error) {
+    console.error("[match] coffees query failed", error);
+    return null;
+  }
+  if (!data || data.length === 0) return null;
+
+  const ranked = data
+    .map((c) => {
+      const dist =
+        Math.abs((c.acidity ?? 50) - target.acidity) +
+        Math.abs((c.body ?? 50) - target.body) +
+        Math.abs((c.sweetness ?? 50) - target.sweetness) +
+        Math.abs((c.bitterness ?? 50) - target.bitterness) +
+        Math.abs((c.complexity ?? 50) - target.complexity);
+      return { coffee: c, dist };
+    })
+    .sort((a, b) => a.dist - b.dist);
+
+  const top = ranked[0]?.coffee;
+  if (!top) return null;
+  return {
+    ...top,
+    roaster: Array.isArray(top.roaster) ? top.roaster[0] ?? null : top.roaster ?? null,
+  } as RecommendedCoffee;
+}
+
+type LoadState = "loading" | "no-quiz" | "error" | "ready";
 
 export default function MatchResultPage() {
   const [orderType, setOrderType] = useState<"once" | "subscription">("subscription");
   const [interval, setInterval] = useState("biweekly");
   const [size, setSize] = useState("500g");
   const [tasteType, setTasteType] = useState<TasteType | undefined>();
+  const [coffee, setCoffee] = useState<RecommendedCoffee | null>(null);
+  const [state, setState] = useState<LoadState>("loading");
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
-  // Falls User aus dem Quiz kommt: Antworten verarbeiten & Score persistieren.
-  // Falls schon ein Resultat in customers steht: einfach lesen.
   useEffect(() => {
     const supabase = createClient();
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
+      if (!auth.user) {
+        setState("error");
+        setErrMsg("Bitte einloggen.");
+        return;
+      }
       const { data: customer } = await supabase
         .from("customers")
         .select("id, taste_type_id")
         .eq("auth_user_id", auth.user.id)
         .single();
-      if (!customer) return;
+      if (!customer) {
+        setState("error");
+        setErrMsg("Customer-Datensatz nicht gefunden.");
+        return;
+      }
 
       let id: number | null = customer.taste_type_id ?? null;
 
-      // Nur scoren wenn noch kein Resultat & lokale Quiz-Antworten vorhanden
-      const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
-      if (id == null && localAnswers.length > 0) {
-        id = await persistAndScoreQuiz(supabase, customer.id, localAnswers);
-        if (id != null) clearLocalAnswers();
+      // Wenn noch kein Resultat: localStorage prüfen, persistieren
+      if (id == null) {
+        const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
+        if (localAnswers.length === 0) {
+          setState("no-quiz");
+          return;
+        }
+        const result = await persistAndScoreQuiz(supabase, customer.id, localAnswers);
+        if (result.error || result.tasteTypeId == null) {
+          setState("error");
+          setErrMsg(result.error ?? "Persistierung fehlgeschlagen.");
+          return;
+        }
+        clearLocalAnswers();
+        id = result.tasteTypeId;
       }
 
-      if (id != null) setTasteType(tasteTypeById(id));
+      const type = tasteTypeById(id);
+      if (!type) {
+        setState("error");
+        setErrMsg(`Unbekannter Geschmackstyp ${id}.`);
+        return;
+      }
+      setTasteType(type);
+
+      // Coffee-Match aus DB
+      const matched = await getRecommendedCoffeeForType(supabase, id);
+      setCoffee(matched);
+      setState("ready");
     })();
   }, []);
 
@@ -180,32 +290,79 @@ export default function MatchResultPage() {
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
               Dein Geschmackstyp
             </span>
-            <h1 className="text-4xl md:text-6xl mb-4 font-headline font-bold uppercase tracking-tight leading-tight">
-              {tasteType?.name ?? "Dein Geschmackstyp"}
-            </h1>
-            <p className="font-headline text-tertiary uppercase tracking-widest text-sm mb-6">
-              {tasteType?.tagline ?? ""}
-            </p>
-            <p className="text-base md:text-lg text-on-primary/80 max-w-2xl mx-auto leading-relaxed">
-              {tasteType?.heroDesc ?? "Wir laden dein Profil…"}
-            </p>
+            {state === "loading" && (
+              <>
+                <h1 className="text-4xl md:text-6xl mb-4 font-headline font-bold uppercase tracking-tight leading-tight">
+                  Wir berechnen dein Match…
+                </h1>
+                <p className="text-base md:text-lg text-on-primary/80 max-w-2xl mx-auto leading-relaxed">
+                  Score-Aggregation läuft.
+                </p>
+              </>
+            )}
+            {state === "error" && (
+              <>
+                <h1 className="text-3xl md:text-4xl mb-4 font-headline font-bold uppercase tracking-tight leading-tight">
+                  Etwas ist schief gelaufen
+                </h1>
+                <p className="text-base md:text-lg text-on-primary/80 max-w-2xl mx-auto leading-relaxed mb-6">
+                  {errMsg ?? "Unbekannter Fehler."}
+                </p>
+                <Link
+                  href="/quiz/question-1-brewing-method"
+                  className="inline-block bg-tertiary text-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+                >
+                  Quiz neu starten
+                </Link>
+              </>
+            )}
+            {state === "no-quiz" && (
+              <>
+                <h1 className="text-3xl md:text-4xl mb-4 font-headline font-bold uppercase tracking-tight leading-tight">
+                  Kein Quiz-Resultat gefunden
+                </h1>
+                <p className="text-base md:text-lg text-on-primary/80 max-w-2xl mx-auto leading-relaxed mb-6">
+                  Bitte mach das Quiz, dann finden wir deinen Geschmackstyp.
+                </p>
+                <Link
+                  href="/quiz/question-1-brewing-method"
+                  className="inline-block bg-tertiary text-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+                >
+                  Quiz starten
+                </Link>
+              </>
+            )}
+            {state === "ready" && tasteType && (
+              <>
+                <h1 className="text-4xl md:text-6xl mb-4 font-headline font-bold uppercase tracking-tight leading-tight">
+                  {tasteType.name}
+                </h1>
+                <p className="font-headline text-tertiary uppercase tracking-widest text-sm mb-6">
+                  {tasteType.tagline}
+                </p>
+                <p className="text-base md:text-lg text-on-primary/80 max-w-2xl mx-auto leading-relaxed">
+                  {tasteType.heroDesc}
+                </p>
+              </>
+            )}
           </div>
         </section>
 
-        {/* Match Coffee + Configurator */}
+        {/* Match Coffee + Configurator — nur wenn ready */}
+        {state === "ready" && coffee && tasteType && (
         <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
             {/* Coffee Image + Profile */}
             <div className="space-y-6">
               <div className="aspect-[4/5] overflow-hidden bg-surface-container-low">
-                <img src={IMG_BEANS} alt="Ethiopia Yirgacheffe" className="w-full h-full object-cover" />
+                <img src={coffee.image_url || IMG_BEANS_FALLBACK} alt={coffee.name} className="w-full h-full object-cover" />
               </div>
               <div className="bg-white p-8 shadow-md">
                 <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-6">
-                  Geschmacksprofil
+                  Dein Geschmacksprofil
                 </h3>
                 <div className="space-y-4">
-                  {tasteProfile.map((p) => (
+                  {tasteType.profile.map((p) => (
                     <div key={p.label}>
                       <div className="flex justify-between mb-2">
                         <span className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
@@ -218,15 +375,19 @@ export default function MatchResultPage() {
                   ))}
                 </div>
               </div>
-              <div className="bg-white p-6 shadow-md flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-surface-variant shrink-0">
-                  <img src={IMG_ROASTER} alt="Roaster" className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">Zürich · Direct Trade</span>
-                  <h4 className="font-headline font-bold text-primary uppercase tracking-tight">Miro Coffee Roasters</h4>
-                </div>
-              </div>
+              {coffee.roaster && (
+                <Link href={`/roasters/${coffee.roaster.slug}`} className="bg-white p-6 shadow-md flex items-center gap-4 hover:shadow-xl transition-shadow">
+                  {coffee.roaster.logo_url && (
+                    <div className="w-14 h-14 rounded-full overflow-hidden bg-surface-variant shrink-0">
+                      <img src={coffee.roaster.logo_url} alt={coffee.roaster.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{coffee.roaster.city ?? "Direct Trade"}</span>
+                    <h4 className="font-headline font-bold text-primary uppercase tracking-tight">{coffee.roaster.name}</h4>
+                  </div>
+                </Link>
+              )}
             </div>
 
             {/* Configurator */}
@@ -236,16 +397,20 @@ export default function MatchResultPage() {
                   Dein Match
                 </span>
                 <h2 className="text-3xl md:text-5xl text-primary leading-tight mb-4 font-headline font-bold uppercase tracking-tight">
-                  Ethiopia<br />Yirgacheffe
+                  {coffee.name}
                 </h2>
-                <p className="font-serif italic text-base md:text-lg text-on-surface-variant leading-relaxed mb-2">
-                  &ldquo;Lebendige Jasmin- und Limettennoten mit klarem, hellem Körper. Eine perfekte Balance aus floraler Eleganz und beeriger Frische.&rdquo;
-                </p>
-                <div className="flex flex-wrap gap-2 mt-6">
-                  {["Jasmin", "Limette", "Erdbeere", "Bergamotte"].map((a) => (
-                    <span key={a} className="bg-surface-container px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold text-primary">{a}</span>
-                  ))}
-                </div>
+                {coffee.tasting_summary && (
+                  <p className="font-serif italic text-base md:text-lg text-on-surface-variant leading-relaxed mb-2">
+                    &ldquo;{coffee.tasting_summary}&rdquo;
+                  </p>
+                )}
+                {coffee.aroma_families && coffee.aroma_families.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-6">
+                    {coffee.aroma_families.slice(0, 6).map((a) => (
+                      <span key={a} className="bg-surface-container px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold text-primary">{a}</span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Order Type Toggle */}
@@ -379,6 +544,7 @@ export default function MatchResultPage() {
             </div>
           </div>
         </section>
+        )}
       </main>
 
       {/* Sticky Mobile CTA */}
