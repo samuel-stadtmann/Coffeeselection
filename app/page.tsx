@@ -554,7 +554,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-16 md:py-20">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
             <img alt="Coffee Selection Logo" className="h-56 md:h-72 w-auto object-contain mb-4" src={LOGO} />
             <p className="text-sm text-on-surface-variant leading-relaxed mb-6 max-w-xs">
@@ -582,6 +582,18 @@ export default function HomePage() {
               <li><Link href="/compare" className="text-on-surface-variant hover:text-tertiary transition-colors">Vergleiche</Link></li>
               <li><Link href="/learn/coffee-flavor-wheel" className="text-on-surface-variant hover:text-tertiary transition-colors">Flavor Wheel</Link></li>
               <li><Link href="/faq" className="text-on-surface-variant hover:text-tertiary transition-colors">FAQ</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-[11px] uppercase tracking-[0.3em] mb-6 text-primary font-headline font-bold">Lieferung</h4>
+            <ul className="space-y-3 font-headline text-[11px] font-bold uppercase tracking-widest">
+              <li><Link href="/seo-city/coffee-subscription-zurich" className="text-on-surface-variant hover:text-tertiary transition-colors">Zürich</Link></li>
+              <li><Link href="/seo-city/coffee-subscription-bern" className="text-on-surface-variant hover:text-tertiary transition-colors">Bern</Link></li>
+              <li><Link href="/seo-city/coffee-subscription-basel" className="text-on-surface-variant hover:text-tertiary transition-colors">Basel</Link></li>
+              <li><Link href="/seo-city/coffee-subscription-geneva" className="text-on-surface-variant hover:text-tertiary transition-colors">Genève</Link></li>
+              <li><Link href="/seo-city/coffee-subscription-lucerne" className="text-on-surface-variant hover:text-tertiary transition-colors">Luzern</Link></li>
+              <li><Link href="/seo-city/coffee-subscription-zug" className="text-on-surface-variant hover:text-tertiary transition-colors">Zug</Link></li>
+              <li><Link href="/seo-city" className="text-tertiary hover:text-primary transition-colors">Alle Städte →</Link></li>
             </ul>
           </div>
           <div>
