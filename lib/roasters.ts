@@ -19,10 +19,10 @@ export type Roaster = {
   stats: { yearsActive: number; coffeesRoasted: string; clientsServed: string };
 };
 
-import { ROASTERY_POOL, IMG_BARISTA_HANDS, imageForSlug } from "./images";
-
-const IMG_ROASTERY = ROASTERY_POOL[0];
-const IMG_PORTRAIT = IMG_BARISTA_HANDS;
+const IMG_ROASTERY =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuDsi0Cm5pc68_wHYzSlE9JU3hSFfItOBscVq7fRgSVQF2O2c1qq3Lur8RIyfH1J56Xmysu8_-LJxl3wpeTypHOshuMB_3c8-5Z-yuccHxOvjlh1rBBx9aJ_L6xn0ES5e12zVKtvjtl1pI1K-J8kdzYr-ifacUyJTZrRDt5L4C7tyBQLYyKcpkoNC0Go4fagorT6mBPJdkR5u6AGDLnIFfYxzAiKDRRtiCr6pss5eRNI3-kBz3TRwC3MXJQNVV9oH7rHgXvPfiZieg";
+const IMG_PORTRAIT =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuA-S5G-G2GyXwDSqhZUBVhEPzzhn6fmZjVav9MDmLRnTGguG1RMynNRtrMwDGxCBzjzoSF6OlAEDCOy47VHoi3ZWOP_lDsJTt9l2vjncVB3sPlBZ3_iqCO-t_b8t2mON0PC8klJhq85bKvLFqxRzhU2nTAf0ddAOBci5HMOPNI9RT9Fu8G5Oozu9c8wMB_n5dCv9mHBMPAzqbXs-rjZ3u7WxXvwScbAcg355mQw3rzPzcT7rHe-wZUyVGsAr1SxpcScic3PHn3AlmzX";
 
 export const roasters: Roaster[] = [
   {
@@ -36,7 +36,7 @@ export const roasters: Roaster[] = [
     story: "Miro Coffee wurde 2016 in Zürich-West von Miro Berger gegründet, einem ehemaligen Q-Grader und mehrfachen SCA-Sieger. Sein Anliegen: den nordischen Röststil — hell, klar, präzise — in die Schweiz zu bringen. Jede Bohne wird in kleinen 12kg-Chargen geröstet, mit dem Ziel, das Terroir der Herkunftsregion möglichst transparent zu machen. Direct Trade ist nicht Marketing, sondern Praxis: Miro reist jährlich nach Yirgacheffe und arbeitet mit drei spezifischen Familien-Farmen.",
     specialty: "Helle Röstungen · Äthiopien · Direct Trade",
     values: ["Direct Trade", "Bio-zertifiziert", "Helle Röstung", "Single Origin", "Q-Grader"],
-    image: ROASTERY_POOL[0],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Miro Berger",
     founderRole: "Gründer & Röstmeister",
@@ -56,7 +56,7 @@ export const roasters: Roaster[] = [
     story: "Vertical Coffee entstand 2018 aus der Leidenschaft von Sara Vögeli, einer ehemaligen Bergführerin. Der Name ist Programm: Hochlagen-Kaffees, vertikal-präzise Röstungen, und ein konsequenter Fokus auf Single Origins. Die Rösterei am Stadtrand von Bern arbeitet ausschließlich mit Bio-zertifizierten Bauern aus Costa Rica, Kenia und Kolumbien. Honey Process und Washed Lots sind die Spezialität — keine Naturals, keine Blends.",
     specialty: "Single Origin · Honey Process · Bio",
     values: ["Bio Suisse", "Direct Trade", "Single Origin", "Honey Process", "Hochland"],
-    image: ROASTERY_POOL[1],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Sara Vögeli",
     founderRole: "Gründerin & Cuppingmeisterin",
@@ -76,7 +76,7 @@ export const roasters: Roaster[] = [
     story: "1928 von Jakob Stoll am Schwanenplatz in Luzern gegründet, ist Stoll Kaffee heute in vierter Generation. Was als kleine Spezialitätenrösterei begann, ist heute eine der ältesten kontinuierlich betriebenen Kaffeeröstereien der Schweiz. Das Geheimnis: lange, schonende Trommelröstungen bei niedrigeren Temperaturen — magenfreundlich und komplex zugleich. Klassische Espresso-Blends mit Brasilien-Basis sind das Fundament, dazu indonesische Wet-Hulled-Spezialitäten als Gewürz.",
     specialty: "Klassische Röstung · Espresso-Blends · Sumatra",
     values: ["Tradition", "Magenfreundlich", "Schweizer Familienbetrieb", "Trommelröstung"],
-    image: ROASTERY_POOL[2],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Familie Stoll",
     founderRole: "4. Generation seit 1928",
@@ -96,7 +96,7 @@ export const roasters: Roaster[] = [
     story: "La Cabra Schweiz ist 2021 in Basel als Schweizer Pendant zur dänischen Kult-Rösterei La Cabra entstanden. Der Fokus liegt auf experimentellen Aufbereitungen: Anaerobic Naturals, Lactic Process, Carbonic Maceration. Sortenreine Heirloom-Varietäten und Pink Bourbon stehen im Mittelpunkt. Helle, transparente Röstungen, die jede Note der Aufbereitung herausarbeiten. Das Team in Basel arbeitet eng mit Produzenten in Kolumbien, Kenia und Ruanda zusammen.",
     specialty: "Anaerobic · Pink Bourbon · Experimental",
     values: ["Experimental", "Single Origin", "Direct Trade", "SCA Certified"],
-    image: ROASTERY_POOL[3],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Lukas Brunner",
     founderRole: "Head Roaster Schweiz",
@@ -116,7 +116,7 @@ export const roasters: Roaster[] = [
     story: "Sweven Coffee in Genf wurde 2019 von Élise Moreau gegründet, einer ehemaligen Sommelière. Der Anspruch: Wein-Niveau im Kaffee. Die Rösterei spezialisiert sich auf Geisha-Varietäten, jemenitische Mokha und seltene Mikrolots aus Hochlagen — Kaffees, die normalerweise an Auktionen versteigert werden. Florale Noten, Bergamotte, weißer Pfirsich, schwarzer Tee. Sweven serviert auch im hauseigenen Tasting Room am Quai du Mont-Blanc.",
     specialty: "Geisha · Yemen Mokha · Rare Lots",
     values: ["Rare Lots", "Auction Coffees", "Highest Cupping Score", "Single Estate"],
-    image: ROASTERY_POOL[0],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Élise Moreau",
     founderRole: "Gründerin & Sommelière",
@@ -136,7 +136,7 @@ export const roasters: Roaster[] = [
     story: "Atelier Espresso wurde 2014 von Marco Ricci gegründet, einem Mailänder Maestro Tostatore in dritter Generation. Im Atelier am Limmatquai werden Espresso-Blends im klassischen italienischen Stil geröstet: dunkel, ölig, mit ausgeprägten Schokoladen- und Karamellnoten. Der Hauptblend Tradizionale basiert auf Brasilien-Naturals mit äthiopischer Säure-Spitze. Atelier Espresso beliefert die meisten gehobenen Hotels in Zürich und Umgebung.",
     specialty: "Italienischer Espresso · Dunkle Röstung",
     values: ["Italienische Tradition", "Espresso", "Hotellerie-Partner", "Maestro-Geröstet"],
-    image: ROASTERY_POOL[1],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Marco Ricci",
     founderRole: "Maestro Tostatore",
@@ -156,7 +156,7 @@ export const roasters: Roaster[] = [
     story: "Seit 1955 röstet Boncourt im Basler Hafenviertel. Was als Familienbetrieb mit drei Mitarbeitern begann, ist heute eine 30-köpfige Manufaktur mit Fokus auf magenfreundliche Mittelröstungen. Spezialität sind indonesische Bohnen — Java Estate, Sumatra Mandheling, Sulawesi Toraja. Die langen Trommelröstungen bei moderaten Temperaturen schonen den Magen und maximieren erdige, würzige Aromen.",
     specialty: "Indonesische Bohnen · Magenfreundlich",
     values: ["Tradition", "Schweizer Familienbetrieb", "Magenfreundlich"],
-    image: ROASTERY_POOL[2],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Familie Boncourt",
     founderRole: "3. Generation seit 1955",
@@ -176,7 +176,7 @@ export const roasters: Roaster[] = [
     story: "Drop Coffee CH startete 2020 als Pop-up im Zürcher Niederdorf — heute eine vollwertige Mikro-Rösterei mit eigenem Tasting Lab. Der Fokus: alles was fermentiert, anaerob und experimentell ist. Das junge Team aus drei Q-Gradern arbeitet eng mit dem World Brewers Cup Champion 2023 zusammen und importiert Kleinstmengen seltener Lots aus Costa Rica und Panama.",
     specialty: "Anaerobic · Yeast · Lactic Fermentation",
     values: ["Experimental", "WBC Partner", "Mikro-Rösterei", "Q-Grader"],
-    image: ROASTERY_POOL[3],
+    image: IMG_ROASTERY,
     portrait: IMG_PORTRAIT,
     founderName: "Drop Team",
     founderRole: "3 Q-Grader",
