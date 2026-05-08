@@ -190,3 +190,12 @@ export const roasters: Roaster[] = [
 export const roasterBySlug = (slug: string) => roasters.find((r) => r.slug === slug);
 export const allCities = Array.from(new Set(roasters.map((r) => r.city))).sort();
 export const allRegions = Array.from(new Set(roasters.map((r) => r.region))).sort();
+
+/**
+ * Auto-derive roasters for a city by matching `roaster.city` to cityName.
+ * Pass undefined or "all" to get all roasters (Schweiz gesamt).
+ */
+export const roastersForCity = (cityName?: string): Roaster[] => {
+  if (!cityName || cityName === "Schweiz") return roasters;
+  return roasters.filter((r) => r.city === cityName);
+};

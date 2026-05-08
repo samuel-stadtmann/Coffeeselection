@@ -38,3 +38,15 @@ export function getAllCoffees(): CoffeeDetail[] {
 
 export const getCoffeeBySlug = (slug: string): CoffeeDetail | undefined =>
   getAllCoffees().find((c) => c.slug === slug);
+
+/**
+ * Auto-derive coffees for a city by:
+ * 1. Find all roasters in that city
+ * 2. Filter coffees whose `roaster` (name) matches any of those roasters
+ */
+import { roastersForCity } from "./roasters";
+
+export const coffeesForCity = (cityName?: string): CoffeeDetail[] => {
+  const roasterNames = roastersForCity(cityName).map((r) => r.name);
+  return getAllCoffees().filter((c) => roasterNames.includes(c.roaster));
+};

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cities, cityBySlug } from "@/lib/cities";
-import { roasterBySlug } from "@/lib/roasters";
+import { roastersForCity } from "@/lib/roasters";
+import { coffeesForCity } from "@/lib/coffees";
 import { IMG_ZURICH, IMG_BERN, IMG_BASEL, IMG_GENEVA, IMG_LUCERNE, IMG_ZUG, IMG_SWITZERLAND } from "@/lib/images";
 
 const LOGO = "/logo.png";
@@ -33,7 +34,9 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
   const city = cityBySlug(slug);
   if (!city) notFound();
 
-  const localRoasters = city.localRoasters.map((s) => roasterBySlug(s)).filter(Boolean);
+  // Auto-derived from roaster.city + coffee.roaster — keine Hardcoding-Pflege nötig
+  const localRoasters = roastersForCity(city.city);
+  const localCoffees = coffeesForCity(city.city);
   const otherCities = cities.filter((c) => c.slug !== slug && c.slug !== "coffee-subscription-switzerland").slice(0, 4);
 
   return (
@@ -135,6 +138,41 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
                   </Link>
                 ))}
               </div>
+            </div>
+          </section>
+        )}
+
+        {/* Coffees aus dieser Stadt — auto-derived */}
+        {localCoffees.length > 0 && (
+          <section className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-20">
+            <div className="text-center mb-12">
+              <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
+                Im Sortiment
+              </span>
+              <h2 className="text-2xl md:text-3xl text-primary uppercase tracking-tight font-headline font-bold">
+                Kaffee aus {city.city}
+              </h2>
+              <p className="text-on-surface-variant mt-3">{localCoffees.length} {localCoffees.length === 1 ? "Kaffee" : "Kaffees"} der lokalen Röstereien</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {localCoffees.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/coffee/${c.slug}`}
+                  className="group bg-white shadow-sm hover:shadow-xl transition-all p-6 flex flex-col"
+                >
+                  <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">{c.origin}</span>
+                  <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-1 group-hover:text-tertiary transition-colors">
+                    {c.name}
+                  </h3>
+                  <p className="text-xs text-on-surface-variant mb-3">{c.roaster}</p>
+                  <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.tasteTypes[0]?.tagline}</p>
+                  <div className="flex justify-between items-center pt-3 border-t border-surface-container">
+                    <span className="font-headline font-bold text-primary">{c.price}</span>
+                    <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary group-hover:translate-x-1 transition-transform">→</span>
+                  </div>
+                </Link>
+              ))}
             </div>
           </section>
         )}

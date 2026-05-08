@@ -585,7 +585,7 @@ export default function HomePage() {
             </ul>
           </div>
           <div>
-            <h4 className="text-[11px] uppercase tracking-[0.3em] mb-6 text-primary font-headline font-bold">Lieferung</h4>
+            <h4 className="text-[11px] uppercase tracking-[0.3em] mb-6 text-primary font-headline font-bold">Kaffee aus deiner Stadt</h4>
             <ul className="space-y-3 font-headline text-[11px] font-bold uppercase tracking-widest">
               <li><Link href="/seo-city/coffee-subscription-zurich" className="text-on-surface-variant hover:text-tertiary transition-colors">Zürich</Link></li>
               <li><Link href="/seo-city/coffee-subscription-bern" className="text-on-surface-variant hover:text-tertiary transition-colors">Bern</Link></li>
