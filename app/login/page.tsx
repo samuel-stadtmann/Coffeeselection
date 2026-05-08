@@ -37,7 +37,7 @@ function LoginForm() {
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center pt-36 md:pt-40 pb-16 px-6">
+      <main className="flex-1 flex items-center justify-center pt-44 md:pt-56 pb-16 px-6">
         <div className="w-full max-w-md">
           {/* Strategic Headline */}
           <div className="text-center mb-10">

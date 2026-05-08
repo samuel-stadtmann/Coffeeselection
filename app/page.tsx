@@ -69,10 +69,10 @@ export default function HomePage() {
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center shrink-0">
             <img
               alt="Coffee Selection Logo"
-              className="h-72 md:h-96 w-auto object-contain -my-16 md:-my-24 mr-8"
+              className="h-72 md:h-96 w-auto object-contain -my-16 md:-my-24 mr-8 shrink-0"
               src={LOGO}
             />
           </Link>
@@ -104,7 +104,7 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-44 md:pt-56">
         {/* SECTION 1 — HERO */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 py-16 md:py-24">
           <div className="col-span-12 lg:col-span-5">

@@ -54,7 +54,7 @@ export default function MatchResultPage() {
         </div>
       </header>
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-44 md:pt-56">
         {/* Hero — Geschmackstyp */}
         <section className="bg-primary text-on-primary py-12 md:py-16 border-b border-tertiary/20">
           <div className="max-w-5xl mx-auto px-6 md:px-8 text-center">

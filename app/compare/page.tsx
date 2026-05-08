@@ -16,7 +16,7 @@ export default function ComparePage() {
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-72 md:h-96 w-auto object-contain -my-16 md:-my-24 mr-8" src={LOGO} />
+            <img alt="Coffee Selection" className="h-72 md:h-96 w-auto object-contain -my-16 md:-my-24 mr-8 shrink-0" src={LOGO} />
           </Link>
           <Link
             href="/quiz/question-1-brewing-method"
@@ -27,7 +27,7 @@ export default function ComparePage() {
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-44 md:pt-56">
         <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-16 text-center">
           <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-6 block">
             Coffee Compare

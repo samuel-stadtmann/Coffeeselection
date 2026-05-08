@@ -55,7 +55,7 @@ export default function CartPage() {
         </div>
       </header>
 
-      <main className="pt-36 md:pt-40 pb-12">
+      <main className="pt-44 md:pt-56 pb-12">
         {/* Progress Stepper */}
         <div className="max-w-3xl mx-auto px-6 md:px-8 mb-10">
           <div className="flex items-center gap-2">

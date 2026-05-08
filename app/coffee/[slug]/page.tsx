@@ -71,7 +71,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
     return (
       <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
         <Header />
-        <main className="pt-36 md:pt-40">
+        <main className="pt-44 md:pt-56">
           {/* Breadcrumb */}
           <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
             <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
@@ -211,7 +211,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       <Header />
-      <main className="pt-36 md:pt-40">
+      <main className="pt-44 md:pt-56">
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
             <Link href="/" className="hover:text-tertiary transition-colors">Home</Link>
