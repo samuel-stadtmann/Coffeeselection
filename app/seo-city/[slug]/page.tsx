@@ -87,9 +87,9 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
 
         {/* Delivery Info Strip */}
         <section className="bg-primary text-on-primary py-10 md:py-12">
-          <div className="max-w-7xl mx-auto px-6 md:px-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="max-w-7xl mx-auto px-6 md:px-8 flex flex-wrap justify-center gap-x-8 md:gap-x-16 gap-y-8">
             {city.deliveryInfo.map((d) => (
-              <div key={d.label} className="text-center">
+              <div key={d.label} className="text-center min-w-[140px] md:min-w-[180px]">
                 <span className="material-symbols-outlined text-tertiary text-3xl mb-2 block">{d.icon}</span>
                 <p className="font-headline font-bold text-tertiary text-base uppercase tracking-tight mb-1">{d.value}</p>
                 <p className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 font-bold">{d.label}</p>
