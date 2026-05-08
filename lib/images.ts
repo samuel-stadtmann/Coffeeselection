@@ -51,15 +51,17 @@ export const IMG_FLOWERS = u("1490750967868-88aa4486c946"); // jasmine
 export const IMG_HONEY = u("1587049352846-4a222e784ce0"); // honey
 export const IMG_SPICES = u("1599639957043-f3aa5c986398"); // spices
 
-// === SWISS CITIES (best-guess Unsplash IDs) ===
-// Note: City photo IDs are educated guesses. If any 404, replace with verified IDs.
-export const IMG_ZURICH = u("1568677968671-3c8dc7da8eb4"); // Zürich Limmat
-export const IMG_BERN = u("1582813147625-cdf4ef82d6ac"); // Bern Altstadt arcades
-export const IMG_BASEL = u("1573056019305-d7d22cb19a52"); // Basel Rhine
-export const IMG_GENEVA = u("1614695311438-cabbcbe50fc9"); // Geneva jet d'eau
-export const IMG_LUCERNE = u("1565967511849-76a60a516170"); // Lucerne Chapel Bridge
-export const IMG_ZUG = u("1605522793022-0bce4cc6dadc"); // Zug lake
-export const IMG_SWITZERLAND = u("1530122037265-a5f1f91d3b99"); // Swiss alps
+// === SWISS CITIES ===
+// Verified-working Unsplash IDs (same photos used elsewhere on the site).
+// NOT actual Swiss city photos — replace with real city photography when available.
+// To replace: get a photo from https://unsplash.com, copy its photo ID, format as below.
+export const IMG_ZURICH = u("1442550528053-c431ecb55509"); // cafe atmosphere (placeholder for Zürich)
+export const IMG_BERN = u("1559925393-8be0ec4767c8"); // roastery (placeholder for Bern)
+export const IMG_BASEL = u("1521017432531-fbd92d768814"); // coffee table (placeholder for Basel)
+export const IMG_GENEVA = u("1518057111178-44a106bad636"); // barista hands (placeholder for Geneva)
+export const IMG_LUCERNE = u("1559056199-641a0ac8b55e"); // pour over (placeholder for Lucerne)
+export const IMG_ZUG = u("1485808191679-5f86510681a2"); // espresso shot (placeholder for Zug)
+export const IMG_SWITZERLAND = u("1495474472287-4d71bcdd2085"); // beans macro (placeholder for CH)
 
 // === FALLBACK (always works as Unsplash random) ===
 export const IMG_FALLBACK = u("1495474472287-4d71bcdd2085");

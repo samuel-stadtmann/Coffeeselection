@@ -33,7 +33,6 @@ export const cities: City[] = [
     deliveryInfo: [
       { icon: "local_shipping", label: "Lieferzeit", value: "1–2 Werktage" },
       { icon: "savings", label: "Versandkosten", value: "Ab CHF 100 gratis" },
-      { icon: "schedule", label: "Bestellschluss", value: "Mo–Fr bis 14:00" },
       { icon: "verified", label: "Versand", value: "Schweizer Post Priority" },
     ],
     whyAbo: [
@@ -65,7 +64,6 @@ export const cities: City[] = [
     deliveryInfo: [
       { icon: "local_shipping", label: "Lieferzeit", value: "1–2 Werktage" },
       { icon: "savings", label: "Versandkosten", value: "Ab CHF 100 gratis" },
-      { icon: "schedule", label: "Bestellschluss", value: "Mo–Fr bis 14:00" },
       { icon: "verified", label: "Versand", value: "Schweizer Post Priority" },
     ],
     whyAbo: [
@@ -97,7 +95,6 @@ export const cities: City[] = [
     deliveryInfo: [
       { icon: "local_shipping", label: "Lieferzeit", value: "1–2 Werktage" },
       { icon: "savings", label: "Versandkosten", value: "Ab CHF 100 gratis" },
-      { icon: "schedule", label: "Bestellschluss", value: "Mo–Fr bis 14:00" },
       { icon: "verified", label: "Versand", value: "Schweizer Post Priority" },
     ],
     whyAbo: [
@@ -129,7 +126,6 @@ export const cities: City[] = [
     deliveryInfo: [
       { icon: "local_shipping", label: "Lieferzeit", value: "1–2 Werktage" },
       { icon: "savings", label: "Versandkosten", value: "Ab CHF 100 gratis" },
-      { icon: "schedule", label: "Bestellschluss", value: "Mo–Fr bis 14:00" },
       { icon: "verified", label: "Versand", value: "Schweizer Post Priority" },
     ],
     whyAbo: [
@@ -161,7 +157,6 @@ export const cities: City[] = [
     deliveryInfo: [
       { icon: "local_shipping", label: "Lieferzeit", value: "1 Werktag" },
       { icon: "savings", label: "Versandkosten", value: "Ab CHF 100 gratis" },
-      { icon: "schedule", label: "Bestellschluss", value: "Mo–Fr bis 14:00" },
       { icon: "verified", label: "Versand", value: "Schweizer Post Priority" },
     ],
     whyAbo: [
@@ -193,7 +188,6 @@ export const cities: City[] = [
     deliveryInfo: [
       { icon: "local_shipping", label: "Lieferzeit", value: "1–2 Werktage" },
       { icon: "savings", label: "Versandkosten", value: "Ab CHF 100 gratis" },
-      { icon: "schedule", label: "Bestellschluss", value: "Mo–Fr bis 14:00" },
       { icon: "verified", label: "Versand", value: "Schweizer Post Priority" },
     ],
     whyAbo: [
