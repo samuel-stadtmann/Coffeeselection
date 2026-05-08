@@ -13,7 +13,8 @@ function LoginForm() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -31,7 +32,7 @@ function LoginForm() {
         email,
         password,
         options: {
-          data: { first_name: name },
+          data: { first_name: firstName, last_name: lastName },
           emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
@@ -114,18 +115,35 @@ function LoginForm() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5 bg-white p-8 shadow-xl">
             {mode === "signup" && (
-              <div>
-                <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
-                  Vorname
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
-                  placeholder="Maria"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                    Vorname
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+                    placeholder="Maria"
+                  />
+                </div>
+                <div>
+                  <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                    Nachname
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+                    placeholder="Müller"
+                  />
+                </div>
               </div>
             )}
             <div>
