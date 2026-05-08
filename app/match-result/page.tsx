@@ -109,8 +109,9 @@ async function persistAndScoreQuiz(
 
   const primary = ranked[0];
   const secondary = ranked[1];
-  // confidence als 0–1 Fraktion (passt in NUMERIC(3,2)). UI multipliziert mit 100 für %-Anzeige.
-  const confidence = Math.min(0.99, Number(primary.normalized.toFixed(2)));
+  // confidence als 0–1 Fraktion mit 3 Nachkommastellen (Spalte ist NUMERIC(4,3), max 9.999).
+  // UI multipliziert mit 100 für %-Anzeige.
+  const confidence = Number(primary.normalized.toFixed(3));
 
   // 4) Response Resultat-Felder
   await supabase

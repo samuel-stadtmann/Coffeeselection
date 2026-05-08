@@ -126,8 +126,8 @@ export async function persistQuizForCurrentUser(
 
   const primary = ranked[0];
   const secondary = ranked[1];
-  // confidence als 0–1 Fraktion (passt in NUMERIC(3,2))
-  const confidence = Math.min(0.99, Number(primary.normalized.toFixed(2)));
+  // confidence als 0–1 Fraktion mit 3 Nachkommastellen (NUMERIC(4,3))
+  const confidence = Number(primary.normalized.toFixed(3));
 
   // 4) quiz_responses Resultat-Felder updaten
   await supabase
