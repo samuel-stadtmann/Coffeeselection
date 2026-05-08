@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AccountSidebar from "@/components/AccountSidebar";
 import { createClient } from "@/lib/supabase/client";
+import { tasteTypeById } from "@/lib/taste-types-map";
+import type { TasteType } from "@/lib/taste-types";
 
 const LOGO = "/logo.png";
 
@@ -10,12 +12,6 @@ type CustomerRow = {
   first_name: string | null;
   taste_type_id: number | null;
   created_at: string;
-};
-
-// Mock-Fallback während wir Phase 2 noch nicht fertig haben (Subscription, Orders aus DB)
-const fallbackUser = {
-  tasteType: "Der Fruchtfreund",
-  tasteTypeSlug: "der-fruchtfreund",
 };
 
 const tasteProfile = [
@@ -82,7 +78,8 @@ export default function AccountDashboardPage() {
     return "Guten Abend";
   })();
 
-  const hasTasteType = customer?.taste_type_id != null;
+  const tasteType: TasteType | undefined = tasteTypeById(customer?.taste_type_id);
+  const hasTasteType = tasteType != null;
   const firstName = customer?.first_name ?? "";
   const joinedDate = customer
     ? new Date(customer.created_at).toLocaleDateString("de-CH", { month: "long", year: "numeric" })
@@ -129,11 +126,11 @@ export default function AccountDashboardPage() {
                   {greeting}{firstName ? `, ${firstName}` : ""}.
                 </h1>
                 <p className="text-on-surface-variant mt-3">
-                  {hasTasteType ? (
+                  {hasTasteType && tasteType ? (
                     <>
                       Du bist{" "}
-                      <Link href={`/taste-types/${fallbackUser.tasteTypeSlug}`} className="text-tertiary font-bold hover:text-primary transition-colors">
-                        {fallbackUser.tasteType}
+                      <Link href={`/taste-types/${tasteType.slug}`} className="text-tertiary font-bold hover:text-primary transition-colors">
+                        {tasteType.name}
                       </Link>{" "}
                       — wir kuratieren weiter für dich.
                     </>
@@ -208,7 +205,7 @@ export default function AccountDashboardPage() {
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">Geschmackstyp</span>
-                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl">{hasTasteType ? fallbackUser.tasteType : "Noch unbekannt"}</h3>
+                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl">{tasteType?.name ?? "Noch unbekannt"}</h3>
                     </div>
                     <Link href="/account/taste-profile" className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors">
                       Mehr →

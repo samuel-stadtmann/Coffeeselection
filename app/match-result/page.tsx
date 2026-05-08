@@ -1,6 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { tasteTypeById } from "@/lib/taste-types-map";
+import type { TasteType } from "@/lib/taste-types";
 
 const LOGO = "/logo.png";
 const IMG_BEANS =
@@ -33,6 +36,33 @@ export default function MatchResultPage() {
   const [orderType, setOrderType] = useState<"once" | "subscription">("subscription");
   const [interval, setInterval] = useState("biweekly");
   const [size, setSize] = useState("500g");
+  const [tasteType, setTasteType] = useState<TasteType | undefined>();
+
+  // Resolve taste type from DB (if logged in) — und persistiere bei
+  // Erst-Sicht den Quiz-Output. Heutiges Mock: id=2 (Fruchtfreund) bis
+  // die Quiz-Scoring-Logik dranhängt; dann via localStorage des Quiz.
+  useEffect(() => {
+    const supabase = createClient();
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("taste_type_id")
+        .eq("auth_user_id", auth.user.id)
+        .single();
+      let id = customer?.taste_type_id ?? null;
+      if (id == null) {
+        const placeholderId = 2;
+        await supabase
+          .from("customers")
+          .update({ taste_type_id: placeholderId })
+          .eq("auth_user_id", auth.user.id);
+        id = placeholderId;
+      }
+      setTasteType(tasteTypeById(id));
+    })();
+  }, []);
 
   const sizeMultiplier = sizes.find((s) => s.id === size)?.multiplier ?? 1;
   const basePrice = PRICE_PER_250G * sizeMultiplier;
@@ -62,13 +92,13 @@ export default function MatchResultPage() {
               Dein Geschmackstyp
             </span>
             <h1 className="text-4xl md:text-6xl mb-4 font-headline font-bold uppercase tracking-tight leading-tight">
-              Der Fruchtfreund
+              {tasteType?.name ?? "Dein Geschmackstyp"}
             </h1>
             <p className="font-headline text-tertiary uppercase tracking-widest text-sm mb-6">
-              Beerig · Lebendig · Hell
+              {tasteType?.tagline ?? ""}
             </p>
             <p className="text-base md:text-lg text-on-primary/80 max-w-2xl mx-auto leading-relaxed">
-              Du liebst lebendige Säure, beerige Aromen und florale Klarheit. Äthiopien und Kenia sind dein Spielfeld.
+              {tasteType?.heroDesc ?? "Wir laden dein Profil…"}
             </p>
           </div>
         </section>
