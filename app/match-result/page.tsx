@@ -375,21 +375,32 @@ export default function MatchResultPage() {
                 <img src={coffee.image_url || IMG_BEANS_FALLBACK} alt={coffee.name} className="w-full h-full object-cover" />
               </div>
               <div className="bg-white p-8 shadow-md">
-                <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-6">
-                  Dein Geschmacksprofil
+                <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-2">
+                  Profil dieses Coffees
                 </h3>
+                <p className="text-xs text-on-surface-variant mb-6">
+                  Sensorische Werte aus dem Cupping — direkt vom Röster.
+                </p>
                 <div className="space-y-4">
-                  {tasteType.profile.map((p) => (
-                    <div key={p.label}>
-                      <div className="flex justify-between mb-2">
-                        <span className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
-                        <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                  {[
+                    { label: "Säure", value: coffee.acidity },
+                    { label: "Süße", value: coffee.sweetness },
+                    { label: "Körper", value: coffee.body },
+                    { label: "Bitterkeit", value: coffee.bitterness },
+                    { label: "Komplexität", value: coffee.complexity },
+                  ]
+                    .filter((p) => p.value != null)
+                    .map((p) => (
+                      <div key={p.label}>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
+                          <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                        </div>
+                        <div className="h-1 bg-surface-container relative overflow-hidden">
+                          <div className="h-full bg-tertiary transition-all duration-1000" style={{ width: `${p.value}%` }} />
+                        </div>
                       </div>
-                      <div className="h-1 bg-surface-container relative overflow-hidden">
-                        <div className="h-full bg-tertiary transition-all duration-1000" style={{ width: `${p.value}%` }} />
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
               {coffee.roaster && (
