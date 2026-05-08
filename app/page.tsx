@@ -76,18 +76,18 @@ export default function HomePage() {
               src={LOGO}
             />
           </Link>
-          <div className="hidden lg:flex items-center space-x-10">
+          <div className="hidden lg:flex items-center gap-x-8 xl:gap-x-10 mr-auto pl-8 xl:pl-12">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
-                className="text-primary hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-[14px]"
+                className="text-primary hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-[14px] whitespace-nowrap"
               >
                 {l.label}
               </Link>
             ))}
           </div>
-          <div className="flex items-center space-x-4 md:space-x-6">
+          <div className="flex items-center gap-x-5 md:gap-x-6 lg:pl-8 xl:pl-12">
             <Link href="/login?next=/account/dashboard" className="hidden md:block">
               <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">person</span>
             </Link>
