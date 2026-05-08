@@ -51,7 +51,7 @@ export default function QuizQuestionPage({ params }: { params: Promise<{ step: s
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
       <QuizHeader step={question.step} totalSteps={totalQuizSteps} />
 
-      <main className="flex-1 flex flex-col pt-28 md:pt-32 pb-32">
+      <main className="flex-1 flex flex-col pt-36 md:pt-40 pb-32">
         <div className="max-w-4xl mx-auto px-6 md:px-8 w-full flex-1 flex flex-col">
           {/* Question */}
           <div className="mb-10 md:mb-14">

@@ -72,7 +72,7 @@ export default function HomePage() {
           <Link href="/" className="flex items-center">
             <img
               alt="Coffee Selection Logo"
-              className="h-48 md:h-60 w-auto object-contain -my-8 md:-my-12 mr-8"
+              className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8"
               src={LOGO}
             />
           </Link>
@@ -104,7 +104,7 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main className="pt-28 md:pt-32">
+      <main className="pt-36 md:pt-40">
         {/* SECTION 1 — HERO */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 py-16 md:py-24">
           <div className="col-span-12 lg:col-span-5">
