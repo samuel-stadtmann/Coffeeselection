@@ -14,14 +14,6 @@ type CustomerRow = {
   created_at: string;
 };
 
-const tasteProfile = [
-  { label: "Säure", value: 85 },
-  { label: "Süße", value: 70 },
-  { label: "Körper", value: 40 },
-  { label: "Bitterkeit", value: 20 },
-  { label: "Komplexität", value: 90 },
-];
-
 const subscription = {
   active: true,
   product: "Discovery Abo · 500g",
@@ -212,17 +204,21 @@ export default function AccountDashboardPage() {
                     </Link>
                   </div>
                   <div className="space-y-3">
-                    {tasteProfile.map((p) => (
-                      <div key={p.label}>
-                        <div className="flex justify-between mb-1">
-                          <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
-                          <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                    {tasteType ? (
+                      tasteType.profile.map((p) => (
+                        <div key={p.label}>
+                          <div className="flex justify-between mb-1">
+                            <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">{p.label}</span>
+                            <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{p.value}%</span>
+                          </div>
+                          <div className="h-1 bg-surface-container relative overflow-hidden">
+                            <div className="h-full bg-tertiary" style={{ width: `${p.value}%` }} />
+                          </div>
                         </div>
-                        <div className="h-1 bg-surface-container relative overflow-hidden">
-                          <div className="h-full bg-tertiary" style={{ width: `${p.value}%` }} />
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-sm text-on-surface-variant">Profil sichtbar nach dem Quiz.</p>
+                    )}
                   </div>
                 </div>
 
