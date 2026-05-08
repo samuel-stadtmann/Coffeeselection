@@ -56,6 +56,29 @@ export default function Page() {
         </div>
       </div>
 
+      {/* Alternativen-CTA — nur hier im Profil sichtbar */}
+      <div className="bg-white border-l-4 border-tertiary p-6 md:p-8 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">
+              Persönlich für dich
+            </span>
+            <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-1">
+              Alternativen zu deinem Match
+            </h3>
+            <p className="text-sm text-on-surface-variant">
+              Kaffees, die knapp neben deinem Geschmackstyp liegen — mit Begründung, warum sie zu dir passen könnten.
+            </p>
+          </div>
+          <Link
+            href="/recommendation/alternatives"
+            className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-[11px] uppercase tracking-widest hover:bg-black transition-all whitespace-nowrap"
+          >
+            Alternativen ansehen →
+          </Link>
+        </div>
+      </div>
+
       <Link href="/account/dashboard" className="font-headline text-[11px] uppercase tracking-[0.2em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-1 inline-block">
         ← Zurück zum Dashboard
       </Link>
