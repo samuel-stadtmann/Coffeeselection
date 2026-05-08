@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { tasteTypeById } from "@/lib/taste-types-map";
 import type { TasteType } from "@/lib/taste-types";
+import { getLocalAnswers, clearLocalAnswers, type LocalQuizAnswer } from "@/lib/quiz-storage";
 
 const LOGO = "/logo.png";
 const IMG_BEANS =
@@ -32,15 +33,101 @@ const sizes = [
   { id: "1kg", label: "1 kg", multiplier: 3.6, note: "4 Packungen · -10%" },
 ];
 
+/**
+ * Persistiert Quiz-Antworten in DB und berechnet Geschmackstyp-Score.
+ * Nutzt anon Browser-Client (RLS sorgt dafür dass User nur seine eigenen
+ * Daten schreibt). Returns the resulting taste_type_id (1–8) or null.
+ */
+async function persistAndScoreQuiz(
+  supabase: ReturnType<typeof createClient>,
+  customerId: string,
+  answers: LocalQuizAnswer[]
+): Promise<number | null> {
+  // 1) Response-Row anlegen
+  const { data: response } = await supabase
+    .from("quiz_responses")
+    .insert({ customer_id: customerId, version: "v1", is_active: true })
+    .select("id")
+    .single();
+  if (!response) return null;
+
+  // 2) Antworten als Zeilen
+  await supabase.from("quiz_answers").insert(
+    answers.map((a) => ({
+      response_id: response.id,
+      question_code: a.question_code,
+      answer_code: a.answer_code,
+      is_imputed: false,
+    }))
+  );
+
+  // 3) Scoring-Regeln laden, lokal aggregieren
+  const { data: scoringRules } = await supabase
+    .from("quiz_scoring")
+    .select("question_code, answer_code, taste_type_id, points");
+  const codeSet = new Set(answers.map((a) => `${a.question_code}::${a.answer_code}`));
+  const sumByType = new Map<number, number>();
+  (scoringRules ?? []).forEach((r) => {
+    if (!codeSet.has(`${r.question_code}::${r.answer_code}`)) return;
+    sumByType.set(r.taste_type_id, (sumByType.get(r.taste_type_id) ?? 0) + r.points);
+  });
+
+  const { data: maxScores } = await supabase
+    .from("taste_type_max_scores")
+    .select("taste_type_id, max_score")
+    .eq("quiz_version", "v1");
+  const maxByType = new Map<number, number>(
+    (maxScores ?? []).map((m) => [m.taste_type_id, m.max_score])
+  );
+
+  const ranked = Array.from(sumByType.entries())
+    .map(([type, score]) => ({
+      type,
+      score,
+      normalized: score / Math.max(maxByType.get(type) ?? 1, 1),
+    }))
+    .sort((a, b) => b.normalized - a.normalized);
+
+  if (ranked.length === 0) return null;
+
+  const primary = ranked[0];
+  const secondary = ranked[1];
+  const confidence = Number((primary.normalized * 100).toFixed(2));
+
+  // 4) Response Resultat-Felder
+  await supabase
+    .from("quiz_responses")
+    .update({
+      completed_at: new Date().toISOString(),
+      taste_type_id: primary.type,
+      secondary_type: secondary?.type ?? null,
+      primary_score: primary.score,
+      secondary_score: secondary?.score ?? null,
+      confidence,
+    })
+    .eq("id", response.id);
+
+  // 5) Customer updaten
+  await supabase
+    .from("customers")
+    .update({
+      taste_type_id: primary.type,
+      secondary_type: secondary?.type ?? null,
+      confidence,
+    })
+    .eq("id", customerId);
+
+  return primary.type;
+}
+
 export default function MatchResultPage() {
   const [orderType, setOrderType] = useState<"once" | "subscription">("subscription");
   const [interval, setInterval] = useState("biweekly");
   const [size, setSize] = useState("500g");
   const [tasteType, setTasteType] = useState<TasteType | undefined>();
 
-  // Resolve taste type from DB (if logged in) — und persistiere bei
-  // Erst-Sicht den Quiz-Output. Heutiges Mock: id=2 (Fruchtfreund) bis
-  // die Quiz-Scoring-Logik dranhängt; dann via localStorage des Quiz.
+  // Falls User aus dem Quiz kommt: Antworten verarbeiten & Score persistieren.
+  // Falls schon ein Resultat in customers steht: einfach lesen.
   useEffect(() => {
     const supabase = createClient();
     (async () => {
@@ -48,19 +135,21 @@ export default function MatchResultPage() {
       if (!auth.user) return;
       const { data: customer } = await supabase
         .from("customers")
-        .select("taste_type_id")
+        .select("id, taste_type_id")
         .eq("auth_user_id", auth.user.id)
         .single();
-      let id = customer?.taste_type_id ?? null;
-      if (id == null) {
-        const placeholderId = 2;
-        await supabase
-          .from("customers")
-          .update({ taste_type_id: placeholderId })
-          .eq("auth_user_id", auth.user.id);
-        id = placeholderId;
+      if (!customer) return;
+
+      let id: number | null = customer.taste_type_id ?? null;
+
+      // Nur scoren wenn noch kein Resultat & lokale Quiz-Antworten vorhanden
+      const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
+      if (id == null && localAnswers.length > 0) {
+        id = await persistAndScoreQuiz(supabase, customer.id, localAnswers);
+        if (id != null) clearLocalAnswers();
       }
-      setTasteType(tasteTypeById(id));
+
+      if (id != null) setTasteType(tasteTypeById(id));
     })();
   }, []);
 
