@@ -34,7 +34,7 @@ function Header() {
     <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
       <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
         <Link href="/" className="flex items-center">
-          <img alt="Coffee Selection" className="h-72 md:h-96 w-auto object-contain -my-16 md:-my-24" src={LOGO} />
+          <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
         </Link>
         <Link
           href="/quiz/question-1-brewing-method"
@@ -71,7 +71,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
     return (
       <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
         <Header />
-        <main className="pt-44 md:pt-56">
+        <main className="pt-36 md:pt-40">
           {/* Breadcrumb */}
           <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
             <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
@@ -211,7 +211,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       <Header />
-      <main className="pt-44 md:pt-56">
+      <main className="pt-36 md:pt-40">
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
             <Link href="/" className="hover:text-tertiary transition-colors">Home</Link>

@@ -46,7 +46,7 @@ export default function MatchResultPage() {
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-72 md:h-96 w-auto object-contain -my-16 md:-my-24" src={LOGO} />
+            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
           </Link>
           <Link href="/login?next=/account/dashboard" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors">
             Mein Konto
@@ -54,7 +54,7 @@ export default function MatchResultPage() {
         </div>
       </header>
 
-      <main className="pt-44 md:pt-56">
+      <main className="pt-36 md:pt-40">
         {/* Hero — Geschmackstyp */}
         <section className="bg-primary text-on-primary py-12 md:py-16 border-b border-tertiary/20">
           <div className="max-w-5xl mx-auto px-6 md:px-8 text-center">

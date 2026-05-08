@@ -14,7 +14,7 @@ export default function LoadingMatchPage() {
   return (
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
       <QuizHeader step={12} totalSteps={12} />
-      <main className="flex-1 flex items-center justify-center pt-44 md:pt-56 px-6">
+      <main className="flex-1 flex items-center justify-center pt-36 md:pt-40 px-6">
         <div className="max-w-xl w-full text-center">
           <div className="w-32 h-32 mx-auto mb-10 relative">
             <svg className="w-full h-full -rotate-90 animate-pulse" viewBox="0 0 100 100">
