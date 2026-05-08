@@ -2,9 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { tasteTypes, tasteTypeBySlug } from "@/lib/taste-types";
-import { slugify } from "@/lib/coffees";
+import { tasteTypeIdBySlug } from "@/lib/taste-types-map";
+import { createStaticClient } from "@/lib/supabase/static";
+import { getCoffeesForTasteType } from "@/lib/db/recommendations";
 
 const LOGO = "/logo.png";
+const COFFEE_FALLBACK_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
 export function generateStaticParams() {
   return tasteTypes.map((t) => ({ slug: t.slug }));
@@ -25,6 +28,20 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
   const { slug } = await params;
   const type = tasteTypeBySlug(slug);
   if (!type) notFound();
+
+  // DB-Coffees: Top-6 Matches für diesen Geschmackstyp
+  const tasteTypeId = tasteTypeIdBySlug(slug);
+  const supabase = createStaticClient();
+  const dbCoffees = tasteTypeId ? await getCoffeesForTasteType(supabase, tasteTypeId, { limit: 6 }) : [];
+
+  // Röster werden aus den DB-Coffees abgeleitet — distinct
+  const dbRoasters = Array.from(
+    new Map(
+      dbCoffees
+        .filter((c) => c.roaster)
+        .map((c) => [c.roaster!.slug, c.roaster!])
+    ).values()
+  ).slice(0, 6);
 
   const otherTypes = tasteTypes.filter((t) => t.slug !== slug).slice(0, 4);
 
@@ -168,27 +185,41 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
                 Alle Kaffees
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {type.coffees.map((c) => {
-                const coffeeSlug = slugify(c.name);
-                return (
-                  <div key={c.name} className="bg-white shadow-md hover:shadow-xl transition-shadow group flex flex-col">
-                    <Link href={`/coffee/${coffeeSlug}`} className="block p-8 flex-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{c.origin}</span>
-                        <span className="bg-tertiary text-white px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold">
-                          {c.matchScore}% Match
+            {dbCoffees.length === 0 ? (
+              <div className="bg-white p-8 text-center shadow-sm">
+                <p className="text-on-surface-variant">
+                  Aktuell sind keine Kaffees im Sortiment, die genau zu diesem Geschmackstyp passen.
+                  Sobald die Röstereien neue Lots einpflegen, erscheinen sie hier automatisch.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {dbCoffees.map((c) => (
+                  <div key={c.id} className="bg-white shadow-md hover:shadow-xl transition-shadow group flex flex-col">
+                    <Link href={`/coffee/${c.slug}`} className="block">
+                      <div className="aspect-[4/3] overflow-hidden bg-surface-container-low">
+                        <img src={c.image_url || COFFEE_FALLBACK_IMG} alt={c.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                      </div>
+                    </Link>
+                    <Link href={`/coffee/${c.slug}`} className="block p-6 flex-1">
+                      <div className="flex justify-between items-start mb-3 gap-3">
+                        <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{c.origin_name ?? "Specialty"}</span>
+                        <span className="bg-tertiary text-white px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold whitespace-nowrap">
+                          {Math.round(c.matchScore * 100)}% Match
                         </span>
                       </div>
                       <h3 className="text-xl text-primary mb-2 uppercase tracking-tight font-headline font-bold group-hover:text-tertiary transition-colors">{c.name}</h3>
-                      <p className="text-sm text-on-surface-variant mb-6">{c.roaster}</p>
-                      <div className="pt-4 border-t border-primary/10">
-                        <span className="font-headline font-bold text-primary text-xl">{c.price}</span>
+                      <p className="text-sm text-on-surface-variant mb-2">{c.roaster?.name ?? ""}</p>
+                      {c.tasting_summary && (
+                        <p className="text-xs text-on-surface-variant leading-relaxed mb-4 line-clamp-2">{c.tasting_summary}</p>
+                      )}
+                      <div className="pt-3 border-t border-primary/10">
+                        <span className="font-headline font-bold text-primary text-xl">CHF {c.price_chf.toFixed(2)}</span>
                       </div>
                     </Link>
                     <div className="grid grid-cols-2 border-t border-primary/10">
                       <Link
-                        href={`/coffee/${coffeeSlug}`}
+                        href={`/coffee/${c.slug}`}
                         className="text-center py-4 font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-bold"
                       >
                         Details
@@ -201,9 +232,9 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
                       </Link>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -217,15 +248,21 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               Schweizer Röster für dich
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {type.roasters.map((r) => (
-              <div key={r.name} className="bg-white border-l-4 border-tertiary p-8 shadow-sm">
-                <h3 className="text-lg text-primary mb-1 uppercase tracking-tight font-headline font-bold">{r.name}</h3>
-                <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{r.city}</span>
-                <p className="text-sm text-on-surface-variant mt-4 leading-relaxed">{r.specialty}</p>
-              </div>
-            ))}
-          </div>
+          {dbRoasters.length === 0 ? (
+            <p className="text-center text-on-surface-variant">Keine Röster mit Match-Coffees verfügbar.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {dbRoasters.map((r) => (
+                <Link key={r.slug} href={`/roasters/${r.slug}`} className="bg-white border-l-4 border-tertiary p-8 shadow-sm hover:shadow-xl transition-shadow group">
+                  <h3 className="text-lg text-primary mb-1 uppercase tracking-tight font-headline font-bold group-hover:text-tertiary transition-colors">{r.name}</h3>
+                  {r.city && <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{r.city}</span>}
+                  <p className="text-xs text-on-surface-variant mt-4 leading-relaxed">
+                    Hat {dbCoffees.filter((c) => c.roaster?.slug === r.slug).length} Match-{dbCoffees.filter((c) => c.roaster?.slug === r.slug).length === 1 ? "Kaffee" : "Kaffees"} für {type.name}.
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Subscription CTA */}

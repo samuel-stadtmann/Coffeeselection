@@ -5,6 +5,7 @@ import AccountSidebar from "@/components/AccountSidebar";
 import { createClient } from "@/lib/supabase/client";
 import { tasteTypeById } from "@/lib/taste-types-map";
 import type { TasteType } from "@/lib/taste-types";
+import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
 
 const LOGO = "/logo.png";
 
@@ -40,18 +41,11 @@ const recentOrders = [
   { id: "CS-2024-000109", date: "20.03.2025", coffee: "Ethiopia Gedeb Washed", roaster: "Miro Coffee", price: "CHF 45.20", status: "Geliefert", rated: true },
 ];
 
-const recommendation = {
-  name: "Yemen Mokha Hayma",
-  roaster: "Sweven Coffee",
-  origin: "Jemen",
-  match: 91,
-  slug: "yemen-mokha-hayma",
-};
-
 export default function AccountDashboardPage() {
   const [paused, setPaused] = useState(false);
   const [customer, setCustomer] = useState<CustomerRow | null>(null);
   const [profile, setProfile] = useState<TasteProfile | null>(null);
+  const [recommendation, setRecommendation] = useState<RecommendedCoffee | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,14 +62,18 @@ export default function AccountDashboardPage() {
         .eq("auth_user_id", auth.user.id)
         .single();
       setCustomer(data);
-      // Wenn taste_type_id gesetzt: Archetyp-Profil aus DB laden
+      // Wenn taste_type_id gesetzt: Archetyp-Profil + Top-Coffee-Match aus DB laden
       if (data?.taste_type_id != null) {
-        const { data: tt } = await supabase
-          .from("taste_types")
-          .select("acidity, body, sweetness, bitterness, complexity")
-          .eq("id", data.taste_type_id)
-          .maybeSingle();
+        const [{ data: tt }, recs] = await Promise.all([
+          supabase
+            .from("taste_types")
+            .select("acidity, body, sweetness, bitterness, complexity")
+            .eq("id", data.taste_type_id)
+            .maybeSingle(),
+          getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 1 }),
+        ]);
         setProfile(tt as TasteProfile | null);
+        setRecommendation(recs[0] ?? null);
       }
       setLoading(false);
     })();
@@ -331,23 +329,35 @@ export default function AccountDashboardPage() {
 
               {/* Recommendation + Referral */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Link
-                  href={`/coffee/${recommendation.slug}`}
-                  className="md:col-span-2 bg-surface-variant p-6 md:p-8 group hover:shadow-md transition-shadow"
-                >
-                  <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-2">
-                    Neue Empfehlung für dich · {recommendation.match}% Match
-                  </span>
-                  <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-2xl mb-2 group-hover:text-tertiary transition-colors">
-                    {recommendation.name}
-                  </h3>
-                  <p className="text-sm text-on-surface-variant mb-4">
-                    {recommendation.roaster} · {recommendation.origin}
-                  </p>
-                  <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary group-hover:text-primary transition-colors flex items-center gap-1">
-                    Entdecken <span className="material-symbols-outlined text-base">arrow_forward</span>
-                  </span>
-                </Link>
+                {recommendation ? (
+                  <Link
+                    href={`/coffee/${recommendation.slug}`}
+                    className="md:col-span-2 bg-surface-variant p-6 md:p-8 group hover:shadow-md transition-shadow"
+                  >
+                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-2">
+                      Neue Empfehlung für dich · {Math.round(recommendation.matchScore * 100)}% Match
+                    </span>
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-2xl mb-2 group-hover:text-tertiary transition-colors">
+                      {recommendation.name}
+                    </h3>
+                    <p className="text-sm text-on-surface-variant mb-4">
+                      {recommendation.roaster?.name ?? ""}
+                      {recommendation.origin_name ? ` · ${recommendation.origin_name}` : ""}
+                    </p>
+                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary group-hover:text-primary transition-colors flex items-center gap-1">
+                      Entdecken <span className="material-symbols-outlined text-base">arrow_forward</span>
+                    </span>
+                  </Link>
+                ) : (
+                  <div className="md:col-span-2 bg-surface-variant p-6 md:p-8">
+                    <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-2">
+                      Empfehlung
+                    </span>
+                    <p className="text-sm text-on-surface-variant">
+                      {hasTasteType ? "Aktuell kein passender Coffee im Sortiment." : "Mach erst das Quiz, dann empfehlen wir dir Kaffees."}
+                    </p>
+                  </div>
+                )}
 
                 <div className="bg-primary text-on-primary p-6 md:p-8 flex flex-col">
                   <span className="material-symbols-outlined text-tertiary text-3xl mb-3">share</span>

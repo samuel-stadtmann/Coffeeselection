@@ -1,68 +1,68 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { tasteTypes, tasteTypeBySlug, type TasteType } from "@/lib/taste-types";
-import { slugify } from "@/lib/coffees";
+import { createClient } from "@/lib/supabase/server";
+import { tasteTypeById } from "@/lib/taste-types-map";
+import {
+  getCoffeesForTasteType,
+  getNeighborTasteTypes,
+  reasoningForMatch,
+} from "@/lib/db/recommendations";
 
 const LOGO = "/logo.png";
-
-// Heutiges Mock — später aus Supabase user.tasteType
-const USER_MATCH_SLUG = "der-fruchtfreund";
+const COFFEE_FALLBACK_IMG =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
 export const metadata: Metadata = {
   title: "Alternativen zu deinem Match — Coffee Selection",
-  description: "Persönliche Alternativen zu deinem Geschmackstyp. Mit Begründung, warum dieser Kaffee zu dir passen könnte.",
+  description:
+    "Persönliche Alternativen zu deinem Geschmackstyp. Mit Begründung, warum dieser Kaffee zu dir passen könnte.",
   robots: { index: false, follow: false },
 };
 
-const profileLookup = (t: TasteType) =>
-  Object.fromEntries(t.profile.map((p) => [p.label, p.value])) as Record<string, number>;
+export default async function AlternativesPage() {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) redirect("/login?next=/recommendation/alternatives");
 
-function distance(a: TasteType, b: TasteType): number {
-  const pa = profileLookup(a);
-  const pb = profileLookup(b);
-  return a.profile.reduce((sum, p) => sum + Math.abs(pa[p.label] - (pb[p.label] ?? pa[p.label])), 0);
-}
+  const { data: customer } = await supabase
+    .from("customers")
+    .select("taste_type_id")
+    .eq("auth_user_id", auth.user.id)
+    .single();
 
-function reasoning(match: TasteType, alt: TasteType): { headline: string; detail: string } {
-  const pm = profileLookup(match);
-  const pa = profileLookup(alt);
-  const diffs = match.profile
-    .map((p) => ({ label: p.label, diff: pa[p.label] - pm[p.label], altVal: pa[p.label], myVal: pm[p.label] }))
-    .sort((x, y) => Math.abs(y.diff) - Math.abs(x.diff));
+  const userTasteTypeId = customer?.taste_type_id;
+  const userTasteType = tasteTypeById(userTasteTypeId ?? null);
 
-  const top = diffs[0];
-  const direction = top.diff > 0 ? "mehr" : "weniger";
-  const headline = `${direction.charAt(0).toUpperCase() + direction.slice(1)} ${top.label}`;
-  const sharedAromas = match.aromas.filter((a) => alt.aromas.includes(a));
-  const aromaText =
-    sharedAromas.length > 0
-      ? `Teilt ${sharedAromas.slice(0, 2).join(" & ")} mit deinem Match.`
-      : `Erweitert dein Profil um ${alt.aromas.slice(0, 2).join(" & ")}.`;
+  // Top-Match des Users (zum Ausschluss aus Alternatives)
+  const topMatch = userTasteTypeId
+    ? (await getCoffeesForTasteType(supabase, userTasteTypeId, { limit: 1 }))[0]
+    : null;
 
-  const detail = `${top.label}: ${top.altVal}% statt ${top.myVal}% (${direction} ausgeprägt). ${aromaText}`;
-  return { headline, detail };
-}
+  // Nachbar-Geschmackstypen über Profil-Distanz
+  const neighbors = userTasteTypeId
+    ? await getNeighborTasteTypes(supabase, userTasteTypeId, 3)
+    : [];
 
-export default function AlternativesPage() {
-  const match = tasteTypeBySlug(USER_MATCH_SLUG);
-  if (!match) return null;
-
-  const sortedNeighbors = tasteTypes
-    .filter((t) => t.slug !== match.slug)
-    .map((t) => ({ type: t, dist: distance(match, t) }))
-    .sort((a, b) => a.dist - b.dist)
-    .slice(0, 3);
-
-  // Pro Nachbar-Typ den Top-Coffee — keine Doppel-Einträge nach Name
-  const seen = new Set<string>();
-  const alternatives = sortedNeighbors.flatMap(({ type }) => {
-    const picks = type.coffees.filter((c) => !seen.has(c.name)).slice(0, 1);
-    picks.forEach((c) => seen.add(c.name));
-    return picks.map((coffee) => {
-      const r = reasoning(match, type);
-      return { coffee, type, headline: r.headline, detail: r.detail };
+  // Pro Nachbar 1 Top-Coffee → max 3 Alternativen
+  const seen = new Set<string>(topMatch ? [topMatch.id] : []);
+  const alternatives: Array<{
+    coffee: Awaited<ReturnType<typeof getCoffeesForTasteType>>[number];
+    typeName: string;
+    headline: string;
+    detail: string;
+  }> = [];
+  for (const neighbor of neighbors) {
+    const coffees = await getCoffeesForTasteType(supabase, neighbor.id, {
+      limit: 1,
+      excludeIds: Array.from(seen),
     });
-  });
+    const c = coffees[0];
+    if (!c) continue;
+    seen.add(c.id);
+    const r = reasoningForMatch(neighbor, c);
+    alternatives.push({ coffee: c, typeName: neighbor.name_de, headline: r.headline, detail: r.detail });
+  }
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen">
@@ -100,34 +100,49 @@ export default function AlternativesPage() {
               Alternativen zu deinem Match
             </h1>
             <p className="text-lg text-on-surface-variant leading-relaxed">
-              Du bist <span className="text-primary font-headline font-bold">{match.name}</span> — diese Kaffees liegen knapp daneben
-              und könnten dich überraschen. Jeder kommt mit Begründung: was er gemeinsam hat mit deinem Profil und wo er anders ist.
+              {userTasteType ? (
+                <>
+                  Du bist <span className="text-primary font-headline font-bold">{userTasteType.name}</span> — diese Kaffees liegen knapp daneben
+                  und könnten dich überraschen. Jeder kommt mit Begründung: was er mit deinem Profil teilt und wo er anders ist.
+                </>
+              ) : (
+                "Mach erst das Quiz, dann finden wir Alternativen für deinen Geschmackstyp."
+              )}
             </p>
           </section>
 
           {/* Grid */}
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {alternatives.map(({ coffee, type, headline, detail }) => {
-              const slug = slugify(coffee.name);
-              return (
-                <article key={coffee.name} className="bg-white shadow-sm hover:shadow-xl transition-all flex flex-col">
+          {alternatives.length === 0 ? (
+            <div className="bg-white p-8 text-center shadow-sm">
+              <p className="text-on-surface-variant">
+                {userTasteType
+                  ? "Aktuell sind keine passenden Alternativen im Sortiment. Sobald die Röster neue Lots einpflegen, erscheinen sie hier."
+                  : "Mach das Quiz, dann zeigen wir dir Alternativen."}
+              </p>
+            </div>
+          ) : (
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {alternatives.map(({ coffee, typeName, headline, detail }) => (
+                <article key={coffee.id} className="bg-white shadow-sm hover:shadow-xl transition-all flex flex-col">
+                  <Link href={`/coffee/${coffee.slug}`} className="block">
+                    <div className="aspect-[4/3] overflow-hidden bg-surface-container-low">
+                      <img src={coffee.image_url || COFFEE_FALLBACK_IMG} alt={coffee.name} className="w-full h-full object-cover" />
+                    </div>
+                  </Link>
                   <div className="p-8 flex-1">
-                    <div className="flex items-start justify-between gap-3 mb-5">
-                      <div>
-                        <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">
-                          {coffee.origin}
-                        </span>
-                        <Link href={`/coffee/${slug}`} className="block">
-                          <h2 className="font-headline font-bold text-primary uppercase tracking-tight text-xl mb-1 hover:text-tertiary transition-colors">
-                            {coffee.name}
-                          </h2>
-                        </Link>
-                        <p className="text-xs text-on-surface-variant">{coffee.roaster}</p>
-                      </div>
-                      <span className="material-symbols-outlined text-tertiary shrink-0">{type.icon}</span>
+                    <div className="mb-5">
+                      <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">
+                        {coffee.origin_name ?? "Specialty"}
+                      </span>
+                      <Link href={`/coffee/${coffee.slug}`}>
+                        <h2 className="font-headline font-bold text-primary uppercase tracking-tight text-xl mb-1 hover:text-tertiary transition-colors">
+                          {coffee.name}
+                        </h2>
+                      </Link>
+                      <p className="text-xs text-on-surface-variant">{coffee.roaster?.name ?? ""}</p>
                     </div>
 
-                    {/* Begründung — wichtigstes Element */}
+                    {/* Begründung */}
                     <div className="bg-tertiary/5 border-l-4 border-tertiary p-5 mb-6">
                       <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">
                         Warum für dich
@@ -139,20 +154,16 @@ export default function AlternativesPage() {
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-surface-container">
-                      <span className="font-headline font-bold text-primary text-xl">{coffee.price}</span>
-                      <Link
-                        href={`/taste-types/${type.slug}`}
-                        className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:text-tertiary transition-colors font-bold"
-                      >
-                        Typ: {type.name} →
-                      </Link>
+                      <span className="font-headline font-bold text-primary text-xl">CHF {coffee.price_chf.toFixed(2)}</span>
+                      <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+                        Typ: {typeName}
+                      </span>
                     </div>
                   </div>
 
-                  {/* CTA — wichtigstes Element */}
                   <div className="grid grid-cols-2 border-t border-primary/10">
                     <Link
-                      href={`/coffee/${slug}`}
+                      href={`/coffee/${coffee.slug}`}
                       className="text-center py-4 font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-bold"
                     >
                       Details
@@ -165,17 +176,16 @@ export default function AlternativesPage() {
                     </Link>
                   </div>
                 </article>
-              );
-            })}
-          </section>
+              ))}
+            </section>
+          )}
 
-          {/* Footer-CTA zurück ins Profil */}
           <section className="bg-white shadow-sm p-8 md:p-12 mt-16 text-center">
             <h2 className="text-2xl md:text-3xl text-primary mb-4 uppercase tracking-tight font-headline font-bold">
               Diese Kaffees passen nicht?
             </h2>
             <p className="text-on-surface-variant mb-8 max-w-xl mx-auto">
-              Bewerte deine letzten Empfehlungen — wir verfeinern den Algorithmus jedes Mal, wenn du Sterne vergibst.
+              Bewerte deine letzten Empfehlungen — der Algorithmus lernt jedes Mal, wenn du Sterne vergibst.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -184,12 +194,14 @@ export default function AlternativesPage() {
               >
                 Empfehlungen bewerten
               </Link>
-              <Link
-                href={`/taste-types/${match.slug}`}
-                className="border border-primary text-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
-              >
-                Mein Geschmackstyp
-              </Link>
+              {userTasteType && (
+                <Link
+                  href={`/taste-types/${userTasteType.slug}`}
+                  className="border border-primary text-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+                >
+                  Mein Geschmackstyp
+                </Link>
+              )}
             </div>
           </section>
         </div>

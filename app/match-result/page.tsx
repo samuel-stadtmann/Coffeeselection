@@ -5,27 +5,11 @@ import { createClient } from "@/lib/supabase/client";
 import { tasteTypeById } from "@/lib/taste-types-map";
 import type { TasteType } from "@/lib/taste-types";
 import { getLocalAnswers, clearLocalAnswers, type LocalQuizAnswer } from "@/lib/quiz-storage";
+import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
 
 const LOGO = "/logo.png";
 const IMG_BEANS_FALLBACK =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
-
-type RecommendedCoffee = {
-  id: string;
-  slug: string;
-  name: string;
-  image_url: string | null;
-  tasting_summary: string | null;
-  price_chf: number;
-  weight_g: number;
-  aroma_families: string[] | null;
-  acidity: number | null;
-  body: number | null;
-  sweetness: number | null;
-  bitterness: number | null;
-  complexity: number | null;
-  roaster: { name: string; slug: string; city: string | null; logo_url: string | null } | null;
-};
 
 const PRICE_PER_250G = 28;
 const intervals = [
@@ -158,68 +142,7 @@ async function persistAndScoreQuiz(
   return { tasteTypeId: primary.type, error: null };
 }
 
-/**
- * Findet aus den 16 Coffees in der DB den, dessen Profil
- * (acidity/body/sweetness/bitterness/complexity) am nächsten am
- * Geschmackstyp-Profil liegt — Manhattan-Distanz auf 5 Achsen.
- * Zukünftig ersetzbar durch pgvector-Match auf taste_embedding.
- */
-async function getRecommendedCoffeeForType(
-  supabase: ReturnType<typeof createClient>,
-  taste_type_id: number
-): Promise<RecommendedCoffee | null> {
-  // Profil des Geschmackstyps aus DB (1–5 Skala)
-  const { data: target } = await supabase
-    .from("taste_types")
-    .select("acidity, body, sweetness, bitterness, complexity")
-    .eq("id", taste_type_id)
-    .maybeSingle();
-  if (!target) return null;
-
-  const { data, error } = await supabase
-    .from("coffees")
-    .select(
-      `id, slug, name, image_url, tasting_summary, price_chf, weight_g,
-       acidity, body, sweetness, bitterness, complexity, aroma_families,
-       roaster:roasters(name, slug, city, logo_url)`
-    )
-    .eq("status", "active")
-    .is("deleted_at", null);
-  if (error) {
-    console.error("[match] coffees query failed", error);
-    return null;
-  }
-  if (!data || data.length === 0) return null;
-
-  // Nur Coffees mit komplettem Sensorik-Profil ranken — sonst verfälscht NULL den Match
-  const ratable = data.filter(
-    (c) =>
-      c.acidity != null &&
-      c.body != null &&
-      c.sweetness != null &&
-      c.bitterness != null &&
-      c.complexity != null
-  );
-
-  const ranked = ratable
-    .map((c) => {
-      const dist =
-        Math.abs((c.acidity as number) - (target.acidity ?? 3)) +
-        Math.abs((c.body as number) - (target.body ?? 3)) +
-        Math.abs((c.sweetness as number) - (target.sweetness ?? 3)) +
-        Math.abs((c.bitterness as number) - (target.bitterness ?? 3)) +
-        Math.abs((c.complexity as number) - (target.complexity ?? 3));
-      return { coffee: c, dist };
-    })
-    .sort((a, b) => a.dist - b.dist);
-
-  const top = ranked[0]?.coffee;
-  if (!top) return null;
-  return {
-    ...top,
-    roaster: Array.isArray(top.roaster) ? top.roaster[0] ?? null : top.roaster ?? null,
-  } as RecommendedCoffee;
-}
+// Coffee-Match wird über lib/db/recommendations.ts geholt — zentrale Logik
 
 type LoadState = "loading" | "no-quiz" | "error" | "ready";
 
@@ -279,9 +202,9 @@ export default function MatchResultPage() {
       }
       setTasteType(type);
 
-      // Coffee-Match aus DB
-      const matched = await getRecommendedCoffeeForType(supabase, id);
-      setCoffee(matched);
+      // Coffee-Match aus DB via zentraler Funktion
+      const matches = await getCoffeesForTasteType(supabase, id, { limit: 1 });
+      setCoffee(matches[0] ?? null);
       setState("ready");
     })();
   }, []);
