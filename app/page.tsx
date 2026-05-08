@@ -1,7 +1,16 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { roasters } from "@/lib/roasters";
+import { createClient } from "@/lib/supabase/client";
+
+type FeaturedRoaster = {
+  slug: string;
+  name: string;
+  city: string | null;
+  short_description: string | null;
+  hero_image_url: string | null;
+  logo_url: string | null;
+};
 
 const LOGO = "/logo.png";
 const HERO =
@@ -56,11 +65,19 @@ const seoArticles = [
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // Random 3 roasters per page load (client-side to avoid SSR mismatch)
-  const [featured, setFeatured] = useState(() => roasters.slice(0, 3));
+  // Random 3 roasters per page load — fetched from DB
+  const [featured, setFeatured] = useState<FeaturedRoaster[]>([]);
   useEffect(() => {
-    const shuffled = [...roasters].sort(() => Math.random() - 0.5);
-    setFeatured(shuffled.slice(0, 3));
+    const supabase = createClient();
+    (async () => {
+      const { data } = await supabase
+        .from("roasters")
+        .select("slug, name, city, short_description, hero_image_url, logo_url")
+        .eq("status", "active")
+        .is("deleted_at", null);
+      const shuffled = (data ?? []).sort(() => Math.random() - 0.5);
+      setFeatured(shuffled.slice(0, 3) as FeaturedRoaster[]);
+    })();
   }, []);
   const [hero, side1, side2] = featured;
 
@@ -281,68 +298,79 @@ export default function HomePage() {
                 Alle Röster
               </Link>
             </div>
-            <div className="grid grid-cols-12 gap-6 md:gap-8">
-              {/* Featured large — random hero roaster */}
-              <Link
-                href={`/roasters/${hero.slug}`}
-                className="col-span-12 md:col-span-7 bg-surface-container relative overflow-hidden group shadow-lg min-h-[500px]"
-              >
-                <img
-                  src={hero.image}
-                  alt={hero.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent" />
-                <div className="absolute bottom-10 left-10 right-10 text-on-primary">
-                  <span className="font-headline text-[10px] uppercase tracking-[0.5em] mb-4 block text-tertiary font-bold">
-                    {hero.city} · seit {hero.founded}
-                  </span>
-                  <h3 className="text-3xl mb-3 font-headline font-bold">{hero.name}</h3>
-                  <p className="text-on-primary/80 max-w-sm text-sm leading-relaxed">
-                    {hero.tagline}.
-                  </p>
-                  <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold mt-4 inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                    Profil ansehen <span className="material-symbols-outlined text-base">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
+            {hero && side1 && side2 && (
+              <div className="grid grid-cols-12 gap-6 md:gap-8">
+                {/* Featured large — random hero roaster */}
+                <Link
+                  href={`/roasters/${hero.slug}`}
+                  className="col-span-12 md:col-span-7 bg-surface-container relative overflow-hidden group shadow-lg min-h-[500px]"
+                >
+                  <img
+                    src={hero.hero_image_url || hero.logo_url || ""}
+                    alt={hero.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent" />
+                  <div className="absolute bottom-10 left-10 right-10 text-on-primary">
+                    {hero.city && (
+                      <span className="font-headline text-[10px] uppercase tracking-[0.5em] mb-4 block text-tertiary font-bold">
+                        {hero.city}
+                      </span>
+                    )}
+                    <h3 className="text-3xl mb-3 font-headline font-bold">{hero.name}</h3>
+                    {hero.short_description && (
+                      <p className="text-on-primary/80 max-w-sm text-sm leading-relaxed">
+                        {hero.short_description}
+                      </p>
+                    )}
+                    <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold mt-4 inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      Profil ansehen <span className="material-symbols-outlined text-base">arrow_forward</span>
+                    </span>
+                  </div>
+                </Link>
 
-              {/* Right column — 2 random side roasters */}
-              <div className="col-span-12 md:col-span-5 flex flex-col gap-6 md:gap-8">
-                <Link
-                  href={`/roasters/${side1.slug}`}
-                  className="flex-1 bg-white p-8 md:p-10 flex flex-col justify-between border-l-8 border-tertiary shadow-md group hover:shadow-xl transition-all"
-                >
-                  <div>
-                    <h3 className="text-xl text-primary mb-4 uppercase tracking-tight font-headline font-bold group-hover:text-tertiary transition-colors">{side1.name}</h3>
-                    <p className="text-on-surface-variant text-sm leading-relaxed">
-                      {side1.shortDesc}
-                    </p>
-                  </div>
-                  <div className="flex gap-3 mt-6">
-                    <span className="px-3 py-1 bg-surface-container text-primary font-headline text-[9px] font-bold uppercase tracking-widest">{side1.city}</span>
-                    {side1.values.slice(0, 1).map((v) => (
-                      <span key={v} className="px-3 py-1 bg-surface-container text-primary font-headline text-[9px] font-bold uppercase tracking-widest">{v}</span>
-                    ))}
-                  </div>
-                </Link>
-                <Link
-                  href={`/roasters/${side2.slug}`}
-                  className="flex-1 bg-primary text-on-primary p-8 md:p-10 flex flex-col justify-between shadow-md group hover:bg-black transition-colors"
-                >
-                  <div>
-                    <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">{side2.city} · seit {side2.founded}</span>
-                    <h3 className="text-xl mb-3 text-tertiary uppercase tracking-tight font-headline font-bold">{side2.name}</h3>
-                    <p className="italic text-sm leading-relaxed text-on-primary/80">
-                      &ldquo;{side2.tagline}.&rdquo;
-                    </p>
-                  </div>
-                  <span className="text-tertiary font-headline font-bold uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 group-hover:translate-x-2 transition-transform mt-6">
-                    Mehr erfahren <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                  </span>
-                </Link>
+                {/* Right column — 2 random side roasters */}
+                <div className="col-span-12 md:col-span-5 flex flex-col gap-6 md:gap-8">
+                  <Link
+                    href={`/roasters/${side1.slug}`}
+                    className="flex-1 bg-white p-8 md:p-10 flex flex-col justify-between border-l-8 border-tertiary shadow-md group hover:shadow-xl transition-all"
+                  >
+                    <div>
+                      <h3 className="text-xl text-primary mb-4 uppercase tracking-tight font-headline font-bold group-hover:text-tertiary transition-colors">{side1.name}</h3>
+                      {side1.short_description && (
+                        <p className="text-on-surface-variant text-sm leading-relaxed">
+                          {side1.short_description}
+                        </p>
+                      )}
+                    </div>
+                    {side1.city && (
+                      <div className="flex gap-3 mt-6">
+                        <span className="px-3 py-1 bg-surface-container text-primary font-headline text-[9px] font-bold uppercase tracking-widest">{side1.city}</span>
+                      </div>
+                    )}
+                  </Link>
+                  <Link
+                    href={`/roasters/${side2.slug}`}
+                    className="flex-1 bg-primary text-on-primary p-8 md:p-10 flex flex-col justify-between shadow-md group hover:bg-black transition-colors"
+                  >
+                    <div>
+                      {side2.city && (
+                        <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">{side2.city}</span>
+                      )}
+                      <h3 className="text-xl mb-3 text-tertiary uppercase tracking-tight font-headline font-bold">{side2.name}</h3>
+                      {side2.short_description && (
+                        <p className="italic text-sm leading-relaxed text-on-primary/80">
+                          &ldquo;{side2.short_description}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-tertiary font-headline font-bold uppercase text-[10px] tracking-[0.3em] flex items-center gap-2 group-hover:translate-x-2 transition-transform mt-6">
+                      Mehr erfahren <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                    </span>
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
 
