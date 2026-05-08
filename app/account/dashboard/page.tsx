@@ -182,22 +182,29 @@ export default function AccountDashboardPage() {
               </div>
 
               {/* Rate Coffee CTA — only shown if any unrated orders */}
-              {recentOrders.find((o) => !o.rated) && (
-                <div className="bg-tertiary/10 border-l-4 border-tertiary p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
-                  <span className="material-symbols-outlined text-tertiary text-4xl">star</span>
-                  <div className="flex-1">
-                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-1">
-                      Wie war dein letzter Kaffee?
-                    </h3>
-                    <p className="text-sm text-on-surface-variant">
-                      Bewerte &ldquo;{recentOrders[0].coffee}&rdquo; — dein Profil lernt mit jedem Feedback.
-                    </p>
+              {(() => {
+                const next = recentOrders.find((o) => !o.rated);
+                if (!next) return null;
+                return (
+                  <div className="bg-tertiary/10 border-l-4 border-tertiary p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+                    <span className="material-symbols-outlined text-tertiary text-4xl">star</span>
+                    <div className="flex-1">
+                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-1">
+                        Wie war dein letzter Kaffee?
+                      </h3>
+                      <p className="text-sm text-on-surface-variant">
+                        Bewerte &ldquo;{next.coffee}&rdquo; — dein Profil lernt mit jedem Feedback.
+                      </p>
+                    </div>
+                    <Link
+                      href={`/account/rate/${next.id}`}
+                      className="bg-primary text-on-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all whitespace-nowrap"
+                    >
+                      Jetzt bewerten
+                    </Link>
                   </div>
-                  <button className="bg-primary text-on-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all whitespace-nowrap">
-                    Jetzt bewerten
-                  </button>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Recent Orders */}
               <div className="bg-white p-6 md:p-8 shadow-sm">
@@ -223,9 +230,12 @@ export default function AccountDashboardPage() {
                           ★ Bewertet
                         </span>
                       ) : (
-                        <button className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors px-3 py-1 border border-tertiary">
+                        <Link
+                          href={`/account/rate/${o.id}`}
+                          className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors px-3 py-1 border border-tertiary"
+                        >
                           Bewerten
-                        </button>
+                        </Link>
                       )}
                     </div>
                   ))}
