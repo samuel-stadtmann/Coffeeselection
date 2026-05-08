@@ -10,7 +10,10 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/account/dashboard";
-  const [mode, setMode] = useState<"signup" | "login">("signup");
+  // Aus dem Quiz kommt der User als Neukunde → Signup als Default.
+  // Bei direktem Aufruf (Profil-Icon, manuelle URL) → Login als Default.
+  const initialMode: "signup" | "login" = next.includes("/match-result") ? "signup" : "login";
+  const [mode, setMode] = useState<"signup" | "login">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -37,7 +40,14 @@ function LoginForm() {
         },
       });
       if (signUpError) {
-        setError(signUpError.message);
+        const msg = signUpError.message.toLowerCase();
+        if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
+          setMode("login");
+          setError(null);
+          setInfo("Du hast bereits ein Konto unter dieser Email. Gib dein Passwort ein, um dich einzuloggen.");
+        } else {
+          setError(signUpError.message);
+        }
         setSubmitting(false);
         return;
       }
@@ -99,36 +109,38 @@ function LoginForm() {
 
       <main className="flex-1 flex items-center justify-center pt-36 md:pt-40 pb-16 px-6">
         <div className="w-full max-w-md">
-          {/* Strategic Headline */}
+          {/* Strategic Headline — kontextabhängig */}
           <div className="text-center mb-10">
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
-              Dein Match wartet
+              {mode === "login" ? "Willkommen zurück" : "Dein Match wartet"}
             </span>
             <h1 className="text-3xl md:text-4xl text-primary leading-tight mb-4 font-headline font-bold uppercase tracking-tight">
-              Speichere dein<br />Geschmacksprofil
+              {mode === "login" ? <>Einloggen</> : <>Speichere dein<br />Geschmacksprofil</>}
             </h1>
             <p className="text-base text-on-surface-variant leading-relaxed">
-              Erstelle dein kostenloses Konto, um deinen Geschmackstyp zu sehen, deinen Match-Kaffee zu kaufen und Empfehlungen zu speichern.
+              {mode === "login"
+                ? "Logge dich ein, um auf dein Profil und deine Empfehlungen zuzugreifen."
+                : "Erstelle dein kostenloses Konto, um deinen Geschmackstyp zu sehen, deinen Match-Kaffee zu kaufen und Empfehlungen zu speichern."}
             </p>
           </div>
 
-          {/* Mode Toggle */}
+          {/* Mode Toggle — Login zuerst & primär */}
           <div className="flex bg-surface-container mb-8">
             <button
-              onClick={() => setMode("signup")}
-              className={`flex-1 py-3 font-headline text-[11px] uppercase tracking-widest font-bold transition-all ${
-                mode === "signup" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-primary"
-              }`}
-            >
-              Konto erstellen
-            </button>
-            <button
-              onClick={() => setMode("login")}
+              onClick={() => { setMode("login"); setError(null); setInfo(null); }}
               className={`flex-1 py-3 font-headline text-[11px] uppercase tracking-widest font-bold transition-all ${
                 mode === "login" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-primary"
               }`}
             >
               Einloggen
+            </button>
+            <button
+              onClick={() => { setMode("signup"); setError(null); setInfo(null); }}
+              className={`flex-1 py-3 font-headline text-[11px] uppercase tracking-widest font-bold transition-all ${
+                mode === "signup" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-primary"
+              }`}
+            >
+              Konto erstellen
             </button>
           </div>
 
@@ -218,7 +230,13 @@ function LoginForm() {
               disabled={submitting}
               className="w-full bg-primary text-on-primary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
             >
-              {submitting ? "Bitte warten..." : mode === "signup" ? "Konto erstellen & Match sehen" : "Einloggen & Match sehen"}
+              {submitting
+                ? "Bitte warten..."
+                : mode === "signup"
+                ? next.includes("/match-result")
+                  ? "Konto erstellen & Match sehen"
+                  : "Konto erstellen"
+                : "Einloggen"}
             </button>
 
             {mode === "login" && (
