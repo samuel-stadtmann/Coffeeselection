@@ -62,6 +62,13 @@ export async function persistQuizForCurrentUser(
     .single();
   if (!customer) return null;
 
+  // 0) Bestehende active deaktivieren (Unique-Constraint: one active per customer)
+  await supabase
+    .from("quiz_responses")
+    .update({ is_active: false })
+    .eq("customer_id", customer.id)
+    .eq("is_active", true);
+
   // 1) quiz_responses anlegen
   const { data: response, error: respErr } = await supabase
     .from("quiz_responses")

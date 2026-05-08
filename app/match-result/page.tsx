@@ -50,6 +50,14 @@ async function persistAndScoreQuiz(
   customerId: string,
   answers: LocalQuizAnswer[]
 ): Promise<{ tasteTypeId: number | null; error: string | null }> {
+  // 0) Bestehende aktive Responses deaktivieren (Unique-Constraint:
+  //    one active per customer)
+  await supabase
+    .from("quiz_responses")
+    .update({ is_active: false })
+    .eq("customer_id", customerId)
+    .eq("is_active", true);
+
   // 1) Response-Row anlegen
   const { data: response, error: respErr } = await supabase
     .from("quiz_responses")
