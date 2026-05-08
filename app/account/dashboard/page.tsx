@@ -1,16 +1,21 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AccountSidebar from "@/components/AccountSidebar";
+import { createClient } from "@/lib/supabase/client";
 
 const LOGO = "/logo.png";
 
-// TODO: Wire up to Supabase — replace with auth.user() + customer DB queries
-const user = {
-  firstName: "Marco",
+type CustomerRow = {
+  first_name: string | null;
+  taste_type_id: number | null;
+  created_at: string;
+};
+
+// Mock-Fallback während wir Phase 2 noch nicht fertig haben (Subscription, Orders aus DB)
+const fallbackUser = {
   tasteType: "Der Fruchtfreund",
   tasteTypeSlug: "der-fruchtfreund",
-  joinedDate: "März 2024",
 };
 
 const tasteProfile = [
@@ -49,12 +54,39 @@ const recommendation = {
 
 export default function AccountDashboardPage() {
   const [paused, setPaused] = useState(false);
+  const [customer, setCustomer] = useState<CustomerRow | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) {
+        setLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("customers")
+        .select("first_name, taste_type_id, created_at")
+        .eq("auth_user_id", auth.user.id)
+        .single();
+      setCustomer(data);
+      setLoading(false);
+    })();
+  }, []);
+
   const greeting = (() => {
     const h = new Date().getHours();
     if (h < 11) return "Guten Morgen";
     if (h < 18) return "Hallo";
     return "Guten Abend";
   })();
+
+  const hasTasteType = customer?.taste_type_id != null;
+  const firstName = customer?.first_name ?? "";
+  const joinedDate = customer
+    ? new Date(customer.created_at).toLocaleDateString("de-CH", { month: "long", year: "numeric" })
+    : "";
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
@@ -91,15 +123,47 @@ export default function AccountDashboardPage() {
               {/* Greeting */}
               <div>
                 <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-3 block">
-                  Mitglied seit {user.joinedDate}
+                  {joinedDate ? `Mitglied seit ${joinedDate}` : "Willkommen"}
                 </span>
                 <h1 className="text-3xl md:text-5xl text-primary font-headline font-bold uppercase tracking-tight">
-                  {greeting}, {user.firstName}.
+                  {greeting}{firstName ? `, ${firstName}` : ""}.
                 </h1>
                 <p className="text-on-surface-variant mt-3">
-                  Du bist <Link href={`/taste-types/${user.tasteTypeSlug}`} className="text-tertiary font-bold hover:text-primary transition-colors">{user.tasteType}</Link> — wir kuratieren weiter für dich.
+                  {hasTasteType ? (
+                    <>
+                      Du bist{" "}
+                      <Link href={`/taste-types/${fallbackUser.tasteTypeSlug}`} className="text-tertiary font-bold hover:text-primary transition-colors">
+                        {fallbackUser.tasteType}
+                      </Link>{" "}
+                      — wir kuratieren weiter für dich.
+                    </>
+                  ) : (
+                    "Mach das Quiz, dann kennen wir deinen Geschmackstyp und können dir die passenden Kaffees empfehlen."
+                  )}
                 </p>
               </div>
+
+              {/* Empty-State: Quiz noch nicht gemacht */}
+              {!loading && !hasTasteType && (
+                <div className="bg-tertiary text-primary p-8 md:p-10 shadow-xl">
+                  <span className="font-headline font-bold uppercase tracking-[0.4em] text-[11px] mb-3 block">
+                    Erster Schritt
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-headline font-bold uppercase tracking-tight mb-3">
+                    Finde deinen Geschmackstyp
+                  </h2>
+                  <p className="text-base mb-8 max-w-2xl">
+                    Damit wir dir die richtigen Kaffees empfehlen können, brauchen wir 60 Sekunden deiner Zeit.
+                    12 Fragen — und wir wissen, was zu dir passt.
+                  </p>
+                  <Link
+                    href="/quiz/question-1-brewing-method"
+                    className="inline-block bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
+                  >
+                    Quiz starten
+                  </Link>
+                </div>
+              )}
 
               {/* Subscription Status — wide top card */}
               <div className="bg-primary text-on-primary p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -144,7 +208,7 @@ export default function AccountDashboardPage() {
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">Geschmackstyp</span>
-                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl">{user.tasteType}</h3>
+                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl">{hasTasteType ? fallbackUser.tasteType : "Noch unbekannt"}</h3>
                     </div>
                     <Link href="/account/taste-profile" className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors">
                       Mehr →

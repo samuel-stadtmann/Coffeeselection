@@ -9,7 +9,7 @@ const LOGO = "/logo.png";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/match-result";
+  const next = searchParams.get("next") || "/account/dashboard";
   const [mode, setMode] = useState<"signup" | "login">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,6 +60,26 @@ function LoginForm() {
     }
     router.push(next);
     router.refresh();
+  };
+
+  const handleForgotPassword = async () => {
+    setError(null);
+    setInfo(null);
+    if (!email) {
+      setError("Bitte gib zuerst deine Email-Adresse oben ein.");
+      return;
+    }
+    setSubmitting(true);
+    const supabase = createClient();
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setSubmitting(false);
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+    setInfo("Wir haben dir eine Email mit dem Reset-Link geschickt. Schau in dein Postfach.");
   };
 
   return (
@@ -203,9 +223,14 @@ function LoginForm() {
 
             {mode === "login" && (
               <div className="text-center">
-                <Link href="#" className="font-headline text-[10px] uppercase tracking-[0.2em] text-tertiary hover:text-primary transition-colors">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={submitting}
+                  className="font-headline text-[10px] uppercase tracking-[0.2em] text-tertiary hover:text-primary transition-colors disabled:opacity-50"
+                >
                   Passwort vergessen?
-                </Link>
+                </button>
               </div>
             )}
           </form>
