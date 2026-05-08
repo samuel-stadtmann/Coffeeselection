@@ -103,19 +103,22 @@ export async function persistQuizForCurrentUser(
     sumByType.set(r.taste_type_id, (sumByType.get(r.taste_type_id) ?? 0) + r.points);
   }
 
-  // Confidence = Score / max_score pro Typ
   const { data: maxScores } = await supabase
     .from("taste_type_max_scores")
-    .select("taste_type_id, max_score")
-    .eq("quiz_version", "v1");
-  const maxByType = new Map<number, number>(
-    (maxScores ?? []).map((m) => [m.taste_type_id, m.max_score])
-  );
+    .select("taste_type_id, max_score, quiz_version");
+  const maxByType = new Map<number, number>();
+  (maxScores ?? []).forEach((m) => {
+    const cur = maxByType.get(m.taste_type_id) ?? 0;
+    if (m.max_score > cur) maxByType.set(m.taste_type_id, m.max_score);
+  });
 
   const ranked = Array.from(sumByType.entries())
     .map(([type, score]) => {
-      const max = maxByType.get(type) ?? 1;
-      return { type, score, normalized: score / Math.max(max, 1) };
+      const max = maxByType.get(type);
+      const fallbackMax = Math.max(...Array.from(sumByType.values()), 1);
+      const denom = Math.max(max ?? fallbackMax, 1);
+      const normalized = Math.min(1, score / denom);
+      return { type, score, normalized };
     })
     .sort((a, b) => b.normalized - a.normalized);
 

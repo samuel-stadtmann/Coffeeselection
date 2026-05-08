@@ -88,18 +88,24 @@ async function persistAndScoreQuiz(
 
   const { data: maxScores } = await supabase
     .from("taste_type_max_scores")
-    .select("taste_type_id, max_score")
-    .eq("quiz_version", "v1");
-  const maxByType = new Map<number, number>(
-    (maxScores ?? []).map((m) => [m.taste_type_id, m.max_score])
-  );
+    .select("taste_type_id, max_score, quiz_version");
+  // Falls mehrere Versionen existieren: höchste max_score pro Typ nehmen (defensiv)
+  const maxByType = new Map<number, number>();
+  (maxScores ?? []).forEach((m) => {
+    const cur = maxByType.get(m.taste_type_id) ?? 0;
+    if (m.max_score > cur) maxByType.set(m.taste_type_id, m.max_score);
+  });
 
   const ranked = Array.from(sumByType.entries())
-    .map(([type, score]) => ({
-      type,
-      score,
-      normalized: score / Math.max(maxByType.get(type) ?? 1, 1),
-    }))
+    .map(([type, score]) => {
+      const max = maxByType.get(type);
+      // Wenn max fehlt: dynamisch über alle Typen den höchsten Score als Referenz nehmen
+      const fallbackMax = Math.max(...Array.from(sumByType.values()), 1);
+      const denom = Math.max(max ?? fallbackMax, 1);
+      // normalized auf [0, 1] klemmen — defensiv gegen ungültige max_scores
+      const normalized = Math.min(1, score / denom);
+      return { type, score, normalized };
+    })
     .sort((a, b) => b.normalized - a.normalized);
 
   if (ranked.length === 0) {
