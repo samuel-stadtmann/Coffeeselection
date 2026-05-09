@@ -97,3 +97,10 @@ Aktuell nutzt der Match-Score eine reine Manhattan-Distanz auf 5 Sensorik-Achsen
 - [ ] **Hybrid-Score** (komplex, finaler Schliff): Kombination aus Embedding-Cosine + Sensorik-Distanz + Aroma-Overlap + Tag-Sentiment, gewichtet nach Daten-Reife des Users (mehr Ratings → mehr Embedding-Gewicht). Folgt Playbook Kap. 5 ("Pre-Score + MMR für Diversität").
 
 **Wichtig:** Solange wir auf der reinen Sensorik-Distanz bleiben, ist der Score sehr nachvollziehbar und manuell auditierbar. Der Wechsel zu Embeddings macht's mächtiger, aber weniger erklärbar — Trade-off bewusst entscheiden.
+
+### Empfehlungs-Begründungen dynamisch aus DB
+- [ ] Aktuell zeigt `/recommendation/alternatives` für jede Alternative einen **statischen** Text ("Sehr nah an deinem Profil — du darfst ihn unbesorgt probieren"). Funktional, aber nicht datengetrieben.
+- [ ] Soll: Begründung dynamisch ableiten aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee-Profil — z.B. "Etwas weniger Säure, dafür mehr Körper als dein Match. Falls du gelegentlich kräftigere Brews magst, perfekt."
+- [ ] Logik dafür gibt's bereits als Helper `reasoningForMatch()` in `lib/db/recommendations.ts` — aktuell deaktiviert weil das alte Output ("Volltreffer") gegen die Nachbar-Type-Annahme verglich, was UX-mässig irreführend war.
+- [ ] Korrekte Implementation: Diff zwischen **User-Geschmackstyp-Profil** und **Coffee-Profil** rechnen (nicht Nachbar-Type vs Coffee), Top-1 oder Top-2 Achsen-Differenzen positiv formulieren, mit "darf bedenkenlos probieren" als Closing.
+- [ ] Optional: pro Coffee 1–2 statt nur 1 Begründungssatz — falls mehrere Achsen relevant differenzieren.

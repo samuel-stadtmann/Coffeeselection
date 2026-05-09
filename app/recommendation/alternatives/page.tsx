@@ -6,7 +6,6 @@ import { tasteTypeById } from "@/lib/taste-types-map";
 import {
   getCoffeesForTasteType,
   getNeighborTasteTypes,
-  reasoningForMatch,
 } from "@/lib/db/recommendations";
 
 const LOGO = "/logo.png";
@@ -48,9 +47,6 @@ export default async function AlternativesPage() {
   const seen = new Set<string>(topMatch ? [topMatch.id] : []);
   const alternatives: Array<{
     coffee: Awaited<ReturnType<typeof getCoffeesForTasteType>>[number];
-    typeName: string;
-    headline: string;
-    detail: string;
   }> = [];
   for (const neighbor of neighbors) {
     const coffees = await getCoffeesForTasteType(supabase, neighbor.id, {
@@ -60,8 +56,7 @@ export default async function AlternativesPage() {
     const c = coffees[0];
     if (!c) continue;
     seen.add(c.id);
-    const r = reasoningForMatch(neighbor, c);
-    alternatives.push({ coffee: c, typeName: neighbor.name_de, headline: r.headline, detail: r.detail });
+    alternatives.push({ coffee: c });
   }
 
   return (
@@ -122,7 +117,7 @@ export default async function AlternativesPage() {
             </div>
           ) : (
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {alternatives.map(({ coffee, typeName, headline, detail }) => (
+              {alternatives.map(({ coffee }) => (
                 <article key={coffee.id} className="bg-white shadow-sm hover:shadow-xl transition-all flex flex-col">
                   <Link href={`/coffee/${coffee.slug}`} className="block">
                     <div className="aspect-[4/3] overflow-hidden bg-surface-container-low">
@@ -142,22 +137,21 @@ export default async function AlternativesPage() {
                       <p className="text-xs text-on-surface-variant">{coffee.roaster?.name ?? ""}</p>
                     </div>
 
-                    {/* Begründung */}
+                    {/* Begründung — Static for now, später dynamisch (siehe GO-LIVE.md) */}
                     <div className="bg-tertiary/5 border-l-4 border-tertiary p-5 mb-6">
                       <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">
                         Warum für dich
                       </span>
                       <p className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-2">
-                        {headline}
+                        Sehr nah an deinem Profil
                       </p>
-                      <p className="text-sm text-on-surface-variant leading-relaxed">{detail}</p>
+                      <p className="text-sm text-on-surface-variant leading-relaxed">
+                        Dieser Kaffee liegt nur knapp neben deinem Geschmackstyp — du darfst ihn unbesorgt probieren.
+                      </p>
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-surface-container">
                       <span className="font-headline font-bold text-primary text-xl">CHF {coffee.price_chf.toFixed(2)}</span>
-                      <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
-                        Typ: {typeName}
-                      </span>
                     </div>
                   </div>
 
