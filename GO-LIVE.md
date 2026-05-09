@@ -27,6 +27,49 @@ Aktuell gibt es Redundanzen und unnötige Schritte im Checkout. Vor Go-Live aufr
 - [ ] **Confirmation-Email** nach erfolgreichem Checkout (via Supabase-Trigger oder Edge-Function).
 - [ ] **Error-States im Checkout** sauber behandeln (Karten-Decline, Versand-Fehler, etc.).
 
+## Röster-Dashboard (Pre-Launch)
+
+Aktuell gibt's keine UI für Röster, um ihre Daten zu pflegen. Vor Go-Live:
+
+- [ ] **Eigene Roaster-Login-Domäne** unter `/roaster/...` aufbauen — getrennt vom Kunden-Login (anderer Auth-Flow oder zumindest anderer Bereich)
+- [ ] **Coffee-CRUD-Page**: Coffees anlegen/editieren mit allen Feldern (name, slug, profile-Achsen, aromen, preis, stock, status). Direct-Edit auf `coffees`-Tabelle via RLS-Policy `auth.uid() == roaster.owner_user_id`.
+- [ ] **Bestand-Management**: stock_kg / stock_status, automatisch ausverkauft setzen wenn 0.
+- [ ] **Roaster-Profil-Pflege**: Eigene `roasters`-Zeile editieren — Beschreibung, Bilder, Story, Adresse, Website, Instagram.
+- [ ] **Order-Notifications**: Wenn Kunde einen Coffee dieses Rösters bestellt, kommt Email/Webhook an Röster.
+- [ ] **Rating-View**: Röster sieht (anonymisiert) wie seine Coffees bewertet werden — als Feedback für eigene Profil-Werte.
+- [ ] **RLS**: Alle Mutationen scoped auf eigene `roaster_id` — kein Röster sieht/ändert Daten anderer.
+
+## Datenpflege Coffees + Röster (Pre-Launch)
+
+Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheiden bevor Go-Live:
+
+- [ ] **Variante A: Self-Service über Roaster-Dashboard** (siehe oben) — jeder Röster pflegt eigene Coffees selbst. Skaliert, braucht funktionierendes Dashboard.
+- [ ] **Variante B: CSV-Import durch Admin** — Röster schickt CSV/Excel mit Coffees, Admin importiert via Supabase oder eigenes Skript. Schnell für Launch, nicht skalierbar.
+- [ ] **Variante C: Onboarding-Form** — neue Röster füllen ein Online-Formular aus, Admin reviewed + freigibt. Hybrid aus A und B.
+- [ ] **Pflicht-Felder pro Coffee**: Sensorik-Profile (acidity/body/sweetness/bitterness/complexity, jeweils 1–5) müssen gesetzt sein, sonst landet der Coffee nicht in Empfehlungen. Heute fehlt z.B. bei "Brasil Cerrado" das ganze Profil — solche Coffees sind unsichtbar im Match.
+- [ ] **Aroma-Familien** (`aroma_families` text[]) müssen aus dem Standard-Vokabular kommen (chocolate, fruity, floral, nutty, sugary etc.) — sonst funktionieren Aroma-basierte Empfehlungen (Post-Launch-Verfeinerung) nicht.
+- [ ] **Flavor-Embedding** (pgvector) wird via OpenAI aus `flavor_description` + `tasting_summary` generiert. Edge Function bei Insert/Update auf `coffees` triggern, damit das Profil immer aktuell ist.
+
+## Automatisierte Bewertungs-Email (Pre-Launch)
+
+Nach jeder Bestellung soll ein paar Tage später automatisch eine Email an den Kunden gehen mit Bitte um Bewertung — im Coffee-Selection-Design.
+
+- [ ] **Trigger**: 5–7 Tage nach `orders.delivered_at` (oder `created_at` bis Tracking aktiv ist) → Email-Job wird fällig.
+- [ ] **Design**: Email-Template im Coffee-Selection-Stil (Quiet Luxury Palette, Montserrat/Merriweather Fonts, primary `#4D2C19` / tertiary `#D4A017`). Konsistent mit Site, keine Boilerplate-Mails.
+- [ ] **Inhalt**:
+  - Personalisierte Anrede ("Hi {first_name}")
+  - Foto + Name des bestellten Coffees + Röster
+  - **1-Klick-Sterne-Bewertung in der Email selbst** — jeder Stern ist ein Deep-Link auf `/account/rate/{coffee_slug}?stars=N`, vorausgefüllt für sofort Submit
+  - Optional: Link zur vollständigen Bewertung mit Aromen-Tags + Comment
+  - Footer: Unsubscribe + AGB
+- [ ] **Technik**:
+  - Job-Queue: `pg_cron` + Edge Function (stündlich) — pickt fällige `orders` auf
+  - SMTP-Provider: Resend, Postmark oder SendGrid (siehe SMTP-Item bei Supabase oben)
+  - Tracking: `email_events`-Tabelle (existiert bereits) → sent / opened / clicked / bounced
+  - Rate-Limit: max. 1 Bewertungs-Email pro Coffee pro Kunde, max. 1 Reminder
+  - Idempotenz: Job-Status auf `email_events` prüfen damit Coffee nicht 2x angefragt wird
+- [ ] **Detail-Aufsetzung**: gemeinsam mit Sam — sobald die Datenbank-Anbindung (M5 + Roaster-Dashboard + Order-Persistierung) steht. Bis dahin nur tracken, nicht bauen.
+
 ## Domain & DNS
 
 - [ ] Custom Domain in Vercel verifizieren.
