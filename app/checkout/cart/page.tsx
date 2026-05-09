@@ -307,7 +307,7 @@ export default function CartPage() {
                 )}
                 {orderType === "once" && <div className="mb-6" />}
                 <button
-                  onClick={() => router.push("/checkout/shipping")}
+                  onClick={() => router.push("/checkout/payment")}
                   className="block w-full text-center bg-primary text-on-primary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
                 >
                   Weiter zur Adresse
@@ -332,7 +332,7 @@ export default function CartPage() {
 
       {/* Sticky Mobile CTA */}
       <button
-        onClick={() => router.push("/checkout/shipping")}
+        onClick={() => router.push("/checkout/payment")}
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
         Weiter · CHF {total}

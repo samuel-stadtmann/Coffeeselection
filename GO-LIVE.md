@@ -15,6 +15,18 @@ Diese Liste enthält alles, was vor dem Production-Launch von Development/Test- 
 - [ ] Test-Keys → Live-Keys (in Vercel Env-Vars).
 - [ ] Webhook-URLs auf Production-Domain umstellen.
 
+## Checkout / Payment-Flow optimieren (Pre-Launch)
+
+Aktuell gibt es Redundanzen und unnötige Schritte im Checkout. Vor Go-Live aufräumen:
+
+- [ ] **Lieferadresse nur einmal abfragen** — aktuell taucht sie sowohl in `/checkout/shipping` als auch in `/checkout/payment` auf. Heute via Redirect entschärft (`shipping → payment`), aber Payment-Page muss überarbeitet werden damit alles einheitlich an einer Stelle ist.
+- [ ] **Schritt-Anzahl reduzieren** — Cart → Payment statt Cart → Shipping → Review → Payment. Aktuell sind `/checkout/shipping` und `/checkout/review` per Redirect deaktiviert; entweder ganz löschen oder in einen Single-Page-Checkout konsolidieren.
+- [ ] **Saved Addresses für eingeloggte User** aus `customer_addresses`-Tabelle vorausfüllen.
+- [ ] **Order-Persistierung**: Bei Checkout-Submit echten Eintrag in `orders` + `order_items` schreiben (heute reines Mock).
+- [ ] **Stripe oder Shopify-Integration** finalisieren — heute Stub mit env-gated Init.
+- [ ] **Confirmation-Email** nach erfolgreichem Checkout (via Supabase-Trigger oder Edge-Function).
+- [ ] **Error-States im Checkout** sauber behandeln (Karten-Decline, Versand-Fehler, etc.).
+
 ## Domain & DNS
 
 - [ ] Custom Domain in Vercel verifizieren.
