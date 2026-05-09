@@ -2,6 +2,9 @@
 
 Diese Liste enthält alles, was vor dem Production-Launch von Development/Test- auf Production-Werte umgestellt werden muss.
 
+<!-- last touched: deploy-pipeline test 2026-05-09 -->
+
+
 ## Supabase
 
 - [ ] **Email-Templates**: Aktuell auf Development-Texten. In Supabase → Authentication → Email Templates die finalen Texte (de-CH) für Confirmation-, Magic-Link-, Password-Reset- und Email-Change-Mails einfügen.
