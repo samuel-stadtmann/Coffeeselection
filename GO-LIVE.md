@@ -2,8 +2,26 @@
 
 Diese Liste enthält alles, was vor dem Production-Launch von Development/Test- auf Production-Werte umgestellt werden muss.
 
-<!-- last touched: deploy-pipeline test 2026-05-09 -->
+## Deploy-Workflow (Stand 2026-05-09)
 
+- **Production Branch in Vercel**: `main` — Vercel baut diesen Branch automatisch.
+- **Development**: auf `claude/implement-loop-F7Mpw`. Mattia sieht hier die Commits.
+- **Deployen**: PR von `claude/implement-loop-F7Mpw` → `main`, mergen, Vercel baut `main`.
+- **Hintergrund**: Vercel-Webhook für `claude/implement-loop-F7Mpw` war zur Zeit der Migration gebrochen (Builds wurden silently gedroppt). Workaround = `main` als Deploy-Branch. Falls Vercel-Support den Bug fixt, kann Production-Branch jederzeit zurückgestellt werden.
+
+## Lern-Pipeline (M5)
+
+Läuft **Postgres-seitig** via `pg_cron` — unabhängig von Vercel:
+
+- **Job**: `lern-worker-process-ratings`, alle 15 Min, ruft `public.process_pending_ratings()` auf
+- **Funktion**: liest `coffee_ratings` mit `processed_at IS NULL`, aktualisiert `customer_aroma_preferences` per inkrementellem Mittelwert (`(sentiment * count + learning_rate) / (count + 1)`), zählt `customers.num_ratings_given`, setzt `reclassification_suggested_at` wenn 3+ "no" Bewertungen in 90 Tagen
+- **Lernrate**: konfigurierbar in `algorithm_config.learning_rate_base` (aktuell 0.10)
+- **Sanity-Check vor Go-Live**: `SELECT * FROM cron.job WHERE jobname = 'lern-worker-process-ratings';` — `active = true`
+
+Pre-Launch-TODOs:
+
+- [ ] **Aroma-basierte Reklassifikation** (anderer Trigger als der existierende "no"-Counter): über Aroma-Sentiment-Score per Geschmackstyp. Nach OpenAI-Integration (M5b) elegant via Embedding-Centroids; bis dahin als zweiter pg_cron-Job mit stündlichem/täglichem Score-Vergleich falls gewünscht.
+- [ ] **M5b — Embedding-Drift**: braucht OpenAI-Integration. Customer-Taste-Embedding aus Aroma-Sentiments + bisherigen Bewertungen ableiten und gegen Coffee-Embeddings matchen.
 
 ## Supabase
 
