@@ -34,18 +34,21 @@ const subscription = {
   deliveriesReceived: 5,
 };
 
-const recentOrders = [
-  { id: "CS-2024-000142", date: "01.05.2025", coffee: "Ethiopia Yirgacheffe", roaster: "Miro Coffee", price: "CHF 45.20", status: "Geliefert", rated: false },
-  { id: "CS-2024-000131", date: "17.04.2025", coffee: "Kenya AA Nyeri", roaster: "Vertical Coffee", price: "CHF 45.20", status: "Geliefert", rated: true },
-  { id: "CS-2024-000118", date: "03.04.2025", coffee: "Rwanda Anaerobic", roaster: "La Cabra", price: "CHF 45.20", status: "Geliefert", rated: true },
-  { id: "CS-2024-000109", date: "20.03.2025", coffee: "Ethiopia Gedeb Washed", roaster: "Miro Coffee", price: "CHF 45.20", status: "Geliefert", rated: true },
-];
+type RateableCoffee = {
+  id: string;
+  slug: string;
+  name: string;
+  roasterName: string;
+  matchScore: number;
+  rated: boolean;
+};
 
 export default function AccountDashboardPage() {
   const [paused, setPaused] = useState(false);
   const [customer, setCustomer] = useState<CustomerRow | null>(null);
   const [profile, setProfile] = useState<TasteProfile | null>(null);
   const [recommendation, setRecommendation] = useState<RecommendedCoffee | null>(null);
+  const [rateables, setRateables] = useState<RateableCoffee[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,22 +61,36 @@ export default function AccountDashboardPage() {
       }
       const { data } = await supabase
         .from("customers")
-        .select("first_name, taste_type_id, created_at")
+        .select("id, first_name, taste_type_id, created_at")
         .eq("auth_user_id", auth.user.id)
         .single();
       setCustomer(data);
-      // Wenn taste_type_id gesetzt: Archetyp-Profil + Top-Coffee-Match aus DB laden
-      if (data?.taste_type_id != null) {
-        const [{ data: tt }, recs] = await Promise.all([
+
+      // Wenn taste_type_id gesetzt: Archetyp-Profil + Top-Match + Rateables laden
+      if (data?.taste_type_id != null && data?.id) {
+        const [{ data: tt }, topCoffees, { data: ratings }] = await Promise.all([
           supabase
             .from("taste_types")
             .select("acidity, body, sweetness, bitterness, complexity")
             .eq("id", data.taste_type_id)
             .maybeSingle(),
-          getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 1 }),
+          getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 6 }),
+          supabase.from("coffee_ratings").select("coffee_id").eq("customer_id", data.id),
         ]);
         setProfile(tt as TasteProfile | null);
-        setRecommendation(recs[0] ?? null);
+        setRecommendation(topCoffees[0] ?? null);
+
+        const ratedIds = new Set((ratings ?? []).map((r) => r.coffee_id as string));
+        setRateables(
+          topCoffees.slice(0, 4).map((c) => ({
+            id: c.id,
+            slug: c.slug,
+            name: c.name,
+            roasterName: c.roaster?.name ?? "",
+            matchScore: c.matchScore,
+            rated: ratedIds.has(c.id),
+          }))
+        );
       }
       setLoading(false);
     })();
@@ -266,23 +283,23 @@ export default function AccountDashboardPage() {
                 </div>
               </div>
 
-              {/* Rate Coffee CTA — only shown if any unrated orders */}
+              {/* Rate Coffee CTA — erste unbewertete Top-Empfehlung */}
               {(() => {
-                const next = recentOrders.find((o) => !o.rated);
+                const next = rateables.find((r) => !r.rated);
                 if (!next) return null;
                 return (
                   <div className="bg-tertiary/10 border-l-4 border-tertiary p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
                     <span className="material-symbols-outlined text-tertiary text-4xl">star</span>
                     <div className="flex-1">
                       <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-1">
-                        Wie war dein letzter Kaffee?
+                        Bereits einen Kaffee probiert?
                       </h3>
                       <p className="text-sm text-on-surface-variant">
-                        Bewerte &ldquo;{next.coffee}&rdquo; — dein Profil lernt mit jedem Feedback.
+                        Bewerte &ldquo;{next.name}&rdquo; — dein Profil lernt mit jedem Feedback.
                       </p>
                     </div>
                     <Link
-                      href={`/account/rate/${next.id}`}
+                      href={`/account/rate/${next.slug}`}
                       className="bg-primary text-on-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all whitespace-nowrap"
                     >
                       Jetzt bewerten
@@ -291,41 +308,46 @@ export default function AccountDashboardPage() {
                 );
               })()}
 
-              {/* Recent Orders */}
-              <div className="bg-white p-6 md:p-8 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl">
-                    Letzte Bestellungen
-                  </h3>
-                  <Link href="/account/order-history" className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors">
-                    Alle ansehen →
-                  </Link>
-                </div>
-                <div className="divide-y divide-surface-container">
-                  {recentOrders.map((o) => (
-                    <div key={o.id} className="py-4 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">{o.date}</p>
-                        <h4 className="font-headline font-bold text-primary uppercase tracking-tight truncate">{o.coffee}</h4>
-                        <p className="text-xs text-on-surface-variant">{o.roaster} · {o.id}</p>
-                      </div>
-                      <span className="font-headline font-bold text-primary text-sm">{o.price}</span>
-                      {o.rated ? (
-                        <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant px-3 py-1 bg-surface-container">
-                          ★ Bewertet
+              {/* Bewertbare Coffees — Top-Match Coffees aus DB die noch nicht bewertet sind */}
+              {rateables.length > 0 && (
+                <div className="bg-white p-6 md:p-8 shadow-sm">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl">
+                      Coffees zum Bewerten
+                    </h3>
+                    <Link href="/account/recommendation-history" className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors">
+                      Match-Historie →
+                    </Link>
+                  </div>
+                  <div className="divide-y divide-surface-container">
+                    {rateables.map((r) => (
+                      <div key={r.id} className="py-4 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/coffee/${r.slug}`} className="font-headline font-bold text-primary uppercase tracking-tight truncate hover:text-tertiary transition-colors block">
+                            {r.name}
+                          </Link>
+                          <p className="text-xs text-on-surface-variant">{r.roasterName}</p>
+                        </div>
+                        <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold whitespace-nowrap">
+                          {Math.round(r.matchScore * 100)}% Match
                         </span>
-                      ) : (
-                        <Link
-                          href={`/account/rate/${o.id}`}
-                          className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors px-3 py-1 border border-tertiary"
-                        >
-                          Bewerten
-                        </Link>
-                      )}
-                    </div>
-                  ))}
+                        {r.rated ? (
+                          <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant px-3 py-1 bg-surface-container">
+                            ★ Bewertet
+                          </span>
+                        ) : (
+                          <Link
+                            href={`/account/rate/${r.slug}`}
+                            className="font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors px-3 py-1 border border-tertiary"
+                          >
+                            Bewerten
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Recommendation + Referral */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
