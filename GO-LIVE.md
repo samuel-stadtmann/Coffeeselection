@@ -83,3 +83,17 @@ Aktuell sind alle "Empfehlungen" Mock-Daten oder Platzhalter. Phase A löst das 
 - [ ] `lib/coffees.ts` (Mock-Coffees aus `taste-types.ts`-Arrays) → entfernen sobald A.2 + A.3 durch
 - [ ] `lib/roasters.ts` → entfernen (DB ist jetzt Source-of-Truth, lib nur noch von alten Pages referenziert)
 - [ ] `lib/taste-types.ts` reduzieren auf statische SEO-Texte (Name, Tagline, Hero-Desc) — alle Coffee/Roaster-Listen daraus entfernen
+
+## Post-Launch — Empfehlungs-Algorithmus verfeinern
+
+Aktuell nutzt der Match-Score eine reine Manhattan-Distanz auf 5 Sensorik-Achsen (1–5 SCA-Skala) zwischen Geschmackstyp-Profil und Coffee-Profil. Das ist transparent und nachvollziehbar, aber verfeinerungsfähig.
+
+**Schrittweise Verbesserung nach Launch — sortiert nach Impact / Aufwand:**
+
+- [ ] **Aroma-Familien-Match einbauen** (einfach, sofort spürbar): Coffee bekommt Bonus-Punkte pro übereinstimmender Aroma-Familie zwischen `coffees.aroma_families` und `taste_types.aroma_families`. z.B. +5% pro Treffer.
+- [ ] **Roast-Level als 6. Achse einbauen** (trivial): `coffees.roast_level` ↔ `taste_types.roast_level` zur Manhattan-Distanz dazuzählen.
+- [ ] **Achsen-Gewichtung** (mittel): Säure & Körper stärker gewichten als Komplexität, weil sie wahrnehmungsnäher sind. Gewichte konfigurierbar in `algorithm_config`-Tabelle hinterlegen.
+- [ ] **pgvector-Embedding-Match** (mittel, grosser Sprung): Cosine-Similarity zwischen `customers.taste_embedding` und `coffees.flavor_embedding`. Setzt voraus dass User-Embeddings generiert werden via OpenAI (heute null) — Phase A.5 Voraussetzung.
+- [ ] **Hybrid-Score** (komplex, finaler Schliff): Kombination aus Embedding-Cosine + Sensorik-Distanz + Aroma-Overlap + Tag-Sentiment, gewichtet nach Daten-Reife des Users (mehr Ratings → mehr Embedding-Gewicht). Folgt Playbook Kap. 5 ("Pre-Score + MMR für Diversität").
+
+**Wichtig:** Solange wir auf der reinen Sensorik-Distanz bleiben, ist der Score sehr nachvollziehbar und manuell auditierbar. Der Wechsel zu Embeddings macht's mächtiger, aber weniger erklärbar — Trade-off bewusst entscheiden.
