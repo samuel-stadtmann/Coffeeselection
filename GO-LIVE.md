@@ -9,21 +9,19 @@ Diese Liste enthält alles, was vor dem Production-Launch von Development/Test- 
 - **Deployen**: PR von `claude/implement-loop-F7Mpw` → `main`, mergen, Vercel baut `main`.
 - **Hintergrund**: Vercel-Webhook für `claude/implement-loop-F7Mpw` war zur Zeit der Migration gebrochen (Builds wurden silently gedroppt). Workaround = `main` als Deploy-Branch. Falls Vercel-Support den Bug fixt, kann Production-Branch jederzeit zurückgestellt werden.
 
-## Vercel Cron Jobs (Pre-Launch)
+## Lern-Pipeline (M5)
 
-Aktuell in `vercel.json` **deaktiviert**, weil das Projekt im Hobby-Plan ist und Hobby keine sub-täglichen Crons erlaubt. Vor Go-Live:
+Läuft **Postgres-seitig** via `pg_cron` — unabhängig von Vercel:
 
-- [ ] **Vercel auf Pro-Plan upgraden** (oder Projekt in einen Pro-Account/Team transferieren).
-- [ ] In `vercel.json` den `crons`-Block wieder einfügen:
-  ```json
-  "crons": [
-    { "path": "/api/cron/process-ratings", "schedule": "*/15 * * * *" },
-    { "path": "/api/cron/check-reclassification", "schedule": "0 4 * * *" }
-  ]
-  ```
-- [ ] In Vercel → Settings → Cron Jobs verifizieren dass beide Jobs aktiv sind.
-- [ ] Manueller Run-Test pro Cron-Job (Cron Jobs Tab → Run).
-- [ ] Bis dahin manuell triggerbar: `curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/process-ratings`
+- **Job**: `lern-worker-process-ratings`, alle 15 Min, ruft `public.process_pending_ratings()` auf
+- **Funktion**: liest `coffee_ratings` mit `processed_at IS NULL`, aktualisiert `customer_aroma_preferences` per inkrementellem Mittelwert (`(sentiment * count + learning_rate) / (count + 1)`), zählt `customers.num_ratings_given`, setzt `reclassification_suggested_at` wenn 3+ "no" Bewertungen in 90 Tagen
+- **Lernrate**: konfigurierbar in `algorithm_config.learning_rate_base` (aktuell 0.10)
+- **Sanity-Check vor Go-Live**: `SELECT * FROM cron.job WHERE jobname = 'lern-worker-process-ratings';` — `active = true`
+
+Pre-Launch-TODOs:
+
+- [ ] **Aroma-basierte Reklassifikation** (anderer Trigger als der existierende "no"-Counter): über Aroma-Sentiment-Score per Geschmackstyp. Nach OpenAI-Integration (M5b) elegant via Embedding-Centroids; bis dahin als zweiter pg_cron-Job mit stündlichem/täglichem Score-Vergleich falls gewünscht.
+- [ ] **M5b — Embedding-Drift**: braucht OpenAI-Integration. Customer-Taste-Embedding aus Aroma-Sentiments + bisherigen Bewertungen ableiten und gegen Coffee-Embeddings matchen.
 
 ## Supabase
 
