@@ -287,37 +287,52 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
                         3. Welche Aromen hast du wahrgenommen?
                       </legend>
                       <p className="text-sm text-on-surface-variant mb-6">
-                        Tippe einmal für <span className="text-tertiary font-bold">positiv</span> (mochtest du) — nochmal für <span className="text-error font-bold">negativ</span> (zu viel davon).
+                        Klick <span className="text-tertiary font-bold">+</span> wenn du das Aroma <span className="font-bold">mochtest</span>, oder <span className="text-error font-bold">−</span> wenn es <span className="font-bold">zu viel davon war</span>. Nochmal klicken hebt die Wahl auf.
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {AROMA_TAGS.map((tag) => {
                           const isPositive = positiveTags.includes(tag);
                           const isNegative = negativeTags.includes(tag);
                           return (
-                            <div key={tag} className="flex">
-                              <button
-                                type="button"
-                                onClick={() => togglePositive(tag)}
-                                className={`px-3 py-1.5 text-sm font-headline border transition-all ${
-                                  isPositive
-                                    ? "bg-tertiary text-white border-tertiary"
-                                    : "bg-white text-primary border-surface-container hover:border-tertiary"
-                                }`}
-                              >
-                                {tag}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => toggleNegative(tag)}
-                                className={`px-2 py-1.5 text-sm font-headline border-y border-r transition-all ${
-                                  isNegative
-                                    ? "bg-error text-white border-error"
-                                    : "bg-white text-on-surface-variant border-surface-container hover:border-error"
-                                }`}
-                                title="Zu viel davon"
-                              >
-                                −
-                              </button>
+                            <div
+                              key={tag}
+                              className={`flex items-center justify-between gap-2 px-3 py-2 border transition-all ${
+                                isPositive
+                                  ? "border-tertiary bg-tertiary/5"
+                                  : isNegative
+                                  ? "border-error bg-error/5"
+                                  : "border-surface-container bg-white"
+                              }`}
+                            >
+                              <span className="font-headline text-sm font-bold text-primary truncate">{tag}</span>
+                              <div className="flex gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => togglePositive(tag)}
+                                  aria-label={`${tag} mochte ich`}
+                                  title="Mochte ich"
+                                  className={`w-7 h-7 flex items-center justify-center font-bold text-sm border transition-all ${
+                                    isPositive
+                                      ? "bg-tertiary text-white border-tertiary"
+                                      : "bg-white text-on-surface-variant border-surface-container hover:border-tertiary hover:text-tertiary"
+                                  }`}
+                                >
+                                  +
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleNegative(tag)}
+                                  aria-label={`${tag} war zu viel`}
+                                  title="Zu viel davon"
+                                  className={`w-7 h-7 flex items-center justify-center font-bold text-sm border transition-all ${
+                                    isNegative
+                                      ? "bg-error text-white border-error"
+                                      : "bg-white text-on-surface-variant border-surface-container hover:border-error hover:text-error"
+                                  }`}
+                                >
+                                  −
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
