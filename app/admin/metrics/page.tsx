@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getAdminUser } from "@/lib/admin/auth";
+import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/admin/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 
 const LOGO = "/logo.png";
@@ -99,8 +100,13 @@ const HEALTH_LABEL: Record<"ok" | "warn" | "alert", string> = {
 };
 
 export default async function AdminMetricsPage() {
-  const user = await getAdminUser();
-  if (!user) redirect("/login?next=/admin/metrics");
+  // Auth-Wand: nicht-eingeloggt -> /login, eingeloggt aber kein Admin
+  // -> /account/dashboard (NICHT /login, sonst Redirect-Loop).
+  const authClient = await createClient();
+  const { data: authData } = await authClient.auth.getUser();
+  if (!authData.user) redirect("/login?next=/admin/metrics");
+  if (!isAdminEmail(authData.user.email)) redirect("/account/dashboard");
+  const user = authData.user;
 
   const sb = createServiceClient();
   const [summaryRes, ratingsRes, confidenceRes, reclassRes, topCoffeesRes] = await Promise.all([
