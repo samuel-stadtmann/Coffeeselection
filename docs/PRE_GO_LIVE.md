@@ -172,31 +172,29 @@ Verifikation: 16/16 Coffees rfc4122_compliant, 0 demo_uuids.
 
 ---
 
-## P9 — E2E-Test ergaenzen: HTTP-Layer + Hard-Filter Edge-Case
+## ~~P9 — HTTP-E2E + Hard-Filter Edge-Case~~ ✅ erledigt
 
-**Stand.** `scripts/test_e2e.ts` deckt den M5b/M5c-Pfad direkt via
-service_role + getCoffeesForTasteType ab (Embedding-Generation,
-Hybrid-Recommendation, Rating-Drift). Was fehlt:
+Playwright-Setup unter `e2e/`, gestartet via `npm run test:e2e`. Globaler
+Setup legt einen ephemeren Test-User via service_role an, loggt durchs
+echte `/login`-Form ein und persistiert Cookies in
+`playwright/.auth/user.json`. Teardown loescht alles.
 
-1. **HTTP-Round-Trip durch /api/quiz/submit, /api/recommendation/next,
-   /api/rating/submit.** Diese Routes sind Cookie-Auth-bound. Aktueller
-   Test umgeht sie. Vorschlag: Playwright-basierter Test der einen
-   Test-Browser-Kontext oeffnet, sich mit Test-Account einloggt, dann
-   die drei Endpoints aufruft und die DB-Effekte verifiziert.
+11 Tests gruen, 2 bewusst geskippt:
 
-2. **Scenario 2 — Edge-Case "kein passender Coffee".** Playbook 9.11
-   wollte einen Test mit sehr restriktivem Customer (z.B. mehrere
-   Allergene, alle Top-Coffees in Cooldown) und Pruefung der
-   Fallback-Cascade. Setzt das Hard-Filter-System aus 9.8 voraus
-   (= P1).
+- POST /api/quiz/submit — Validation 400 + 401 ohne Auth
+- POST /api/rating/submit — Upsert + Validation + Auth
+- GET /api/recommendation/next — Happy-Path + Auth
+- Hartfilter-Cascade Scenario 2 — `max_price_per_250g = 2` -> 404
+  `no_coffees_available`
 
-**Trigger.**
-- HTTP-E2E: bevor das Frontend grosse Refactorings am Quiz/Reco-Flow
-  macht — sonst merken wir Regressions erst im Browser.
-- Scenario 2: nachdem P1 erledigt ist (Ranking-Function aktiv).
+Beim Bauen aufgedeckt + gefixt:
 
-**Aufwand.**
-- HTTP-E2E: ~3-4 h (Playwright Setup + 3 Tests).
-- Scenario 2: ~1 h on top von P1.
+- `coffees.price_per_250g` war NULL fuer Demo-Daten ->
+  Migration `20260510230000` befuellt aus `price_chf * 250 / weight_g`.
+- **Production-Bug** in `lib/db/recommendations.ts`: bei leerer
+  RPC-Antwort fiel der Recommender auf den JS-Hybrid-Pfad zurueck
+  und ignorierte damit Allergene/Cooldowns/Praeferenzen. Customers
+  mit Restriktionen haetten ungeeignete Coffees empfohlen bekommen.
+  Fix unterscheidet RPC-Error (-> JS-Fallback) von RPC-leer (-> []).
 
 ---
