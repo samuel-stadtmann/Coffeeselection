@@ -58,36 +58,19 @@ Voraussetzung: ausreichend `maintenance_work_mem` — siehe P4.
 
 ---
 
-## P2 — `coffees.roast_level` Daten-Hygiene
+## ~~P2 — `coffees.roast_level` Daten-Hygiene~~ ✅ erledigt
 
-**Problem.** Beim Smoke-Test der Edge Function fiel auf, dass mindestens
-ein Coffee (`Sidamo Natural`) den Wert `"1"` in `roast_level` hat, statt
-des erwarteten Enum-Werts (`light` / `medium_light` / `medium` /
-`medium_dark` / `dark`). Der Embedding-Text enthielt deshalb
-`"Roestgrad: 1"` statt `"Roestgrad: light"`. Das verschlechtert die
-semantische Qualitaet der OpenAI-Embeddings.
+Spalte ist tatsaechlich `smallint(1-5)` — die urspruengliche Migration
+wollte `text` mit Enum-CHECK, das wurde aber im Dashboard auf smallint
+umgebaut. Statt Schema-Roundtrip macht jetzt die Edge Function
+`generate-coffee-embedding` das Mapping `1->light` / `2->medium_light` /
+`3->medium` / `4->medium_dark` / `5->dark` beim Aufbau des Embedding-
+Texts. Der DB-Wert bleibt smallint (Frontend-kompatibel), der Embedding-
+Text liest sich `"Roestgrad: medium"` statt `"Roestgrad: 3"`.
 
-**Fix.** Audit aller `coffees.roast_level`-Werte, Mapping `1`-`5` -> Enum,
-ggf. zusaetzlich CHECK-Constraint setzen falls die Migration es nicht
-schon tut. Danach **alle betroffenen Coffees neu einbetten** via
-`scripts/backfill-coffee-embeddings.ts`.
-
-```sql
--- Audit
-SELECT roast_level, count(*) FROM coffees GROUP BY roast_level;
-
--- Migration (falls Mapping nicht eindeutig: erst manuell verifizieren)
-UPDATE coffees SET roast_level = 'light'        WHERE roast_level = '1';
-UPDATE coffees SET roast_level = 'medium_light' WHERE roast_level = '2';
-UPDATE coffees SET roast_level = 'medium'       WHERE roast_level = '3';
-UPDATE coffees SET roast_level = 'medium_dark'  WHERE roast_level = '4';
-UPDATE coffees SET roast_level = 'dark'         WHERE roast_level = '5';
-```
-
-**Trigger.** Vor dem ersten echten Roaster-Onboarding — ab dem Punkt
-liefern wir mit den Embeddings echte Empfehlungen aus.
-
-**Aufwand.** ~30 min inkl. Re-Embedding.
+Alle 16 aktiven Coffees am 2026-05-10 mit dem neuen Mapping neu
+eingebettet. Falls neue Coffees per Webhook automatisch eingebettet
+werden, gilt das Mapping ab sofort auch fuer die.
 
 ---
 
