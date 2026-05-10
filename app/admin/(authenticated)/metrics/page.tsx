@@ -1,11 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
-import { isAdminEmail } from "@/lib/admin/auth";
 import { createServiceClient } from "@/lib/supabase/service";
-
-const LOGO = "/logo.png";
 
 export const metadata: Metadata = {
   title: "Admin · Algorithmus-Metriken — Coffee Selection",
@@ -231,14 +226,7 @@ const ACTION_ICON_BG: Record<"warn" | "alert", string> = {
 };
 
 export default async function AdminMetricsPage() {
-  // Auth-Wand: nicht-eingeloggt -> /login, eingeloggt aber kein Admin
-  // -> /account/dashboard (NICHT /login, sonst Redirect-Loop).
-  const authClient = await createClient();
-  const { data: authData } = await authClient.auth.getUser();
-  if (!authData.user) redirect("/login?next=/admin/metrics");
-  if (!isAdminEmail(authData.user.email)) redirect("/account/dashboard");
-  const user = authData.user;
-
+  // Auth + ReAuth-Wand laeuft im (authenticated)-Layout. Hier nur die Daten.
   const sb = createServiceClient();
   const [summaryRes, ratingsRes, confidenceRes, reclassRes, topCoffeesRes] = await Promise.all([
     sb.from("metrics_summary").select("*").maybeSingle(),
@@ -277,21 +265,8 @@ export default async function AdminMetricsPage() {
   });
 
   return (
-    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
-          </Link>
-          <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold">
-            Admin · {user.email}
-          </span>
-        </nav>
-      </header>
-
-      <main className="pt-36 md:pt-40 max-w-7xl mx-auto px-6 md:px-8">
-        <div className="mb-12">
+    <>
+      <div className="mb-12">
           <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
             Algorithmus · Monitoring
           </span>
@@ -491,12 +466,11 @@ export default async function AdminMetricsPage() {
           </table>
         </Section>
 
-        <p className="text-xs text-on-surface-variant mt-12 mb-4">
-          Quelle: <code className="bg-white px-2 py-0.5">public.metrics_*</code> Views (Migration
-          20260510260000). Refresh durch Page-Reload — keine Caching-Layer dazwischen.
-        </p>
-      </main>
-    </div>
+      <p className="text-xs text-on-surface-variant mt-12 mb-4">
+        Quelle: <code className="bg-white px-2 py-0.5">public.metrics_*</code> Views (Migration
+        20260510260000). Refresh durch Page-Reload — keine Caching-Layer dazwischen.
+      </p>
+    </>
   );
 }
 
