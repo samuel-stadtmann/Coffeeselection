@@ -31,17 +31,32 @@ function loadEnvLocal(): void {
 loadEnvLocal();
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !ANON_KEY) {
-  console.error("❌ NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY missing in .env.local");
+// Lesen der customers-Tabelle erfordert RLS-Bypass — service_role bevorzugen.
+// Fuer den Edge-Function-Call selbst genuegt der anon key.
+const DB_KEY = SERVICE_ROLE_KEY ?? ANON_KEY;
+
+if (!SUPABASE_URL || !DB_KEY) {
+  console.error(
+    "❌ NEXT_PUBLIC_SUPABASE_URL plus either SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY required in .env.local"
+  );
   process.exit(1);
+}
+if (!SERVICE_ROLE_KEY) {
+  console.warn(
+    "⚠️  SUPABASE_SERVICE_ROLE_KEY missing — using anon key, but RLS may hide rows from the customers table.\n"
+  );
 }
 
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/build-customer-embedding`;
+const FUNCTION_AUTH = ANON_KEY ?? SERVICE_ROLE_KEY!;
 
 async function main() {
-  const sb = createClient(SUPABASE_URL!, ANON_KEY!);
+  const sb = createClient(SUPABASE_URL!, DB_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   const { data: customers, error } = await sb
     .from("customers")
@@ -69,7 +84,7 @@ async function main() {
       const res = await fetch(FUNCTION_URL, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${ANON_KEY}`,
+          Authorization: `Bearer ${FUNCTION_AUTH}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ customer_id: c.id }),
