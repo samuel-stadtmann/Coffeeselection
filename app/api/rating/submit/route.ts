@@ -61,8 +61,9 @@ export async function POST(req: NextRequest) {
         coffee_id: parsed.coffee_id,
         order_id: parsed.order_id ?? null,
         rating: parsed.stars,
-        positive_tags: parsed.positive_tags ?? null,
-        negative_tags: parsed.negative_tags ?? null,
+        // Tag-Spalten haben NOT-NULL — leere Arrays statt null als Default.
+        positive_tags: parsed.positive_tags ?? [],
+        negative_tags: parsed.negative_tags ?? [],
         comment: parsed.comment ?? null,
         would_drink_again: parsed.would_drink_again ?? null,
         processed_at: null,           // Worker soll's neu verarbeiten
