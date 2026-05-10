@@ -19,15 +19,12 @@ import { getCoffeesForTasteType, reasoningForMatch } from "@/lib/db/recommendati
 //   Query-Param; wir uebernehmen ihn aus der Session damit nicht jeder beliebige
 //   Customer-IDs raten kann).
 
-// UUID-Regex permissiv — siehe rating/submit/route.ts + PRE_GO_LIVE.md P8.
-const UUID_LOOSE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 const QuerySchema = z.object({
   surface: z
     .enum(["home", "discovery_abo", "email", "quiz_result", "similar_to", "onboarding"])
     .optional()
     .default("discovery_abo"),
-  subscription_id: z.string().regex(UUID_LOOSE).optional(),
+  subscription_id: z.uuid().optional(),
   // Hartfilter (Playbook 5.2) verhalten sich unterschiedlich:
   // 'discovery' aktiviert zusaetzlich den Roester-Cooldown.
   subscription_type: z.enum(["fix", "discovery"]).optional().default("fix"),

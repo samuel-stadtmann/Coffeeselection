@@ -9,14 +9,9 @@ import { createClient } from "@/lib/supabase/server";
 //   asynchron via process_pending_ratings (pg_cron alle 15 Min).
 //   Output: { success: true, rating_id }
 
-// UUID-Regex permissiv (akzeptiert auch nicht-RFC4122-konforme Demo-UUIDs aus
-// dem Seed-Datensatz). RFC4122-strict pruefen waere strenger, aber wuerde
-// `c0000001-0000-0000-0000-000000000000` rauswerfen. Sieh PRE_GO_LIVE.md P8.
-const UUID_LOOSE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 const BodySchema = z.object({
-  coffee_id: z.string().regex(UUID_LOOSE, "invalid uuid"),
-  order_id: z.string().regex(UUID_LOOSE, "invalid uuid").optional().nullable(),
+  coffee_id: z.uuid(),
+  order_id: z.uuid().optional().nullable(),
   stars: z.number().int().min(1).max(5),
   positive_tags: z.array(z.string().min(1).max(64)).max(20).optional(),
   negative_tags: z.array(z.string().min(1).max(64)).max(20).optional(),

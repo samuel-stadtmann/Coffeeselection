@@ -175,31 +175,23 @@ angefasst.
 
 ---
 
-## P8 — Demo-UUIDs in Seed-Daten durch echte UUIDs ersetzen
+## ~~P8 — Demo-UUIDs durch echte UUIDs~~ ✅ erledigt
 
-**Problem.** Der Seed-Datensatz enthaelt "lesbare" UUIDs wie
-`c0000001-0000-0000-0000-000000000000` fuer Demo-Coffees. Diese sind
-**nicht RFC4122-konform** — das Versions-Byte (3. Gruppe, 1. Zeichen)
-muss 1-8 sein, hier ist es 0. Strenge UUID-Validierung in Zod, in
-Postgres-Funktionen mit `uuid_generate_v4()`-Annahmen oder in
-Drittsystemen kann das ablehnen.
+Migration `20260510190000_p8_real_uuids.sql` hat die 8 Demo-Coffees
+auf `gen_random_uuid()` umgezogen via Insert-Move-Delete in einer
+Transaction. Spaltenliste dynamisch aus `information_schema` (skipt
+generated columns wie `is_single_origin` automatisch). Alle 10
+Child-FKs umgebogen: `coffee_ratings`, `coffee_allergens`,
+`coffee_certifications`, `coffee_flavor_notes`,
+`coffee_brewing_methods`, `coffee_tasting_notes`,
+`recommendation_history`, `order_items`, `subscription_items`,
+`recommendation_snapshots.selected_coffee_id`.
 
-Wir haben in den API-Routes (`app/api/rating/submit`,
-`app/api/recommendation/next`) deshalb eine **lose UUID-Regex**
-verwendet (akzeptiert jede `8-4-4-4-12 hex`-Form). Production-Daten
-sollen aber RFC4122-konform sein.
+API-Validatoren in `/api/rating/submit` und `/api/recommendation/next`
+sind ab sofort `z.uuid()` (RFC4122-strict). Die loose-UUID-Konstante
+ist weg.
 
-**Fix.**
-1. Vor dem ersten echten Datenimport: alle Demo-Coffees per Migration
-   auf `gen_random_uuid()` umschreiben. FKs in `coffee_ratings`,
-   `recommendation_history`, `coffee_allergens` etc. mitziehen.
-2. API-Routes auf `z.uuid()` (RFC4122-strict) umstellen — die `UUID_LOOSE`-
-   Konstante entfernen.
-
-**Trigger.** Vor dem ersten echten Roaster-Onboarding (= P2 Trigger),
-oder spaetestens vor dem ersten Public-Launch.
-
-**Aufwand.** ~1 h (Migration mit FK-Updates ist der teure Teil).
+Verifikation: 16/16 Coffees rfc4122_compliant, 0 demo_uuids.
 
 ---
 
