@@ -2,8 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { tasteTypeById } from "@/lib/taste-types-map";
-import type { TasteType } from "@/lib/taste-types";
+import { getTasteTypeById, type TasteType } from "@/lib/db/taste-types";
 import { getLocalAnswers, clearLocalAnswers, type LocalQuizAnswer } from "@/lib/quiz-storage";
 import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
 
@@ -194,7 +193,7 @@ export default function MatchResultPage() {
         id = result.tasteTypeId;
       }
 
-      const type = tasteTypeById(id);
+      const type = await getTasteTypeById(supabase, id);
       if (!type) {
         setState("error");
         setErrMsg(`Unbekannter Geschmackstyp ${id}.`);

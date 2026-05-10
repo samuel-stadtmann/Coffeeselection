@@ -1,21 +1,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { tasteTypes, tasteTypeBySlug } from "@/lib/taste-types";
 import { tasteTypeIdBySlug } from "@/lib/taste-types-map";
 import { createStaticClient } from "@/lib/supabase/static";
 import { getCoffeesForTasteType } from "@/lib/db/recommendations";
+import { getTasteTypes, getTasteTypeBySlug } from "@/lib/db/taste-types";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
-export function generateStaticParams() {
-  return tasteTypes.map((t) => ({ slug: t.slug }));
+export async function generateStaticParams() {
+  const supabase = createStaticClient();
+  const types = await getTasteTypes(supabase);
+  return types.map((t) => ({ slug: t.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const t = tasteTypeBySlug(slug);
+  const supabase = createStaticClient();
+  const t = await getTasteTypeBySlug(supabase, slug);
   if (!t) return {};
   return {
     title: `${t.name} — ${t.seoTitle}`,
@@ -26,12 +29,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function TasteTypePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const type = tasteTypeBySlug(slug);
+  const supabase = createStaticClient();
+  const [type, tasteTypes] = await Promise.all([
+    getTasteTypeBySlug(supabase, slug),
+    getTasteTypes(supabase),
+  ]);
   if (!type) notFound();
 
   // DB-Coffees: Top-6 Matches für diesen Geschmackstyp
   const tasteTypeId = tasteTypeIdBySlug(slug);
-  const supabase = createStaticClient();
   const dbCoffees = tasteTypeId ? await getCoffeesForTasteType(supabase, tasteTypeId, { limit: 6 }) : [];
 
   // Röster werden aus den DB-Coffees abgeleitet — distinct

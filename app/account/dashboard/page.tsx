@@ -3,8 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AccountSidebar from "@/components/AccountSidebar";
 import { createClient } from "@/lib/supabase/client";
-import { tasteTypeById } from "@/lib/taste-types-map";
-import type { TasteType } from "@/lib/taste-types";
+import { getTasteTypeById, type TasteType } from "@/lib/db/taste-types";
 import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
 
 const LOGO = "/logo.png";
@@ -46,6 +45,7 @@ type RateableCoffee = {
 export default function AccountDashboardPage() {
   const [paused, setPaused] = useState(false);
   const [customer, setCustomer] = useState<CustomerRow | null>(null);
+  const [tasteType, setTasteType] = useState<TasteType | null>(null);
   const [profile, setProfile] = useState<TasteProfile | null>(null);
   const [recommendation, setRecommendation] = useState<RecommendedCoffee | null>(null);
   const [rateables, setRateables] = useState<RateableCoffee[]>([]);
@@ -66,9 +66,10 @@ export default function AccountDashboardPage() {
         .single();
       setCustomer(data);
 
-      // Wenn taste_type_id gesetzt: Archetyp-Profil + Top-Match + Rateables laden
+      // Wenn taste_type_id gesetzt: TasteType + Archetyp-Profil + Top-Match + Rateables laden
       if (data?.taste_type_id != null && data?.id) {
-        const [{ data: tt }, topCoffees, { data: ratings }] = await Promise.all([
+        const [tt, { data: profileRow }, topCoffees, { data: ratings }] = await Promise.all([
+          getTasteTypeById(supabase, data.taste_type_id),
           supabase
             .from("taste_types")
             .select("acidity, body, sweetness, bitterness, complexity")
@@ -77,7 +78,8 @@ export default function AccountDashboardPage() {
           getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 6, customerId: data.id }),
           supabase.from("coffee_ratings").select("coffee_id").eq("customer_id", data.id),
         ]);
-        setProfile(tt as TasteProfile | null);
+        setTasteType(tt);
+        setProfile(profileRow as TasteProfile | null);
         setRecommendation(topCoffees[0] ?? null);
 
         const ratedIds = new Set((ratings ?? []).map((r) => r.coffee_id as string));
@@ -103,7 +105,6 @@ export default function AccountDashboardPage() {
     return "Guten Abend";
   })();
 
-  const tasteType: TasteType | undefined = tasteTypeById(customer?.taste_type_id);
   const hasTasteType = tasteType != null;
   const firstName = customer?.first_name ?? "";
   const joinedDate = customer

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { tasteTypeById } from "@/lib/taste-types-map";
+import { getTasteTypeById } from "@/lib/db/taste-types";
 import {
   getCoffeesForTasteType,
   getNeighborTasteTypes,
@@ -31,7 +31,9 @@ export default async function AlternativesPage() {
     .single();
 
   const userTasteTypeId = customer?.taste_type_id;
-  const userTasteType = tasteTypeById(userTasteTypeId ?? null);
+  const userTasteType = userTasteTypeId
+    ? await getTasteTypeById(supabase, userTasteTypeId)
+    : null;
 
   // Top-Match des Users (zum Ausschluss aus Alternatives)
   const topMatch = userTasteTypeId

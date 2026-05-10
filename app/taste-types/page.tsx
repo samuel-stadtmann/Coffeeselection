@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { tasteTypes } from "@/lib/taste-types";
+import { createStaticClient } from "@/lib/supabase/static";
+import { getTasteTypes } from "@/lib/db/taste-types";
 
 const LOGO = "/logo.png";
 
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
   keywords: ["geschmackstypen kaffee", "kaffee personality", "coffee taste types", "specialty coffee schweiz"],
 };
 
-export default function TasteTypesOverviewPage() {
+export default async function TasteTypesOverviewPage() {
+  const supabase = createStaticClient();
+  const tasteTypes = await getTasteTypes(supabase);
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">

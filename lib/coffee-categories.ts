@@ -1,8 +1,7 @@
-import { tasteTypes } from "./taste-types";
 import { createClient } from "@/lib/supabase/server";
 import { getCoffeesForTasteType } from "@/lib/db/recommendations";
+import { getTasteTypeBySlug, type TasteType } from "@/lib/db/taste-types";
 import { tasteTypeIdBySlug } from "./taste-types-map";
-import { tasteTypeBySlug, type TasteType } from "./taste-types";
 
 export type CoffeeDetail = {
   slug: string;
@@ -222,13 +221,17 @@ export const categoryBySlug = (slug: string) => coffeeCategories.find((c) => c.s
 export async function getCoffeesForCategory(cat: CoffeeCategory): Promise<CoffeeDetail[]> {
   const supabase = await createClient();
 
-  const filterTypes = cat.filterTypes
-    .map((slug) => ({
-      slug,
-      id: tasteTypeIdBySlug(slug),
-      type: tasteTypeBySlug(slug),
-    }))
-    .filter((t): t is { slug: string; id: number; type: TasteType } => t.id != null && !!t.type);
+  // filterTypes-Mapping: jeden Slug mit ID + DB-TasteType anreichern.
+  // Async parallelisieren — 3-4 Slugs pro Kategorie.
+  const filterTypes = (
+    await Promise.all(
+      cat.filterTypes.map(async (slug) => {
+        const id = tasteTypeIdBySlug(slug);
+        const type = await getTasteTypeBySlug(supabase, slug);
+        return id != null && type ? { slug, id, type } : null;
+      })
+    )
+  ).filter((t): t is { slug: string; id: number; type: TasteType } => t != null);
 
   const seen = new Map<string, CoffeeDetail>();
   for (const ft of filterTypes) {
