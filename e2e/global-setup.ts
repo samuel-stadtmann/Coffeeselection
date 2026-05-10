@@ -112,7 +112,7 @@ export default async function globalSetup(_config: FullConfig) {
   await page.getByPlaceholder("••••••••").fill(TEST_PASSWORD);
   await Promise.all([
     page.waitForURL("**/account/dashboard", { timeout: 30_000 }),
-    page.getByRole("button", { name: /einloggen/i }).click(),
+    page.locator("form").getByRole("button", { name: /einloggen/i }).click(),
   ]);
   // Network-idle damit alle SSR-Cookie-Refreshs durch sind.
   await page.waitForLoadState("networkidle");
