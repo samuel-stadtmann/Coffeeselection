@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import AdminFooterLink from "@/components/AdminFooterLink";
 import { createClient } from "@/lib/supabase/client";
 
 type FeaturedRoaster = {
@@ -645,6 +646,7 @@ export default function HomePage() {
             <Link href="/privacy" className="hover:text-tertiary transition-colors">Privacy</Link>
             <Link href="#" className="hover:text-tertiary transition-colors">Terms</Link>
             <Link href="/contact" className="hover:text-tertiary transition-colors">Kontakt</Link>
+            <AdminFooterLink />
           </div>
         </div>
       </footer>

@@ -99,6 +99,137 @@ const HEALTH_LABEL: Record<"ok" | "warn" | "alert", string> = {
   alert: "Kritisch",
 };
 
+// Empfehlungen pro Metrik aus Playbook 10.1 "Was tun wenn kritisch".
+// Wird gerendert sobald die Metrik in warn oder alert ist — Admin sieht
+// sofort welche Schraube zu drehen ist statt selber nachschlagen zu muessen.
+type ActionItem = {
+  metric: string;
+  severity: "warn" | "alert";
+  observation: string;
+  recommendation: string;
+  playbookRef: string;
+};
+
+function buildActionItems(args: {
+  avgRating: number | null;
+  numRatings30d: number | null;
+  avgConfidence: number | null;
+  numQuiz30d: number | null;
+  reclassRate: number | null;
+  customersWithProfile: number | null;
+  embeddingCoverage: number | null;
+}): ActionItem[] {
+  const items: ActionItem[] = [];
+
+  // 1) Ø Bewertung
+  const r = args.avgRating;
+  if (r != null) {
+    if (r < 3.3) {
+      items.push({
+        metric: "Ø Bewertung",
+        severity: "alert",
+        observation: `Durchschnittsbewertung der letzten 90 Tage ist ${r.toFixed(2)} ★ — unter dem kritischen Grenzwert (3.3).`,
+        recommendation:
+          "Scoring-Gewichte je Geschmackstyp überprüfen (algorithm_config), Aroma-Familien-Mapping und 7-Dim-Distanzen in compute_scoring_score auditieren. Eventuell sind einzelne Coffees falsch klassifiziert (acidity/body/...).",
+        playbookRef: "Kap. 10.1 Metrik 1 + Kap. 5.3",
+      });
+    } else if (r < 3.8) {
+      items.push({
+        metric: "Ø Bewertung",
+        severity: "warn",
+        observation: `Durchschnittsbewertung ${r.toFixed(2)} ★ liegt unter dem Zielwert von 3.8 ★.`,
+        recommendation:
+          "Bewertung pro Geschmackstyp anschauen — wenn ein einzelner Typ stark unter dem Schnitt liegt, dort gezielt nachjustieren statt globale Gewichte zu ändern.",
+        playbookRef: "Kap. 10.1 Metrik 1",
+      });
+    }
+  }
+
+  // 2) Confidence
+  const cf = args.avgConfidence;
+  if (cf != null) {
+    if (cf < 0.5) {
+      items.push({
+        metric: "Ø Confidence",
+        severity: "alert",
+        observation: `Quiz-Confidence ${cf.toFixed(3)} ist unter dem kritischen Grenzwert (0.50).`,
+        recommendation:
+          "Quiz-Fragen + Scoring-Mapping in quiz_scoring auditieren. Wenige eindeutige Antworten = niedrige Confidence. Eventuell zusätzliche Tie-Breaker-Frage einfügen oder das Mapping schärfen.",
+        playbookRef: "Kap. 10.1 Metrik 2 + Kap. 4.6",
+      });
+    } else if (cf < 0.65) {
+      items.push({
+        metric: "Ø Confidence",
+        severity: "warn",
+        observation: `Quiz-Confidence ${cf.toFixed(3)} liegt unter dem Zielwert von 0.65.`,
+        recommendation:
+          "Verteilung der Confidence-Bänder unten anschauen. Wenn zu viele Customers im 'Mittel'-Band landen, hilft eine zusätzliche Frage die zwischen den ähnlichsten Typen unterscheidet.",
+        playbookRef: "Kap. 10.1 Metrik 2",
+      });
+    }
+  }
+
+  // 3) Reklassifikationsrate
+  const rc = args.reclassRate;
+  if (rc != null) {
+    if (rc > 15) {
+      items.push({
+        metric: "Reklassifikationsrate",
+        severity: "alert",
+        observation: `${rc.toFixed(1)} % der Customers haben einen Reklassifikations-Vorschlag in den letzten 30 Tagen — über dem kritischen Grenzwert (15 %).`,
+        recommendation:
+          "Quiz neu kalibrieren — die Klassifikation passt offenbar systematisch nicht zum gelernten Embedding. Embedding_seed_text-Felder der taste_types auditieren, evtl. Quiz-Score-Mapping verfeinern.",
+        playbookRef: "Kap. 10.1 Metrik 5 + Kap. 6.5",
+      });
+    } else if (rc > 5) {
+      items.push({
+        metric: "Reklassifikationsrate",
+        severity: "warn",
+        observation: `${rc.toFixed(1)} % Reklassifikations-Vorschläge in 30 Tagen — über dem Zielwert von 5 %.`,
+        recommendation:
+          "Pro Typ-Pair anschauen welcher Wechsel oft vorgeschlagen wird (z.B. Klassiker → Süße). Wenn ein Pair dominiert, sind die Embedding_seed_texts zu ähnlich oder das Quiz unterscheidet die zwei nicht klar.",
+        playbookRef: "Kap. 10.1 Metrik 5",
+      });
+    }
+  }
+
+  // 4) Embedding-Coverage (kein Playbook-Grenzwert, aber operationell wichtig)
+  if (args.embeddingCoverage != null && args.embeddingCoverage < 1) {
+    items.push({
+      metric: "Embedding-Coverage",
+      severity: args.embeddingCoverage < 0.9 ? "alert" : "warn",
+      observation: `${(args.embeddingCoverage * 100).toFixed(1)} % der aktiven Coffees haben ein flavor_embedding. Coffees ohne Embedding fallen aus dem Hybrid-Scoring auf reines Manhattan-Scoring zurück.`,
+      recommendation:
+        "scripts/backfill-coffee-embeddings.ts ausführen. Der Database Webhook 'coffees-embedding-trigger' sollte das eigentlich automatisch erledigen — falls er auffällig oft scheitert, Edge-Function-Logs in Supabase prüfen.",
+      playbookRef: "Operationell · M5b",
+    });
+  }
+
+  // 5) Sample-Size-Warnung — keine Action sondern Hinweis bei zu wenig Daten
+  if ((args.numRatings30d ?? 0) < 10 && (args.numQuiz30d ?? 0) < 10) {
+    items.push({
+      metric: "Datenvolumen",
+      severity: "warn",
+      observation: `Nur ${args.numRatings30d ?? 0} Bewertungen und ${args.numQuiz30d ?? 0} Quiz-Submissions in den letzten 30 Tagen.`,
+      recommendation:
+        "Die Metriken oben sind statistisch noch nicht aussagekräftig. Erst mit > 50 Bewertungen/Quiz pro Monat sind Trends belastbar — bis dahin Tactical Decisions zurückhalten.",
+      playbookRef: "Operationell",
+    });
+  }
+
+  return items;
+}
+
+const ACTION_BORDER: Record<"warn" | "alert", string> = {
+  warn: "border-amber-400 bg-amber-50",
+  alert: "border-rose-400 bg-rose-50",
+};
+
+const ACTION_ICON_BG: Record<"warn" | "alert", string> = {
+  warn: "bg-amber-200 text-amber-900",
+  alert: "bg-rose-200 text-rose-900",
+};
+
 export default async function AdminMetricsPage() {
   // Auth-Wand: nicht-eingeloggt -> /login, eingeloggt aber kein Admin
   // -> /account/dashboard (NICHT /login, sonst Redirect-Loop).
@@ -129,6 +260,21 @@ export default async function AdminMetricsPage() {
   const ratingHealthState = ratingHealth(summary?.avg_rating_overall_90d ?? null);
   const confidenceHealthState = confidenceHealth(summary?.avg_confidence_30d ?? null);
   const reclassHealthState = reclassHealth(reclassRatePct);
+
+  const embeddingCoverage =
+    summary?.active_coffees && summary.active_coffees > 0
+      ? (summary.coffees_with_embedding ?? 0) / summary.active_coffees
+      : null;
+
+  const actionItems = buildActionItems({
+    avgRating: summary?.avg_rating_overall_90d ?? null,
+    numRatings30d: summary?.num_ratings_30d ?? null,
+    avgConfidence: summary?.avg_confidence_30d ?? null,
+    numQuiz30d: summary?.num_quiz_30d ?? null,
+    reclassRate: reclassRatePct,
+    customersWithProfile: summary?.customers_with_profile ?? null,
+    embeddingCoverage,
+  });
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20">
@@ -184,6 +330,44 @@ export default async function AdminMetricsPage() {
             healthHint="Ziel < 5% · kritisch > 15%"
           />
         </section>
+
+        {/* Action Items — Empfehlungen aus Playbook 10.1 "Was tun wenn kritisch" */}
+        {actionItems.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-xl text-primary uppercase tracking-tight font-headline font-bold mb-4">
+              Handlungsempfehlungen
+            </h2>
+            <div className="space-y-3">
+              {actionItems.map((a, i) => (
+                <div
+                  key={i}
+                  className={`flex gap-4 p-5 border-l-4 ${ACTION_BORDER[a.severity]}`}
+                >
+                  <span
+                    className={`font-headline text-[10px] uppercase tracking-widest font-bold px-2 py-1 h-fit shrink-0 ${ACTION_ICON_BG[a.severity]}`}
+                  >
+                    {HEALTH_LABEL[a.severity]}
+                  </span>
+                  <div className="flex-1">
+                    <div className="font-headline font-bold text-primary uppercase tracking-tight text-sm mb-1">
+                      {a.metric}
+                    </div>
+                    <p className="text-sm text-on-surface-variant mb-2">{a.observation}</p>
+                    <p className="text-sm text-primary">
+                      <strong className="font-headline text-[10px] uppercase tracking-widest font-bold mr-2">
+                        Empfehlung:
+                      </strong>
+                      {a.recommendation}
+                    </p>
+                    <p className="text-[10px] text-on-surface-variant/60 mt-2 font-headline uppercase tracking-widest">
+                      {a.playbookRef}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Sortiment + Aktivitaet */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">

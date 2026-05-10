@@ -227,8 +227,20 @@ registriert, aktuell noch nicht live) umstellen.
    triggern → E-Mail muss bei eigenem Postfach ankommen, ohne
    „via resend.dev"-Footer.
 
+6. **Auth-Account-E-Mails umstellen.** Aktuell laufen Logins
+   (inkl. Admin-Account) auf `samuel.stadtmann@gmail.com`. Sobald
+   `coffeeselection.ch` live ist:
+   - Supabase Dashboard → Authentication → Users → eigene Account-
+     E-Mail auf `samuel@coffeeselection.ch` umstellen.
+   - Bestätigungs-Mail empfangen + clicken (Supabase verlangt
+     E-Mail-Verifikation beim Change).
+   - `.env.local` (lokal) und Vercel-Env (prod) `ADMIN_EMAILS`
+     auf die neue Adresse setzen.
+   - Mattia analog onboarden falls er Admin sein soll.
+
 **Trigger.** Vor dem ersten echten Reklassifikations-Mail-Versand
 (also vor dem ersten Kunden mit ≥ 5 Bewertungen die das Profil
 spürbar driftet) — und vor jedem geplanten Onboarding-Mail-Versand.
 
-**Aufwand.** ~30 min Resend + DNS, plus DNS-Propagation-Wartezeit.
+**Aufwand.** ~30 min Resend + DNS + Account-Switch, plus DNS-
+Propagation-Wartezeit.
