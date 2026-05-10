@@ -257,6 +257,12 @@ export async function getCoffeesForTasteType(
   // (Hartfilter mit Cascade, 7-Dim-Scoring, Vector-Sim, MMR-Diversitaet,
   //  explain_coffee_match). Wir holen anschliessend die Coffee-Felder
   //  fuer die UI nach.
+  //
+  // Wichtig: zwischen RPC-Fehler (-> JS-Fallback ist ok) und
+  // RPC-erfolgreich-aber-leer (= Hartfilter haben alles ausgeschlossen,
+  // muss als leer durchgereicht werden) sauber unterscheiden. Sonst
+  // sehen Customers mit Allergenen / engem Budget / Cooldowns trotzdem
+  // ungefilterte Coffees aus dem JS-Pfad — Production-Bug.
   // ─────────────────────────────────────────────────────────────────────
   if (opts.customerId) {
     const ranked = await rankCoffeesViaRpc(
@@ -265,35 +271,42 @@ export async function getCoffeesForTasteType(
       subscriptionType,
       limit + excludeIds.size + 5 // overfetch, falls excludeIds was wegnimmt
     );
-    if (ranked && ranked.length > 0) {
+    if (ranked !== null) {
+      // RPC erfolgreich (auch wenn []). Hartfilter haben gesprochen — leer ist leer.
+      if (ranked.length === 0) return [];
+
       const filtered = ranked.filter((r) => !excludeIds.has(r.coffee_id));
+      if (filtered.length === 0) return [];
+
       const ids = filtered.map((r) => r.coffee_id);
       const { data: coffees, error: cErr } = await supabase
         .from("coffees")
         .select(COFFEE_FIELDS)
         .in("id", ids);
       if (cErr || !coffees) {
-        console.error("[reco] coffees hydrate failed", cErr);
-      } else {
-        const byId = new Map<string, Record<string, unknown>>();
-        for (const c of coffees as Record<string, unknown>[]) byId.set(c.id as string, c);
-        const out: RecommendedCoffee[] = [];
-        for (const r of filtered) {
-          const c = byId.get(r.coffee_id);
-          if (!c) continue;
-          const finalScore = Math.max(0, Math.min(1, Number(r.final_score) / 100));
-          const scoringPct = Math.max(0, Math.min(1, Number(r.scoring_score) / 100));
-          const distance = (1 - scoringPct) * 20; // approximativer Wert fuer UI-Kompat
-          const row = normalizeRow(c, distance, Number(r.vector_similarity));
-          row.matchScore = finalScore;          // RPC-Wert hat Prioritaet
-          row.scoreMode = "hybrid";
-          out.push(row);
-          if (out.length >= limit) break;
-        }
-        return out;
+        console.error("[reco] coffees hydrate failed — keeping RPC ranks but no detail", cErr);
+        return [];
       }
+      const byId = new Map<string, Record<string, unknown>>();
+      for (const c of coffees as Record<string, unknown>[]) byId.set(c.id as string, c);
+      const out: RecommendedCoffee[] = [];
+      for (const r of filtered) {
+        const c = byId.get(r.coffee_id);
+        if (!c) continue;
+        const finalScore = Math.max(0, Math.min(1, Number(r.final_score) / 100));
+        const scoringPct = Math.max(0, Math.min(1, Number(r.scoring_score) / 100));
+        const distance = (1 - scoringPct) * 20; // approximativer Wert fuer UI-Kompat
+        const row = normalizeRow(c, distance, Number(r.vector_similarity));
+        row.matchScore = finalScore; // RPC-Wert hat Prioritaet
+        row.scoreMode = "hybrid";
+        out.push(row);
+        if (out.length >= limit) break;
+      }
+      return out;
     }
-    // Fall-through: RPC leer oder Hydrate-Fehler -> JS-Pfad als Sicherheitsnetz
+    // Nur wenn ranked === null (RPC-Error) faellt der Pfad auf den JS-Hybrid
+    // weiter unten zurueck. Der Customer-Filter ist dann leider weg, aber
+    // immerhin kommt eine Empfehlung statt einer leeren Seite.
   }
 
   // ─────────────────────────────────────────────────────────────────────
