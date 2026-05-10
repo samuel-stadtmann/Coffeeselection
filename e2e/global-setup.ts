@@ -96,36 +96,25 @@ export default async function globalSetup(_config: FullConfig) {
   }
 
   // 4. Browser-Session aufbauen + storageState persistieren.
+  //    Login durch's echte UI-Formular damit @supabase/ssr's createBrowserClient
+  //    laeuft und die Auth-Cookies in dem Format setzt, das unsere
+  //    Server-Components-Middleware erwartet.
   mkdirSync("playwright/.auth", { recursive: true });
 
   const browser = await chromium.launch();
-  const context = await browser.newContext();
+  const context = await browser.newContext({ baseURL: "http://localhost:3000" });
   const page = await context.newPage();
 
-  // /login wird von uns selbst gerendert. Statt durch's UI zu klicken,
-  // stoßen wir die Auth direkt im Browser via supabase-js an — das setzt
-  // die Cookies, die der server-side createClient liest.
   await page.goto("/login");
-  await page.evaluate(
-    async ({ url, anonKey, email, password }) => {
-      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.105.3");
-      const sb = createClient(url, anonKey);
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) throw new Error(`signIn failed: ${error.message}`);
-      // setSession in supabase-js setzt automatisch die Storage-Cookies.
-      await sb.auth.setSession({
-        access_token: data.session!.access_token,
-        refresh_token: data.session!.refresh_token,
-      });
-    },
-    { url, anonKey, email: TEST_EMAIL, password: TEST_PASSWORD }
-  );
-
-  // Damit @supabase/ssr-Cookies wirklich vom Server gelesen werden,
-  // einmal eine Server-Component-Page besuchen — das triggert den
-  // Cookie-Sync von localStorage in HTTP-Cookies durch unsere Middleware.
-  await page.goto("/account/dashboard");
-  // Kurz warten, damit Session-Cookies gesetzt sind.
+  // Default-Mode auf der /login-Seite ist 'login' wenn next != /match-result.
+  // Wir kommen ohne next-Param -> Login-Form ist sofort aktiv.
+  await page.getByPlaceholder("dein@email.ch").fill(TEST_EMAIL);
+  await page.getByPlaceholder("••••••••").fill(TEST_PASSWORD);
+  await Promise.all([
+    page.waitForURL("**/account/dashboard", { timeout: 30_000 }),
+    page.getByRole("button", { name: /einloggen/i }).click(),
+  ]);
+  // Network-idle damit alle SSR-Cookie-Refreshs durch sind.
   await page.waitForLoadState("networkidle");
 
   await context.storageState({ path: "playwright/.auth/user.json" });
