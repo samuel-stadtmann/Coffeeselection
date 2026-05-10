@@ -177,30 +177,45 @@ async function loadQueryEmbedding(
 }
 
 /**
- * Hartfilter aus Playbook 5.2 anwenden via Postgres-Function
- * `get_eligible_coffees(customer_id, subscription_type)`.
+ * Volle Playbook-Pipeline (9.8) via Postgres-Function rank_coffees_for_customer.
+ * Liefert Hard-Filter (5.2 mit Fallback-Cascade), 7-Dim-Scoring (5.3),
+ * Vector-Similarity (5.5), MMR-Diversitaet bei Discovery (5.7), plus
+ * explain_coffee_match-JSON pro Treffer.
  *
- * Rueckgabe-Semantik:
- *   - Set<uuid>      = Whitelist eligible Coffee-IDs. Recommender filtert
- *                       jeden Coffee aus der nicht drin ist.
- *   - null            = keine Filterung anwenden (anonyme Quiz-Empfehlung
- *                       ohne customerId, oder RPC-Fehler -> defensiv lassen).
+ * Returns null wenn die RPC fehlschlaegt oder leer ist — Caller faellt auf
+ * den JS-Hybrid-Pfad zurueck (z.B. fuer anonyme Quiz-Resultate).
  */
-async function loadEligibleCoffeeIds(
+type RankedCoffeeRow = {
+  rank: number;
+  coffee_id: string;
+  coffee_name: string;
+  roaster_id: string;
+  final_score: number | string;       // numeric kommt als string
+  scoring_score: number | string;
+  vector_similarity: number | string;
+  reasons: unknown;
+};
+
+async function rankCoffeesViaRpc(
   supabase: SupabaseClient,
-  customerId: string | undefined,
-  subscriptionType: "fix" | "discovery"
-): Promise<Set<string> | null> {
-  if (!customerId) return null;
-  const { data, error } = await supabase.rpc("get_eligible_coffees", {
+  customerId: string,
+  subscriptionType: "fix" | "discovery",
+  limit: number
+): Promise<RankedCoffeeRow[] | null> {
+  const { data, error } = await supabase.rpc("rank_coffees_for_customer", {
     p_customer_id: customerId,
     p_subscription_type: subscriptionType,
+    p_limit: limit,
+    p_save_snapshot: false,
+    p_subscription_id: null,
+    p_delivery_slot: null,
+    p_algorithm_version: "v1.0",
   });
   if (error) {
-    console.error("[reco] get_eligible_coffees RPC failed", error);
+    console.error("[reco] rank_coffees_for_customer RPC failed", error);
     return null;
   }
-  return new Set(((data ?? []) as { coffee_id: string }[]).map((r) => r.coffee_id));
+  return (data ?? []) as RankedCoffeeRow[];
 }
 
 /**
@@ -237,25 +252,68 @@ export async function getCoffeesForTasteType(
   const excludeIds = new Set(opts.excludeIds ?? []);
   const subscriptionType = opts.subscriptionType ?? "fix";
 
-  const [
-    { data: target, error: tErr },
-    queryEmbedding,
-    eligibleIds,
-    { data: coffees, error: cErr },
-  ] = await Promise.all([
-    supabase
-      .from("taste_types")
-      .select("id, name_de, acidity, body, sweetness, bitterness, complexity")
-      .eq("id", tasteTypeId)
-      .maybeSingle(),
-    loadQueryEmbedding(supabase, tasteTypeId, opts.customerId),
-    loadEligibleCoffeeIds(supabase, opts.customerId, subscriptionType),
-    supabase
-      .from("coffees")
-      .select(COFFEE_FIELDS)
-      .eq("status", "active")
-      .is("deleted_at", null),
-  ]);
+  // ─────────────────────────────────────────────────────────────────────
+  // Pfad A: eingeloggter Customer -> volle Playbook-Pipeline via RPC
+  // (Hartfilter mit Cascade, 7-Dim-Scoring, Vector-Sim, MMR-Diversitaet,
+  //  explain_coffee_match). Wir holen anschliessend die Coffee-Felder
+  //  fuer die UI nach.
+  // ─────────────────────────────────────────────────────────────────────
+  if (opts.customerId) {
+    const ranked = await rankCoffeesViaRpc(
+      supabase,
+      opts.customerId,
+      subscriptionType,
+      limit + excludeIds.size + 5 // overfetch, falls excludeIds was wegnimmt
+    );
+    if (ranked && ranked.length > 0) {
+      const filtered = ranked.filter((r) => !excludeIds.has(r.coffee_id));
+      const ids = filtered.map((r) => r.coffee_id);
+      const { data: coffees, error: cErr } = await supabase
+        .from("coffees")
+        .select(COFFEE_FIELDS)
+        .in("id", ids);
+      if (cErr || !coffees) {
+        console.error("[reco] coffees hydrate failed", cErr);
+      } else {
+        const byId = new Map<string, Record<string, unknown>>();
+        for (const c of coffees as Record<string, unknown>[]) byId.set(c.id as string, c);
+        const out: RecommendedCoffee[] = [];
+        for (const r of filtered) {
+          const c = byId.get(r.coffee_id);
+          if (!c) continue;
+          const finalScore = Math.max(0, Math.min(1, Number(r.final_score) / 100));
+          const scoringPct = Math.max(0, Math.min(1, Number(r.scoring_score) / 100));
+          const distance = (1 - scoringPct) * 20; // approximativer Wert fuer UI-Kompat
+          const row = normalizeRow(c, distance, Number(r.vector_similarity));
+          row.matchScore = finalScore;          // RPC-Wert hat Prioritaet
+          row.scoreMode = "hybrid";
+          out.push(row);
+          if (out.length >= limit) break;
+        }
+        return out;
+      }
+    }
+    // Fall-through: RPC leer oder Hydrate-Fehler -> JS-Pfad als Sicherheitsnetz
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Pfad B: anonyme Quiz-Aufrufer (kein customerId) ODER RPC-Fallback.
+  // JS-seitiges Hybrid-Scoring mit Type-Centroid als Embedding-Quelle.
+  // ─────────────────────────────────────────────────────────────────────
+  const [{ data: target, error: tErr }, queryEmbedding, { data: coffees, error: cErr }] =
+    await Promise.all([
+      supabase
+        .from("taste_types")
+        .select("id, name_de, acidity, body, sweetness, bitterness, complexity")
+        .eq("id", tasteTypeId)
+        .maybeSingle(),
+      loadQueryEmbedding(supabase, tasteTypeId, opts.customerId),
+      supabase
+        .from("coffees")
+        .select(COFFEE_FIELDS)
+        .eq("status", "active")
+        .is("deleted_at", null),
+    ]);
 
   if (tErr || !target) {
     console.error("[reco] taste_types fetch failed", tErr);
@@ -269,8 +327,6 @@ export async function getCoffeesForTasteType(
   const ranked = coffees
     .filter((c) => {
       if (excludeIds.has(c.id as string)) return false;
-      // eligibleIds === null bedeutet: Hartfilter nicht anwendbar (anonym oder RPC-Fehler).
-      if (eligibleIds !== null && !eligibleIds.has(c.id as string)) return false;
       return (
         c.acidity != null &&
         c.body != null &&
@@ -288,7 +344,7 @@ export async function getCoffeesForTasteType(
       }
       return normalizeRow(c, dist, vectorSim);
     })
-    .sort((a, b) => b.matchScore - a.matchScore) // hoeher = besser
+    .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, limit);
 
   return ranked;

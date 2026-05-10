@@ -6,70 +6,55 @@ geschaetzter Aufwand.
 
 ---
 
-## P1 — Recommender auf pgvector RPC umstellen
+## ~~P1 — Recommender auf pgvector RPC umstellen~~ ✅ erledigt
 
-**Problem.** Aktuell holt `getCoffeesForTasteType` (in `lib/db/recommendations.ts`)
-*alle* aktiven Coffees inklusive ihrer 1536-dimensionalen Embeddings aus der
-DB und rechnet die Cosine-Similarity in JS. Pro Coffee ca. 6 KB Embedding-
-Payload — das skaliert linear:
+Das volle Playbook-Ranking-System (9.8) ist als
+`public.rank_coffees_for_customer(p_customer_id, p_subscription_type,
+p_limit, p_save_snapshot, p_subscription_id, p_delivery_slot,
+p_algorithm_version)` in der DB vorhanden — vermutlich aus Mattias
+fruehrer Arbeit. Es enthaelt:
 
-| Coffees | Payload | Latenz (geschaetzt) |
-| ------- | ------- | ------------------- |
-| 16      | 100 KB  | < 100 ms            |
-| 100     | 600 KB  | ~250 ms             |
-| 500     | 3 MB    | ~1 s — Grenzbereich |
-| 1.000   | 6 MB    | ~2 s — unbrauchbar  |
+- Hartfilter mit Fallback-Cascade (5.2, 7) via
+  `public.get_eligible_coffees(uuid, text, bool, bool, numeric)`
+- 7-Dim-Soft-Scoring (5.3) via `public.compute_scoring_score(jsonb, uuid)`
+- Vector-Similarity (5.5) direkt mit pgvector `<=>`
+- MMR-Diversitaet (5.7) als PL/pgSQL-Schleife im Discovery-Pfad
+- Begruendung (1.3) via `public.explain_coffee_match`
+- Optionaler Snapshot in `public.recommendation_snapshots`
 
-**Fix.** Das Ranking als Postgres-Function bauen, damit nur die Top-N die DB
-verlassen. Skizze:
+`lib/db/recommendations.ts` ruft die Funktion seit
+`20260510150000_get_eligible_coffees_use_customer_allergens.sql` direkt
+auf wenn ein `customerId` mitkommt. Anonyme Quiz-Aufrufer
+(taste-types/[slug], match-result) bleiben auf dem JS-Hybrid mit
+Type-Centroid.
 
-```sql
-create or replace function public.rank_coffees_for_customer(
-  p_customer_id uuid,
-  p_limit       int default 6,
-  p_exclude_ids uuid[] default array[]::uuid[]
-)
-returns table (
-  coffee_id     uuid,
-  match_score   numeric,
-  scoring_score numeric,
-  vector_sim    numeric
-) language sql stable as $$
-  with q as (
-    select coalesce(c.taste_embedding, tcm.centroid) as v
-    from public.customers c
-    left join public.type_centroids_mv tcm on tcm.taste_type_id = c.taste_type_id
-    where c.id = p_customer_id
-  )
-  select
-    co.id,
-    -- 0.611 * manhattan_score + 0.389 * (1 - cosine_distance/2)
-    ...
-  from public.coffees co, q
-  where co.status = 'active'
-    and co.flavor_embedding is not null
-    and not co.id = any(p_exclude_ids)
-  order by co.flavor_embedding <=> q.v
-  limit p_limit * 5;  -- Overfetch fuer Manhattan-Re-Ranking in Postgres
-$$;
-```
+**Performance.** Da das Ranking in Postgres laeuft, verlassen nur die
+Top-N und ihre Coffee-Felder die DB — nicht mehr 16 × 1536 floats. P1
+ist damit auch performance-seitig erledigt; der HNSW-Index aus dem
+alten P1-Vorschlag wird erst bei >>300 Coffees relevant und bleibt als
+Optimierung in P10 beobachtet.
 
-Plus HNSW-Index (statt ivfflat — bei uns Memory-Probleme):
+---
+
+## P10 — HNSW-Index auf flavor_embedding (Performance-Optimierung)
+
+**Problem.** Aktuell verlaesst sich `rank_coffees_for_customer` auf
+sequenziellen Vektor-Vergleich. Bei <300 Coffees ist das schneller als
+jeder Index, ab 1.000+ wird's spuerbar.
+
+**Fix.** HNSW-Index auf `coffees.flavor_embedding`:
 
 ```sql
 create index coffees_flavor_embedding_hnsw_idx
-  on public.coffees
-  using hnsw (flavor_embedding vector_cosine_ops);
+  on public.coffees using hnsw (flavor_embedding vector_cosine_ops);
 ```
 
-`recommendations.ts` ruft dann `supabase.rpc('rank_coffees_for_customer', ...)`
-und macht nur noch das Hydrieren der Coffee-Felder.
+Voraussetzung: ausreichend `maintenance_work_mem` — siehe P4.
 
-**Trigger.** Sobald > ~300 aktive Coffees in der DB sind, oder spaetestens
-zwei Wochen vor Public Launch.
+**Trigger.** > 1.000 Coffees, oder Latenz `rank_coffees_for_customer`
+> 200 ms.
 
-**Aufwand.** ~4 h — DB-Function bauen, Index anlegen (Memory-Setting in
-Supabase ggf. anpassen), `recommendations.ts` umstellen, Smoke-Test.
+**Aufwand.** ~30 min inkl. Index-Build.
 
 ---
 
