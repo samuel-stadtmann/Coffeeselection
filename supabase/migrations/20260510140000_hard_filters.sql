@@ -12,13 +12,16 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 0) Aufraeumen: falls eine fruehere fehlgeschlagene Variante dieser Migration
---    customer_allergens mit anderem Schema (allergen_id uuid) angelegt hat,
---    droppen — wir bauen es gleich passend zum coffee_allergens-Pattern neu.
+-- 0) Aggressives Cleanup: alle Artefakte einer fruehern Variante dieser
+--    Migration entfernen, damit der Re-Run idempotent ist.
 -- ----------------------------------------------------------------------------
+
+drop function if exists public.get_eligible_coffees(uuid, text) cascade;
+drop function if exists public.get_eligible_coffees(uuid, uuid, text) cascade;
 
 do $$
 begin
+  -- customer_allergens: alte allergen_id-Variante killen
   if exists (
     select 1
     from information_schema.columns
@@ -26,8 +29,21 @@ begin
       and table_name='customer_allergens'
       and column_name='allergen_id'
   ) then
-    raise notice 'Dropping old customer_allergens (allergen_id-style) to recreate with allergen text';
+    raise notice 'Dropping legacy customer_allergens (allergen_id-style)';
     drop table if exists public.customer_allergens cascade;
+  end if;
+
+  -- allergens_catalog: alte uuid-id-Variante killen, neu mit slug-PK aufbauen
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema='public'
+      and table_name='allergens_catalog'
+      and column_name='id'
+      and data_type='uuid'
+  ) then
+    raise notice 'Dropping legacy allergens_catalog (uuid-pk-style)';
+    drop table if exists public.allergens_catalog cascade;
   end if;
 end $$;
 
