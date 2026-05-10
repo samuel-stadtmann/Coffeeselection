@@ -62,6 +62,7 @@ export default async function Page() {
     ? await getCoffeesForTasteType(supabase, customer.taste_type_id, {
         limit: 3,
         excludeIds: Array.from(ratedCoffeeIds),
+        customerId: customer.id,
       })
     : [];
 

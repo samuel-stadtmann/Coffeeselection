@@ -74,7 +74,7 @@ export default function AccountDashboardPage() {
             .select("acidity, body, sweetness, bitterness, complexity")
             .eq("id", data.taste_type_id)
             .maybeSingle(),
-          getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 6 }),
+          getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 6, customerId: data.id }),
           supabase.from("coffee_ratings").select("coffee_id").eq("customer_id", data.id),
         ]);
         setProfile(tt as TasteProfile | null);
