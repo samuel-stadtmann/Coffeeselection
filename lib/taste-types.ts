@@ -8,8 +8,6 @@ export type TasteType = {
   profile: { label: string; value: number }[];
   aromas: string[];
   brewing: string[];
-  coffees: { name: string; roaster: string; origin: string; price: string; matchScore: number }[];
-  roasters: { name: string; city: string; specialty: string }[];
   seoTitle: string;
   seoDescription: string;
   seoKeywords: string[];
@@ -32,16 +30,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Karamell", "Schokolade", "Haselnuss", "Mandel", "Vanille"],
     brewing: ["Vollautomat", "Filter", "French Press", "Aeropress"],
-    coffees: [
-      { name: "Brasil Cerrado", roaster: "Miro Coffee", origin: "Brasilien", price: "CHF 22", matchScore: 95 },
-      { name: "Colombia Supremo", roaster: "Vertical Coffee", origin: "Kolumbien", price: "CHF 24", matchScore: 92 },
-      { name: "Honduras Marcala", roaster: "Stoll Kaffee", origin: "Honduras", price: "CHF 23", matchScore: 88 },
-    ],
-    roasters: [
-      { name: "Miro Coffee", city: "Zürich", specialty: "Klassische Mittelröstung" },
-      { name: "Vertical Coffee", city: "Bern", specialty: "Single Origin Klassiker" },
-      { name: "Stoll Kaffee", city: "Luzern", specialty: "Familienrösterei seit 1928" },
-    ],
     seoTitle: "Klassischer Kaffee — der ausgewogene Specialty Coffee",
     seoDescription: "Nussig, schokoladig, ausbalanciert. Entdecke Schweizer Specialty Coffee für Klassiker — Brasilien, Kolumbien, Honduras. Direct Trade, röstfrisch.",
     seoKeywords: ["klassischer kaffee", "ausgewogener kaffee", "nussiger kaffee", "schokoladiger kaffee", "schweizer kaffee abo"],
@@ -62,16 +50,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Erdbeere", "Brombeere", "Limette", "Bergamotte", "Aprikose", "Pfirsich"],
     brewing: ["V60", "Chemex", "Aeropress", "Cold Brew"],
-    coffees: [
-      { name: "Ethiopia Yirgacheffe", roaster: "Miro Coffee", origin: "Äthiopien", price: "CHF 28", matchScore: 96 },
-      { name: "Kenya AA Nyeri", roaster: "Vertical Coffee", origin: "Kenia", price: "CHF 32", matchScore: 94 },
-      { name: "Rwanda Anaerobic", roaster: "La Cabra", origin: "Ruanda", price: "CHF 36", matchScore: 90 },
-    ],
-    roasters: [
-      { name: "Miro Coffee", city: "Zürich", specialty: "Nordischer Hellröst-Stil" },
-      { name: "La Cabra Schweiz", city: "Basel", specialty: "Anaerobic Fermentation" },
-      { name: "Sweven Coffee", city: "Genf", specialty: "Single Origin Lights" },
-    ],
     seoTitle: "Fruchtiger Kaffee — beerig, lebendig, Specialty",
     seoDescription: "Fruchtige Specialty Coffees aus Äthiopien, Kenia, Ruanda. Helle Röstungen mit Beeren, Zitrus, floralen Noten. Schweizer Direct Trade.",
     seoKeywords: ["fruchtiger kaffee", "fruchtige kaffeebohnen", "äthiopischer filterkaffee", "specialty coffee fruity", "kenya kaffee", "helle röstung"],
@@ -92,16 +70,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Dunkle Schokolade", "Kakao", "Karamell", "Tabak", "Brauner Zucker", "Trockenfrüchte"],
     brewing: ["Siebträger", "Vollautomat", "Moka Pot"],
-    coffees: [
-      { name: "Espresso Tradizionale", roaster: "Stoll Kaffee", origin: "Blend", price: "CHF 24", matchScore: 95 },
-      { name: "Brasil Mogiana Dark", roaster: "Miro Coffee", origin: "Brasilien", price: "CHF 22", matchScore: 92 },
-      { name: "Italian Roast Blend", roaster: "Atelier Espresso", origin: "Blend", price: "CHF 26", matchScore: 90 },
-    ],
-    roasters: [
-      { name: "Atelier Espresso", city: "Zürich", specialty: "Italienische Espressoröstung" },
-      { name: "Stoll Kaffee", city: "Luzern", specialty: "Klassische Espresso-Blends" },
-      { name: "Caffè Chicco d'Oro", city: "Tessin", specialty: "Tradizione italiana" },
-    ],
     seoTitle: "Espresso-Bohnen — kräftig, italienisch, Premium",
     seoDescription: "Espresso-Bohnen für Siebträger und Vollautomat. Italienische Röstungen, dunkle Schokolade & Crema. Schweizer Specialty Coffee.",
     seoKeywords: ["espresso bohnen", "italienischer espresso", "kräftiger espresso", "espresso siebträger", "dunkle röstung", "espresso blend"],
@@ -122,16 +90,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Tropische Früchte", "Mango", "Lychee", "Gewürze", "Wein-Note", "Kardamom"],
     brewing: ["V60", "Chemex", "Aeropress", "Espresso"],
-    coffees: [
-      { name: "Costa Rica Anaerobic", roaster: "La Cabra", origin: "Costa Rica", price: "CHF 38", matchScore: 96 },
-      { name: "Panama Geisha", roaster: "Sweven Coffee", origin: "Panama", price: "CHF 48", matchScore: 95 },
-      { name: "Colombia Lactic", roaster: "Vertical Coffee", origin: "Kolumbien", price: "CHF 34", matchScore: 91 },
-    ],
-    roasters: [
-      { name: "La Cabra Schweiz", city: "Basel", specialty: "Experimentelle Aufbereitungen" },
-      { name: "Sweven Coffee", city: "Genf", specialty: "Geisha & Rare Lots" },
-      { name: "Drop Coffee CH", city: "Zürich", specialty: "Anaerobic & Fermented" },
-    ],
     seoTitle: "Experimenteller Specialty Coffee — Anaerobic, Geisha, Rare Lots",
     seoDescription: "Rare Specialty Coffees aus Panama, Costa Rica, Äthiopien. Anaerobic Naturals, Geisha, experimentelle Aufbereitungen.",
     seoKeywords: ["geisha kaffee", "anaerobic coffee", "rare specialty coffee", "experimenteller kaffee", "panama geisha", "costa rica anaerobic"],
@@ -152,16 +110,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Milchschokolade", "Karamell", "Honig", "Mandel", "Brauner Zucker"],
     brewing: ["Vollautomat", "French Press", "Filter", "Cold Brew"],
-    coffees: [
-      { name: "Sumatra Mandheling", roaster: "Stoll Kaffee", origin: "Sumatra", price: "CHF 25", matchScore: 95 },
-      { name: "Brasil Natural Decaf", roaster: "Miro Coffee", origin: "Brasilien", price: "CHF 26", matchScore: 92 },
-      { name: "Honduras Pacamara", roaster: "Vertical Coffee", origin: "Honduras", price: "CHF 24", matchScore: 89 },
-    ],
-    roasters: [
-      { name: "Stoll Kaffee", city: "Luzern", specialty: "Magenfreundliche Röstungen" },
-      { name: "Miro Coffee", city: "Zürich", specialty: "Low-Acid Specialty" },
-      { name: "Boncourt", city: "Basel", specialty: "Klassische Schweizer Röstung" },
-    ],
     seoTitle: "Säurearmer Kaffee — magenfreundlich, mild, Specialty",
     seoDescription: "Säurearmer Kaffee mit niedrigem Säuregehalt. Sumatra, Brasilien — magenfreundlich, mild, entkoffeiniert verfügbar.",
     seoKeywords: ["säurearmer kaffee", "magenfreundlicher kaffee", "milder kaffee", "kaffee ohne säure", "sumatra kaffee", "low acid coffee"],
@@ -182,16 +130,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Jasmin", "Bergamotte", "Schwarzer Tee", "Weißer Pfirsich", "Rosenwasser", "Lavendel"],
     brewing: ["V60", "Chemex", "Kalita Wave"],
-    coffees: [
-      { name: "Ethiopia Gedeb Washed", roaster: "Miro Coffee", origin: "Äthiopien", price: "CHF 30", matchScore: 97 },
-      { name: "Yemen Mokha Hayma", roaster: "Sweven Coffee", origin: "Jemen", price: "CHF 42", matchScore: 93 },
-      { name: "Colombia Pink Bourbon", roaster: "La Cabra", origin: "Kolumbien", price: "CHF 36", matchScore: 90 },
-    ],
-    roasters: [
-      { name: "Miro Coffee", city: "Zürich", specialty: "Washed Ethiopians" },
-      { name: "Sweven Coffee", city: "Genf", specialty: "Florale Single Origins" },
-      { name: "La Cabra Schweiz", city: "Basel", specialty: "Pink Bourbon & Floral Lots" },
-    ],
     seoTitle: "Floraler Kaffee — Jasmin, Bergamotte, Tee-artig",
     seoDescription: "Florale Specialty Coffees aus Äthiopien, Jemen. Jasmin, Bergamotte, weißer Tee. Helle Röstungen für Filter & Pour Over.",
     seoKeywords: ["floraler kaffee", "jasmin kaffee", "bergamotte kaffee", "yirgacheffe", "tee-artiger kaffee", "specialty coffee floral"],
@@ -212,16 +150,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Tabak", "Zedernholz", "Gewürze", "Dunkles Holz", "Erde", "Pfeffer"],
     brewing: ["French Press", "Moka Pot", "Espresso", "Cold Brew"],
-    coffees: [
-      { name: "Sumatra Wet-Hulled", roaster: "Stoll Kaffee", origin: "Sumatra", price: "CHF 26", matchScore: 95 },
-      { name: "Sulawesi Toraja", roaster: "Miro Coffee", origin: "Sulawesi", price: "CHF 28", matchScore: 92 },
-      { name: "Java Estate", roaster: "Boncourt", origin: "Java", price: "CHF 24", matchScore: 88 },
-    ],
-    roasters: [
-      { name: "Stoll Kaffee", city: "Luzern", specialty: "Indonesische Bohnen" },
-      { name: "Boncourt", city: "Basel", specialty: "Java & Sumatra Specialties" },
-      { name: "Miro Coffee", city: "Zürich", specialty: "Earthy Indonesians" },
-    ],
     seoTitle: "Erdiger Kaffee — würzig, indonesisch, kräftiger Körper",
     seoDescription: "Erdige Specialty Coffees aus Sumatra, Sulawesi, Java. Würzige, holzige Aromen mit kräftigem Körper.",
     seoKeywords: ["erdiger kaffee", "würziger kaffee", "sumatra kaffee", "indonesischer kaffee", "vollmundiger kaffee", "holziger kaffee"],
@@ -242,16 +170,6 @@ export const tasteTypes: TasteType[] = [
     ],
     aromas: ["Karamell", "Honig", "Milchschokolade", "Brauner Zucker", "Vanille", "Datteln"],
     brewing: ["V60", "Aeropress", "Vollautomat", "Espresso"],
-    coffees: [
-      { name: "Costa Rica Honey", roaster: "Vertical Coffee", origin: "Costa Rica", price: "CHF 28", matchScore: 96 },
-      { name: "Brazil Yellow Bourbon Natural", roaster: "Miro Coffee", origin: "Brasilien", price: "CHF 24", matchScore: 93 },
-      { name: "Guatemala Huehuetenango", roaster: "Sweven Coffee", origin: "Guatemala", price: "CHF 30", matchScore: 90 },
-    ],
-    roasters: [
-      { name: "Vertical Coffee", city: "Bern", specialty: "Honey Process" },
-      { name: "Miro Coffee", city: "Zürich", specialty: "Sweet Naturals" },
-      { name: "Sweven Coffee", city: "Genf", specialty: "Sugar Cane Decaf & Sweet Coffees" },
-    ],
     seoTitle: "Süßer Kaffee — Karamell, Honig, Schokolade",
     seoDescription: "Süße Specialty Coffees aus Costa Rica, Brasilien, Guatemala. Honey-Process, Naturals, Yellow Bourbon. Schokoladig-süß ohne Zucker.",
     seoKeywords: ["süßer kaffee", "karamell kaffee", "schokoladiger kaffee", "honey process coffee", "yellow bourbon", "natural processed coffee"],

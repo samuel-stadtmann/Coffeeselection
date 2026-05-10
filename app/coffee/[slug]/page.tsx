@@ -67,7 +67,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
 
   // Category page — render filter view
   if (cat) {
-    const coffees = getCoffeesForCategory(cat);
+    const coffees = await getCoffeesForCategory(cat);
     const otherCats = coffeeCategories.filter((c) => c.slug !== slug).slice(0, 4);
     return (
       <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">

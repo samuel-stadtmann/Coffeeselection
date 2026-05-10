@@ -1,5 +1,18 @@
 import { tasteTypes } from "./taste-types";
-import { getAllCoffees, type CoffeeDetail } from "./coffees";
+import { createClient } from "@/lib/supabase/server";
+import { getCoffeesForTasteType } from "@/lib/db/recommendations";
+import { tasteTypeIdBySlug } from "./taste-types-map";
+import { tasteTypeBySlug, type TasteType } from "./taste-types";
+
+export type CoffeeDetail = {
+  slug: string;
+  name: string;
+  roaster: string;
+  origin: string;
+  price: string;
+  matchScore: number;
+  tasteTypes: TasteType[];
+};
 
 export type CoffeeCategory = {
   slug: string;
@@ -198,11 +211,48 @@ export const coffeeCategories: CoffeeCategory[] = [
 
 export const categoryBySlug = (slug: string) => coffeeCategories.find((c) => c.slug === slug);
 
-export function getCoffeesForCategory(cat: CoffeeCategory): CoffeeDetail[] {
-  const all = getAllCoffees();
-  return all.filter((c) => {
-    return c.tasteTypes.some((t) => cat.filterTypes.includes(t.slug));
-  });
+/**
+ * Holt alle Coffees aus der DB die zu mind. einem der `cat.filterTypes`
+ * (Taste-Type-Slugs) passen — ranking via getCoffeesForTasteType (anonyme
+ * Variante, kein Hard-Filter, kein Customer-Embedding). Union dedupliziert
+ * by coffee.id; matchScore behaelt den hoechsten gefundenen Wert.
+ */
+export async function getCoffeesForCategory(cat: CoffeeCategory): Promise<CoffeeDetail[]> {
+  const supabase = await createClient();
+
+  const filterTypes = cat.filterTypes
+    .map((slug) => ({
+      slug,
+      id: tasteTypeIdBySlug(slug),
+      type: tasteTypeBySlug(slug),
+    }))
+    .filter((t): t is { slug: string; id: number; type: TasteType } => t.id != null && !!t.type);
+
+  const seen = new Map<string, CoffeeDetail>();
+  for (const ft of filterTypes) {
+    const coffees = await getCoffeesForTasteType(supabase, ft.id, { limit: 30 });
+    for (const c of coffees) {
+      const matchPct = Math.round(c.matchScore * 100);
+      const existing = seen.get(c.id);
+      if (existing) {
+        if (!existing.tasteTypes.some((t) => t.slug === ft.slug)) {
+          existing.tasteTypes.push(ft.type);
+        }
+        if (matchPct > existing.matchScore) existing.matchScore = matchPct;
+        continue;
+      }
+      seen.set(c.id, {
+        slug: c.slug,
+        name: c.name,
+        roaster: c.roaster?.name ?? "",
+        origin: c.origin_name ?? "",
+        price: `CHF ${c.price_chf.toFixed(2)}`,
+        matchScore: matchPct,
+        tasteTypes: [ft.type],
+      });
+    }
+  }
+  return Array.from(seen.values()).sort((a, b) => b.matchScore - a.matchScore);
 }
 
 export const categorySlugs = coffeeCategories.map((c) => c.slug);
