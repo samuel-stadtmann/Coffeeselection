@@ -18,13 +18,17 @@ import { resolve } from "node:path";
 function loadEnvLocal(): void {
   const path = resolve(process.cwd(), ".env.local");
   if (!existsSync(path)) return;
-  const text = readFileSync(path, "utf-8");
-  for (const line of text.split("\n")) {
-    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+  let text = readFileSync(path, "utf-8");
+  // UTF-8 BOM (Notepad-Klassiker) entfernen
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const m = line.match(/^([A-Z0-9_]+)\s*=\s*(.*)$/);
     if (!m) continue;
     const [, k, vRaw] = m;
     if (process.env[k]) continue;
-    const v = vRaw.replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+    const v = vRaw.trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
     process.env[k] = v;
   }
 }
