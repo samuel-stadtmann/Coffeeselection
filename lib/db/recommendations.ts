@@ -177,41 +177,85 @@ async function loadQueryEmbedding(
 }
 
 /**
+ * Hartfilter aus Playbook 5.2 anwenden via Postgres-Function
+ * `get_eligible_coffees(customer_id, subscription_type)`.
+ *
+ * Rueckgabe-Semantik:
+ *   - Set<uuid>      = Whitelist eligible Coffee-IDs. Recommender filtert
+ *                       jeden Coffee aus der nicht drin ist.
+ *   - null            = keine Filterung anwenden (anonyme Quiz-Empfehlung
+ *                       ohne customerId, oder RPC-Fehler -> defensiv lassen).
+ */
+async function loadEligibleCoffeeIds(
+  supabase: SupabaseClient,
+  customerId: string | undefined,
+  subscriptionType: "fix" | "discovery"
+): Promise<Set<string> | null> {
+  if (!customerId) return null;
+  const { data, error } = await supabase.rpc("get_eligible_coffees", {
+    p_customer_id: customerId,
+    p_subscription_type: subscriptionType,
+  });
+  if (error) {
+    console.error("[reco] get_eligible_coffees RPC failed", error);
+    return null;
+  }
+  return new Set(((data ?? []) as { coffee_id: string }[]).map((r) => r.coffee_id));
+}
+
+/**
  * Findet alle Coffees mit Sensorik-Profil und sortiert sie nach Hybrid-Score
  * (Manhattan-Distanz + pgvector-Cosine-Similarity zum User-/Type-Embedding).
  * Faellt auf reines Manhattan-Scoring zurueck wenn weder Customer- noch
  * Type-Centroid-Embedding gefunden werden.
  *
+ * Vor dem Scoring werden Hartfilter (Playbook 5.2) angewendet wenn ein
+ * customerId vorliegt — Allergene, Cooldowns, Stock, Bio-/Direct-Trade-/
+ * Decaf-Anforderungen, Budget. Anonyme Aufrufe (kein customerId) sehen
+ * weiterhin alle aktiven Coffees.
+ *
  * @param supabase     beliebiger Supabase-Client (server oder browser)
  * @param tasteTypeId  1-8
- * @param opts.limit       max. Anzahl Resultate (default 6)
- * @param opts.excludeIds  Coffee-IDs die nicht im Resultat erscheinen sollen
- * @param opts.customerId  optional: wenn gesetzt, wird das taste_embedding
- *                         dieses Kunden als Anfragevektor verwendet (statt
- *                         des Type-Centroids).
+ * @param opts.limit              max. Anzahl Resultate (default 6)
+ * @param opts.excludeIds         Coffee-IDs die nicht im Resultat erscheinen
+ * @param opts.customerId         optional: triggert Hartfilter und nutzt
+ *                                customer.taste_embedding statt Type-Centroid
+ * @param opts.subscriptionType   'fix' | 'discovery' (default 'fix') — bei
+ *                                'discovery' kommt Roester-Cooldown dazu
  */
 export async function getCoffeesForTasteType(
   supabase: SupabaseClient,
   tasteTypeId: number,
-  opts: { limit?: number; excludeIds?: string[]; customerId?: string } = {}
+  opts: {
+    limit?: number;
+    excludeIds?: string[];
+    customerId?: string;
+    subscriptionType?: "fix" | "discovery";
+  } = {}
 ): Promise<RecommendedCoffee[]> {
   const limit = opts.limit ?? 6;
   const excludeIds = new Set(opts.excludeIds ?? []);
+  const subscriptionType = opts.subscriptionType ?? "fix";
 
-  const [{ data: target, error: tErr }, queryEmbedding, { data: coffees, error: cErr }] =
-    await Promise.all([
-      supabase
-        .from("taste_types")
-        .select("id, name_de, acidity, body, sweetness, bitterness, complexity")
-        .eq("id", tasteTypeId)
-        .maybeSingle(),
-      loadQueryEmbedding(supabase, tasteTypeId, opts.customerId),
-      supabase
-        .from("coffees")
-        .select(COFFEE_FIELDS)
-        .eq("status", "active")
-        .is("deleted_at", null),
-    ]);
+  const [
+    { data: target, error: tErr },
+    queryEmbedding,
+    eligibleIds,
+    { data: coffees, error: cErr },
+  ] = await Promise.all([
+    supabase
+      .from("taste_types")
+      .select("id, name_de, acidity, body, sweetness, bitterness, complexity")
+      .eq("id", tasteTypeId)
+      .maybeSingle(),
+    loadQueryEmbedding(supabase, tasteTypeId, opts.customerId),
+    loadEligibleCoffeeIds(supabase, opts.customerId, subscriptionType),
+    supabase
+      .from("coffees")
+      .select(COFFEE_FIELDS)
+      .eq("status", "active")
+      .is("deleted_at", null),
+  ]);
 
   if (tErr || !target) {
     console.error("[reco] taste_types fetch failed", tErr);
@@ -223,15 +267,18 @@ export async function getCoffeesForTasteType(
   }
 
   const ranked = coffees
-    .filter(
-      (c) =>
-        !excludeIds.has(c.id as string) &&
+    .filter((c) => {
+      if (excludeIds.has(c.id as string)) return false;
+      // eligibleIds === null bedeutet: Hartfilter nicht anwendbar (anonym oder RPC-Fehler).
+      if (eligibleIds !== null && !eligibleIds.has(c.id as string)) return false;
+      return (
         c.acidity != null &&
         c.body != null &&
         c.sweetness != null &&
         c.bitterness != null &&
         c.complexity != null
-    )
+      );
+    })
     .map((c) => {
       const dist = manhattan(target as TasteTypeProfile, c as never);
       let vectorSim: number | null = null;

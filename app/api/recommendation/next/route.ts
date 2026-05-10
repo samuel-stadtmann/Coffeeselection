@@ -28,6 +28,9 @@ const QuerySchema = z.object({
     .optional()
     .default("discovery_abo"),
   subscription_id: z.string().regex(UUID_LOOSE).optional(),
+  // Hartfilter (Playbook 5.2) verhalten sich unterschiedlich:
+  // 'discovery' aktiviert zusaetzlich den Roester-Cooldown.
+  subscription_type: z.enum(["fix", "discovery"]).optional().default("fix"),
   exclude: z.string().optional(),
 });
 
@@ -38,6 +41,7 @@ export async function GET(req: NextRequest) {
     parsed = QuerySchema.parse({
       surface: url.searchParams.get("surface") ?? undefined,
       subscription_id: url.searchParams.get("subscription_id") ?? undefined,
+      subscription_type: url.searchParams.get("subscription_type") ?? undefined,
       exclude: url.searchParams.get("exclude") ?? undefined,
     });
   } catch (err) {
@@ -76,6 +80,7 @@ export async function GET(req: NextRequest) {
     limit: 3,
     excludeIds,
     customerId: customer.id,
+    subscriptionType: parsed.subscription_type,
   });
   if (coffees.length === 0) {
     return NextResponse.json({ error: "no_coffees_available" }, { status: 404 });
