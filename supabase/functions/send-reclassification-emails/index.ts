@@ -152,10 +152,12 @@ serve(async (req) => {
   if (explicitId) {
     q = q.eq("id", explicitId);
   } else {
-    // Pending: nie gesendet ODER vor dem letzten Vorschlag gesendet.
-    q = q.or(
-      "reclassification_email_sent_at.is.null,reclassification_email_sent_at.lt.reclassification_suggested_at"
-    );
+    // Pending = noch nie eine Reklass-Mail rausgegangen.
+    // (Der Re-Send-nach-30-Tagen-Fall — sent_at < suggested_at —
+    //  laesst sich mit PostgREST nicht direkt ausdruecken weil
+    //  Spalte<Spalte-Vergleiche dort nicht gehen. Das holen wir
+    //  spaeter via DB-View nach falls noetig.)
+    q = q.is("reclassification_email_sent_at", null);
   }
   // Schutz gegen Mail-Flut: max 50 pro Lauf.
   q = q.limit(50);
