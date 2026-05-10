@@ -1,39 +1,42 @@
 -- ============================================================================
 -- M5d / Playbook 5.2 — Hartfilter-System (get_eligible_coffees)
 --
--- Implementiert die Hartfilter-Tabelle aus Playbook 5.2 als idempotente
--- Postgres-Function plus die fehlenden Schema-Erweiterungen:
+-- Implementiert die Hartfilter aus Playbook 5.2 als idempotente
+-- Postgres-Function. Schema andockt an die bereits existierende
+-- public.coffee_allergens(coffee_id uuid, allergen text, ...).
 --
---   * Allergene: allergens_catalog + customer_allergens + coffee_allergens
---   * Customer-Praeferenzen: requires_decaf / requires_organic /
---     requires_direct_trade / max_price_per_250g
---   * Function: public.get_eligible_coffees(customer_id, subscription_type)
---     liefert (coffee_id, roaster_id) der Coffees die alle Hartfilter
---     bestehen. Wird aus lib/db/recommendations.ts vor dem Hybrid-Scoring
---     aufgerufen.
---
--- Filter-Matrix (alle MUSS-Bedingungen, Verstoss = komplette Disqualifikation):
---
---   1. coffee.status = 'active' AND deleted_at IS NULL
---   2. coffee.stock_status IN ('in_stock','low_stock')         (Lagerbestand)
---   3. price_chf * 250 / weight_g <= max_price_per_250g        (Budget)
---   4. requires_decaf = TRUE  -> coffee.is_decaf = TRUE
---   5. requires_organic = TRUE -> coffee hat Bio-Zertifikat
---   6. requires_direct_trade = TRUE -> coffee hat Direct-Trade-Zertifikat
---   7. Keine Allergen-Ueberschneidung zwischen coffee_allergens und
---      customer_allergens
---   8. coffee_id NICHT in den letzten 6 Lieferungen (Cooldown identisch)
---   9. Bei subscription_type = 'discovery': roaster_id NICHT in den letzten
---      3 Lieferungen (Roester-Cooldown). Bei 'fix' deaktiviert.
+-- Allergene werden als TEXT-Slugs gefuehrt ('milk','nuts','gluten',...).
+-- Der allergens_catalog ist eine optionale Lookup-Tabelle fuer UI-Namen
+-- und Uebersetzungen — ohne harte FK auf die anderen Tabellen, damit
+-- bestehende Daten nicht migrieren muessen.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 1) Allergens-Katalog
+-- 0) Aufraeumen: falls eine fruehere fehlgeschlagene Variante dieser Migration
+--    customer_allergens mit anderem Schema (allergen_id uuid) angelegt hat,
+--    droppen — wir bauen es gleich passend zum coffee_allergens-Pattern neu.
+-- ----------------------------------------------------------------------------
+
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema='public'
+      and table_name='customer_allergens'
+      and column_name='allergen_id'
+  ) then
+    raise notice 'Dropping old customer_allergens (allergen_id-style) to recreate with allergen text';
+    drop table if exists public.customer_allergens cascade;
+  end if;
+end $$;
+
+-- ----------------------------------------------------------------------------
+-- 1) Allergens-Catalog (optional, fuer UI-Naming)
 -- ----------------------------------------------------------------------------
 
 create table if not exists public.allergens_catalog (
-  id           uuid primary key default gen_random_uuid(),
-  slug         text unique not null,                  -- z.B. 'milk','nuts','gluten'
+  slug         text primary key,                     -- z.B. 'milk', 'nuts'
   name_de      text not null,
   name_en      text,
   description  text,
@@ -43,29 +46,43 @@ create table if not exists public.allergens_catalog (
 );
 
 comment on table public.allergens_catalog is
-  'Allergene/Unvertraeglichkeiten die als Hartfilter im Matching gelten.';
+  'Lookup fuer Allergen-Slugs. Nicht via FK referenziert — Inhalte in customer_allergens und coffee_allergens sind TEXT.';
 
--- Seed mit den fuer Specialty-Coffee relevanten Allergenen.
 insert into public.allergens_catalog (slug, name_de, name_en, sort_order)
 values
-  ('milk',     'Milchprodukte',          'Milk',         10),
-  ('nuts',     'Nuesse / Erdnuesse',     'Nuts',         20),
-  ('gluten',   'Gluten',                 'Gluten',       30),
-  ('soy',      'Soja',                   'Soy',          40),
-  ('sulfites', 'Sulfite (Konservierung)','Sulfites',     50)
+  ('milk',     'Milchprodukte',           'Milk',       10),
+  ('nuts',     'Nuesse / Erdnuesse',      'Nuts',       20),
+  ('gluten',   'Gluten',                  'Gluten',     30),
+  ('soy',      'Soja',                    'Soy',        40),
+  ('sulfites', 'Sulfite (Konservierung)', 'Sulfites',   50)
 on conflict (slug) do nothing;
 
+alter table public.allergens_catalog enable row level security;
+
+do $$ begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='allergens_catalog'
+      and policyname='allergens_catalog_public_select'
+  ) then
+    create policy "allergens_catalog_public_select"
+      on public.allergens_catalog for select
+      to anon, authenticated using (active = true);
+  end if;
+end $$;
+
 -- ----------------------------------------------------------------------------
--- 2) Customer- + Coffee-Allergen-Verknuepfungen
+-- 2) customer_allergens — gleiches Schema-Pattern wie coffee_allergens
 -- ----------------------------------------------------------------------------
 
 create table if not exists public.customer_allergens (
-  customer_id uuid not null references public.customers(id)         on delete cascade,
-  allergen_id uuid not null references public.allergens_catalog(id) on delete restrict,
+  customer_id uuid not null references public.customers(id) on delete cascade,
+  allergen    text not null,                                                      -- z.B. 'milk', 'nuts'
   severity    text not null default 'avoid'
-              check (severity in ('avoid','strict')),    -- 'avoid' = bevorzugt nicht, 'strict' = niemals
+              check (severity in ('avoid','strict')),
+  notes       text,
   created_at  timestamptz not null default now(),
-  primary key (customer_id, allergen_id)
+  primary key (customer_id, allergen)
 );
 
 create index if not exists customer_allergens_customer_idx
@@ -96,42 +113,6 @@ do $$ begin
   end if;
 end $$;
 
-create table if not exists public.coffee_allergens (
-  coffee_id   uuid not null references public.coffees(id)            on delete cascade,
-  allergen_id uuid not null references public.allergens_catalog(id)  on delete restrict,
-  note        text,                                                  -- z.B. "May contain traces"
-  created_at  timestamptz not null default now(),
-  primary key (coffee_id, allergen_id)
-);
-
-create index if not exists coffee_allergens_coffee_idx
-  on public.coffee_allergens(coffee_id);
-create index if not exists coffee_allergens_allergen_idx
-  on public.coffee_allergens(allergen_id);
-
-alter table public.coffee_allergens enable row level security;
-
-do $$ begin
-  if not exists (
-    select 1 from pg_policies
-    where schemaname='public' and tablename='coffee_allergens'
-      and policyname='coffee_allergens_public_select'
-  ) then
-    create policy "coffee_allergens_public_select"
-      on public.coffee_allergens for select
-      to anon, authenticated using (true);
-  end if;
-  if not exists (
-    select 1 from pg_policies
-    where schemaname='public' and tablename='coffee_allergens'
-      and policyname='coffee_allergens_service'
-  ) then
-    create policy "coffee_allergens_service"
-      on public.coffee_allergens for all
-      to service_role using (true) with check (true);
-  end if;
-end $$;
-
 -- ----------------------------------------------------------------------------
 -- 3) Customer-Praeferenzen erweitern
 -- ----------------------------------------------------------------------------
@@ -140,7 +121,19 @@ alter table public.customers
   add column if not exists requires_decaf        boolean       not null default false,
   add column if not exists requires_organic      boolean       not null default false,
   add column if not exists requires_direct_trade boolean       not null default false,
-  add column if not exists max_price_per_250g    numeric(10,2) check (max_price_per_250g is null or max_price_per_250g > 0);
+  add column if not exists max_price_per_250g    numeric(10,2);
+
+do $$ begin
+  if not exists (
+    select 1 from information_schema.constraint_column_usage
+    where table_name='customers' and column_name='max_price_per_250g'
+      and constraint_name='customers_max_price_chk'
+  ) then
+    alter table public.customers
+      add constraint customers_max_price_chk
+      check (max_price_per_250g is null or max_price_per_250g > 0);
+  end if;
+end $$;
 
 comment on column public.customers.requires_decaf is
   'Hartfilter: nur entkoffeinierte Kaffees empfehlen.';
@@ -152,24 +145,7 @@ comment on column public.customers.max_price_per_250g is
   'Hartfilter: Preis pro 250g normalisiert. NULL = kein Limit.';
 
 -- ----------------------------------------------------------------------------
--- 4) Public-Allergen-Catalog ist lesbar fuer alle (Frontend-Picker)
--- ----------------------------------------------------------------------------
-
-alter table public.allergens_catalog enable row level security;
-do $$ begin
-  if not exists (
-    select 1 from pg_policies
-    where schemaname='public' and tablename='allergens_catalog'
-      and policyname='allergens_catalog_public_select'
-  ) then
-    create policy "allergens_catalog_public_select"
-      on public.allergens_catalog for select
-      to anon, authenticated using (active = true);
-  end if;
-end $$;
-
--- ----------------------------------------------------------------------------
--- 5) get_eligible_coffees-Function (Hartfilter zentral)
+-- 4) get_eligible_coffees-Function
 -- ----------------------------------------------------------------------------
 
 create or replace function public.get_eligible_coffees(
@@ -195,8 +171,8 @@ as $$
     from public.customers
     where id = p_customer_id
   ),
-  customer_allergen_ids as (
-    select coalesce(array_agg(allergen_id), array[]::uuid[]) as ids
+  customer_allergen_slugs as (
+    select coalesce(array_agg(allergen), array[]::text[]) as slugs
     from public.customer_allergens
     where customer_id = p_customer_id
   ),
@@ -225,7 +201,6 @@ as $$
       limit 3
     ) t
   ),
-  -- Bio-/Direct-Trade-Cert-IDs einmal vorab aufloesen (Slug-Liste = wir entscheiden hier was zaehlt)
   organic_cert_ids as (
     select id from public.certifications_catalog
     where slug in ('bio_suisse','bio-suisse','eu_organic','eu-bio','usda_organic','usda-organic','organic')
@@ -238,22 +213,22 @@ as $$
     cf.id         as coffee_id,
     cf.roaster_id as roaster_id
   from public.coffees cf
-  cross join prefs           p
-  cross join customer_allergen_ids ca
+  cross join prefs                       p
+  cross join customer_allergen_slugs     ca
   where
-    -- Hartfilter 1: Status + nicht geloescht
+    -- 1) Status + nicht geloescht
     cf.status = 'active'
     and cf.deleted_at is null
-    -- Hartfilter 2: Lagerbestand
+    -- 2) Lagerbestand
     and cf.stock_status in ('in_stock','low_stock')
-    -- Hartfilter 3: Preis pro 250g unter Budget (nur wenn Budget gesetzt)
+    -- 3) Preis pro 250g unter Budget (nur wenn Budget gesetzt)
     and (
       p.max_price_per_250g is null
       or (cf.price_chf * 250.0 / nullif(cf.weight_g, 0)) <= p.max_price_per_250g
     )
-    -- Hartfilter 4: Decaf-Anforderung
+    -- 4) Decaf-Anforderung
     and (p.requires_decaf = false or cf.is_decaf = true)
-    -- Hartfilter 5: Bio-Anforderung
+    -- 5) Bio-Anforderung
     and (
       p.requires_organic = false
       or exists (
@@ -262,7 +237,7 @@ as $$
           and cc.certification_id in (select id from organic_cert_ids)
       )
     )
-    -- Hartfilter 6: Direct-Trade-Anforderung
+    -- 6) Direct-Trade-Anforderung
     and (
       p.requires_direct_trade = false
       or exists (
@@ -271,17 +246,17 @@ as $$
           and cc.certification_id in (select id from direct_trade_cert_ids)
       )
     )
-    -- Hartfilter 7: Allergen-Ueberschneidung
+    -- 7) Allergen-Ueberschneidung
     and not exists (
       select 1 from public.coffee_allergens ca2
       where ca2.coffee_id = cf.id
-        and ca2.allergen_id = any(ca.ids)
+        and ca2.allergen = any(ca.slugs)
     )
-    -- Hartfilter 8: Cooldown identisch
+    -- 8) Cooldown identisch
     and not exists (
       select 1 from recent_deliveries rd where rd.coffee_id = cf.id
     )
-    -- Hartfilter 9: Roester-Cooldown nur fuer Discovery-Abo
+    -- 9) Roester-Cooldown nur fuer Discovery-Abo
     and (
       p_subscription_type <> 'discovery'
       or not exists (
@@ -291,7 +266,6 @@ as $$
 $$;
 
 comment on function public.get_eligible_coffees(uuid, text) is
-  'Playbook 5.2: liefert Coffees die alle Hartfilter (Stock, Allergene, Praeferenzen, Cooldowns, Budget) bestehen. Wird aus dem Recommender vor dem Hybrid-Scoring aufgerufen.';
+  'Playbook 5.2: liefert Coffees die alle Hartfilter (Stock, Allergene, Praeferenzen, Cooldowns, Budget) bestehen.';
 
--- service_role + authenticated User duerfen die Funktion aufrufen.
 grant execute on function public.get_eligible_coffees(uuid, text) to authenticated, service_role;
