@@ -106,24 +106,15 @@ wieder kommen, je nach Coffee-Anzahl deutlich groesser.
 
 ---
 
-## P5 — Dead Code aufraeumen: `coffees` / `roasters` in `lib/taste-types.ts`
+## ~~P5 — Dead Code aufraeumen~~ ✅ erledigt
 
-**Problem.** Die statische Datei `lib/taste-types.ts` (261 Zeilen)
-enthaelt pro Geschmackstyp ein `coffees: [...]`-Array und ein
-`roasters: [...]`-Array mit jeweils 3 Fake-Eintraegen (Names wie
-"Brasil Cerrado · Miro Coffee · CHF 22 · matchScore 95"). Diese Daten
-werden nirgends in der UI angezeigt — alle Coffee- und Roaster-Listen
-kommen aus der DB ueber `getCoffeesForTasteType`.
-
-**Fix.** Die beiden Arrays aus `lib/taste-types.ts` ersatzlos streichen,
-inklusive der Felder im `TasteType`-Type. Pruefen dass die Importe in
-`app/match-result/page.tsx` und `app/account/dashboard/page.tsx` (nur
-`type TasteType`) durch das schmalere Interface gluecklich bleiben.
-
-**Trigger.** Beliebig — kein User-Impact, nur Code-Hygiene. Idealer
-Pickup-Task wenn jemand neu in den Code reinschaut.
-
-**Aufwand.** ~10 min.
+`coffees: [...]` und `roasters: [...]` aus allen 8 TasteType-Eintraegen
+in `lib/taste-types.ts` entfernt (-80 Zeilen), Type-Definition
+abgespeckt, `lib/coffees.ts` komplett geloescht (war einziger Konsument).
+`lib/coffee-categories.ts → getCoffeesForCategory` ist jetzt async und
+faehrt echte DB-Coffees via `getCoffeesForTasteType` pro filterType,
+dedupliziert by coffee.id. Category-Pages zeigen damit ab sofort echte
+Coffees statt Fake-Daten.
 
 ---
 
