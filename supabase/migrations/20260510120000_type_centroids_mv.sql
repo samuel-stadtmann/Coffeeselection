@@ -29,11 +29,11 @@ group by taste_type_id;
 create unique index type_centroids_mv_pk
   on public.type_centroids_mv(taste_type_id);
 
--- ANN-Index auf den Centroid (cosine), fuer schnelle Reklassifikations-Suche.
-create index type_centroids_mv_centroid_cos_idx
-  on public.type_centroids_mv
-  using ivfflat (centroid vector_cosine_ops)
-  with (lists = 8);
+-- Bewusst KEIN ANN-Index (ivfflat/hnsw) — die View hat hoechstens
+-- so viele Zeilen wie es Geschmackstypen gibt (8). Seq-Scan ist da
+-- schneller als jeder Vektor-Index, und ivfflat-Build wuerde mehr
+-- maintenance_work_mem brauchen als Supabase Free per Default
+-- bereitstellt.
 
 -- Initial-Refresh damit die View Daten enthaelt.
 refresh materialized view public.type_centroids_mv;
