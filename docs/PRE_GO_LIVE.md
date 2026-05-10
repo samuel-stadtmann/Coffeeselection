@@ -72,3 +72,88 @@ zwei Wochen vor Public Launch.
 Supabase ggf. anpassen), `recommendations.ts` umstellen, Smoke-Test.
 
 ---
+
+## P2 — `coffees.roast_level` Daten-Hygiene
+
+**Problem.** Beim Smoke-Test der Edge Function fiel auf, dass mindestens
+ein Coffee (`Sidamo Natural`) den Wert `"1"` in `roast_level` hat, statt
+des erwarteten Enum-Werts (`light` / `medium_light` / `medium` /
+`medium_dark` / `dark`). Der Embedding-Text enthielt deshalb
+`"Roestgrad: 1"` statt `"Roestgrad: light"`. Das verschlechtert die
+semantische Qualitaet der OpenAI-Embeddings.
+
+**Fix.** Audit aller `coffees.roast_level`-Werte, Mapping `1`-`5` -> Enum,
+ggf. zusaetzlich CHECK-Constraint setzen falls die Migration es nicht
+schon tut. Danach **alle betroffenen Coffees neu einbetten** via
+`scripts/backfill-coffee-embeddings.ts`.
+
+```sql
+-- Audit
+SELECT roast_level, count(*) FROM coffees GROUP BY roast_level;
+
+-- Migration (falls Mapping nicht eindeutig: erst manuell verifizieren)
+UPDATE coffees SET roast_level = 'light'        WHERE roast_level = '1';
+UPDATE coffees SET roast_level = 'medium_light' WHERE roast_level = '2';
+UPDATE coffees SET roast_level = 'medium'       WHERE roast_level = '3';
+UPDATE coffees SET roast_level = 'medium_dark'  WHERE roast_level = '4';
+UPDATE coffees SET roast_level = 'dark'         WHERE roast_level = '5';
+```
+
+**Trigger.** Vor dem ersten echten Roaster-Onboarding — ab dem Punkt
+liefern wir mit den Embeddings echte Empfehlungen aus.
+
+**Aufwand.** ~30 min inkl. Re-Embedding.
+
+---
+
+## P3 — `lern-worker-process-ratings` mit Embedding-Update verifizieren
+
+**Problem.** Beim Aufsetzen von `pg_cron` war der Job
+`lern-worker-process-ratings` (alle 15 Min) schon aktiv, vermutlich aus
+fruehrer Arbeit. Es ist nicht verifiziert, ob er nach jeder neuen
+Bewertung das `taste_embedding` des Kunden aktualisiert (Playbook 6.3 —
+Profil-Vektor-Drift mit adaptiver Lernrate) oder nur die Aroma-Tag-
+Praeferenzen pflegt.
+
+**Indiz.** Customer `b082cbd7…` hat `num_ratings_given = 1` aber bekam
+beim `build-customer-embedding`-Backfill `mode: cold` — also entweder
+war die Bewertung < 4 Sterne oder der Rated-Coffee hatte keine
+`flavor_description`. Im Lern-Worker-Pfad ist das egal — der sollte
+*jede* Bewertung verarbeiten.
+
+**Fix.**
+1. Source des Cron-Jobs finden (`SELECT * FROM cron.job WHERE jobname = 'lern-worker-process-ratings'` -> Command-Spalte zeigt was er aufruft).
+2. Pruefen ob er `update_customer_embedding()` aus Playbook 6.3 implementiert.
+3. Falls nein: in M5c implementieren und in den Worker einhaengen.
+4. Integration-Test: Bewertung abgeben, 15 Min warten, vorher/nachher
+   `customers.taste_embedding` vergleichen — muss sich messbar bewegen.
+
+**Trigger.** Vor erstem echten Kunden mit Subscription — sonst lernt
+das System nicht aus Feedback.
+
+**Aufwand.** Audit ~30 min. Falls Implementation fehlt: ~3 h fuer
+update_customer_embedding + Tests.
+
+---
+
+## P4 — `maintenance_work_mem` Ceiling auf Supabase Free
+
+**Problem.** Beim Versuch einen `ivfflat`-Index auf
+`type_centroids_mv` anzulegen scheiterte das mit
+`memory required is 59 MB, maintenance_work_mem is 32 MB`.
+Wir haben den Index gestrichen weil die View nur 8 Zeilen hat — bei
+`coffees.flavor_embedding` (HNSW-Index, P1) wird der gleiche Fehler
+wieder kommen, je nach Coffee-Anzahl deutlich groesser.
+
+**Workaround Optionen:**
+- Pro-Session vor dem Index-Build: `SET maintenance_work_mem = '256MB';`
+  (geht auch im Supabase SQL Editor, gilt aber nur fuer die Session)
+- Permanent ueber `ALTER DATABASE postgres SET maintenance_work_mem = '256MB';`
+  (braucht Superuser, bei Supabase Free nicht moeglich)
+- Upgrade auf Supabase Pro -> hoeherer Default + Tuning erlaubt
+
+**Trigger.** Sobald HNSW-Index angelegt werden soll (= P1 Migration).
+
+**Aufwand.** Wenige Minuten — aber Plan-Upgrade ist eine Cost-Decision.
+
+---
