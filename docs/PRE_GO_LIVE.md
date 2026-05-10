@@ -244,3 +244,33 @@ spürbar driftet) — und vor jedem geplanten Onboarding-Mail-Versand.
 
 **Aufwand.** ~30 min Resend + DNS + Account-Switch, plus DNS-
 Propagation-Wartezeit.
+
+---
+
+## P12 — Staging-Alias auf Custom-Domain binden
+
+**Problem.** Wir haben einen `staging`-Branch in GitHub eingerichtet
+und Vercel deployed ihn unter
+`coffeeselection-git-staging-samuelstadtmann-4931s-projects.vercel.app`.
+Diese URL ist lang und unschoen — fuer Mattia/Roester-Demos ok,
+aber suboptimal.
+
+**Fix.** Sobald `coffeeselection.ch` bei Hostpoint live ist und auf
+Vercel zeigt (P11 DNS-Setup):
+
+1. Vercel Dashboard → Project → **Settings** → **Domains**
+2. **Add Domain** → `staging.coffeeselection.ch`
+3. Vercel zeigt DNS-Records die bei Hostpoint einzutragen sind
+   (CNAME auf `cname.vercel-dns.com.`)
+4. Bei „Git Branch" das `staging`-Branch waehlen, damit der Alias
+   immer den letzten Staging-Deploy zeigt.
+
+Damit:
+- `coffeeselection.ch` -> production (`main` branch)
+- `staging.coffeeselection.ch` -> staging branch
+- Feature-Preview-URLs bleiben wie bisher unter den `*.vercel.app`
+  Adressen.
+
+**Trigger.** Direkt nach P11 (Domain live).
+
+**Aufwand.** ~10 min + DNS-Propagation.
