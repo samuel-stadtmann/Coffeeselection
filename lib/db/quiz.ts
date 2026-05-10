@@ -162,5 +162,33 @@ export async function persistQuizForCurrentUser(
     })
     .eq("id", customer.id);
 
+  // 6) Embedding-Generation triggern (fire-and-forget, blockiert die Quiz-Antwort nicht).
+  //    Edge Function build-customer-embedding berechnet das taste_embedding aus
+  //    embedding_seed_text + aroma_families des neuen Geschmackstyps.
+  triggerCustomerEmbedding(customer.id).catch((err) => {
+    console.error("[quiz] build-customer-embedding trigger failed", err);
+  });
+
   return primary.type;
+}
+
+async function triggerCustomerEmbedding(customerId: string): Promise<void> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    console.warn("[quiz] supabase env vars missing — skipping embedding trigger");
+    return;
+  }
+  const res = await fetch(`${url}/functions/v1/build-customer-embedding`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ customer_id: customerId }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`build-customer-embedding ${res.status}: ${body}`);
+  }
 }
