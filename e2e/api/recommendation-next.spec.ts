@@ -33,14 +33,12 @@ test.describe("GET /api/recommendation/next", () => {
     }
   });
 
-  test("rejects without auth (storageState gestohlen?)", async ({ playwright }) => {
-    // Eigener Request-Context ohne Cookies -> 401
-    const ctx = await playwright.request.newContext({ baseURL: "http://localhost:3000" });
-    const res = await ctx.get("/api/recommendation/next");
-    expect(res.status()).toBe(401);
+  test("rejects without auth", async () => {
+    // Node's native fetch — keine geerbten Cookies aus Playwright-Context.
+    const res = await fetch("http://localhost:3000/api/recommendation/next");
+    expect(res.status).toBe(401);
     const body = (await res.json()) as { error: string };
     expect(body.error).toBe("unauthorized");
-    await ctx.dispose();
   });
 
   test("422 quiz_required wenn kein taste_type_id (Edge Case)", async ({ request }) => {

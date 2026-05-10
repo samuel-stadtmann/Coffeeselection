@@ -47,12 +47,12 @@ test.describe("POST /api/rating/submit", () => {
     expect(res.status()).toBe(400);
   });
 
-  test("401 ohne Auth", async ({ playwright }) => {
-    const ctx = await playwright.request.newContext({ baseURL: "http://localhost:3000" });
-    const res = await ctx.post("/api/rating/submit", {
-      data: { coffee_id: "00000000-0000-4000-8000-000000000000", stars: 4 },
+  test("401 ohne Auth", async () => {
+    const res = await fetch("http://localhost:3000/api/rating/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coffee_id: "00000000-0000-4000-8000-000000000000", stars: 4 }),
     });
-    expect(res.status()).toBe(401);
-    await ctx.dispose();
+    expect(res.status).toBe(401);
   });
 });

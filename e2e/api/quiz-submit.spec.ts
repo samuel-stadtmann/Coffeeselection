@@ -13,13 +13,13 @@ test.describe("POST /api/quiz/submit", () => {
     expect(res.status()).toBe(400);
   });
 
-  test("401 ohne Auth", async ({ playwright }) => {
-    const ctx = await playwright.request.newContext({ baseURL: "http://localhost:3000" });
-    const res = await ctx.post("/api/quiz/submit", {
-      data: { answers: [{ question_code: "Q1", answer_code: "A" }] },
+  test("401 ohne Auth", async () => {
+    const res = await fetch("http://localhost:3000/api/quiz/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answers: [{ question_code: "Q1", answer_code: "A" }] }),
     });
-    expect(res.status()).toBe(401);
-    await ctx.dispose();
+    expect(res.status).toBe(401);
   });
 
   // Volle Quiz-Submission mit echten 12 Antworten ueberlassen wir
