@@ -35,7 +35,11 @@ type CoffeeRow = {
   region: string | null;
   farm: string | null;
   producer: string | null;
-  roast_level: string;
+  // roast_level liegt aktuell als smallint (1-5) in der DB. Die Migration
+  // wollte text mit Enum (light/medium/...), das wurde aber im Dashboard
+  // umgebaut. Wir mappen unten beim Embedding-Text-Bauen, damit der
+  // OpenAI-Input semantisch lesbar wird.
+  roast_level: number | string | null;
   is_decaf: boolean;
   acidity: number | null;
   body: number | null;
@@ -44,6 +48,25 @@ type CoffeeRow = {
   complexity: number | null;
   aroma_families: string[] | null;
 };
+
+const ROAST_LEVEL_LABELS: Record<string, string> = {
+  "1": "light",
+  "2": "medium_light",
+  "3": "medium",
+  "4": "medium_dark",
+  "5": "dark",
+  light: "light",
+  medium_light: "medium_light",
+  medium: "medium",
+  medium_dark: "medium_dark",
+  dark: "dark",
+};
+
+function roastLabel(v: unknown): string {
+  if (v == null) return "medium";
+  const key = String(v).trim().toLowerCase();
+  return ROAST_LEVEL_LABELS[key] ?? "medium";
+}
 
 function buildEmbeddingText(c: CoffeeRow): string {
   const parts: string[] = [];
@@ -57,7 +80,7 @@ function buildEmbeddingText(c: CoffeeRow): string {
   const origin = [c.farm, c.producer, c.region].filter(Boolean).join(", ");
   if (origin) parts.push(`Herkunft: ${origin}`);
 
-  parts.push(`Röstgrad: ${c.roast_level}`);
+  parts.push(`Röstgrad: ${roastLabel(c.roast_level)}`);
   if (c.is_decaf) parts.push("Entkoffeiniert");
 
   if (c.aroma_families && c.aroma_families.length > 0) {
