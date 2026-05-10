@@ -27,6 +27,7 @@ const SELECT_PUBLIC = `
 /** Build-Zeit-Variante (generateStaticParams) ohne Cookie-Context. */
 export async function getRoasterSlugsForStatic(): Promise<{ slug: string }[]> {
   const supabase = createStaticClient();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("roasters")
     .select("slug")

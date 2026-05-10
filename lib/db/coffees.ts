@@ -75,6 +75,7 @@ export async function getCoffees(): Promise<CoffeeWithDetails[]> {
 /** Build-Zeit-Variante (generateStaticParams) ohne Cookie-Context. */
 export async function getCoffeeSlugsForStatic(): Promise<{ slug: string }[]> {
   const supabase = createStaticClient();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("coffees_with_details")
     .select("slug")

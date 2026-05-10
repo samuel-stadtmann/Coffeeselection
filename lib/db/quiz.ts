@@ -19,6 +19,7 @@ export type QuizQuestion = {
  *  Quiz-Daten sind public, daher anon-readable. */
 export async function getQuizQuestions(): Promise<QuizQuestion[]> {
   const supabase = createStaticClient();
+  if (!supabase) return [];
   const [{ data: questions }, { data: options }] = await Promise.all([
     supabase
       .from("quiz_questions")

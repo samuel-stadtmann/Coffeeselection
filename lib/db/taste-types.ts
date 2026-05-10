@@ -84,7 +84,8 @@ function mapRow(r: TasteTypeRow): TasteType {
   };
 }
 
-export async function getTasteTypes(supabase: SupabaseClient): Promise<TasteType[]> {
+export async function getTasteTypes(supabase: SupabaseClient | null): Promise<TasteType[]> {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("taste_types")
     .select(SELECT_ALL)
@@ -98,9 +99,10 @@ export async function getTasteTypes(supabase: SupabaseClient): Promise<TasteType
 }
 
 export async function getTasteTypeBySlug(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient | null,
   slug: string
 ): Promise<TasteType | null> {
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from("taste_types")
     .select(SELECT_ALL)
@@ -114,9 +116,10 @@ export async function getTasteTypeBySlug(
 }
 
 export async function getTasteTypeById(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient | null,
   id: number
 ): Promise<TasteType | null> {
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from("taste_types")
     .select(SELECT_ALL)

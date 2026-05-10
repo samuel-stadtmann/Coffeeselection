@@ -38,7 +38,10 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
 
   // DB-Coffees: Top-6 Matches für diesen Geschmackstyp
   const tasteTypeId = tasteTypeIdBySlug(slug);
-  const dbCoffees = tasteTypeId ? await getCoffeesForTasteType(supabase, tasteTypeId, { limit: 6 }) : [];
+  const dbCoffees =
+    tasteTypeId && supabase
+      ? await getCoffeesForTasteType(supabase, tasteTypeId, { limit: 6 })
+      : [];
 
   // Röster werden aus den DB-Coffees abgeleitet — distinct
   const dbRoasters = Array.from(
