@@ -106,33 +106,13 @@ liefern wir mit den Embeddings echte Empfehlungen aus.
 
 ---
 
-## P3 — `lern-worker-process-ratings` mit Embedding-Update verifizieren
+## ~~P3 — Lern-Worker mit Embedding-Update verifizieren~~ ✅ erledigt in M5c
 
-**Problem.** Beim Aufsetzen von `pg_cron` war der Job
-`lern-worker-process-ratings` (alle 15 Min) schon aktiv, vermutlich aus
-fruehrer Arbeit. Es ist nicht verifiziert, ob er nach jeder neuen
-Bewertung das `taste_embedding` des Kunden aktualisiert (Playbook 6.3 —
-Profil-Vektor-Drift mit adaptiver Lernrate) oder nur die Aroma-Tag-
-Praeferenzen pflegt.
-
-**Indiz.** Customer `b082cbd7…` hat `num_ratings_given = 1` aber bekam
-beim `build-customer-embedding`-Backfill `mode: cold` — also entweder
-war die Bewertung < 4 Sterne oder der Rated-Coffee hatte keine
-`flavor_description`. Im Lern-Worker-Pfad ist das egal — der sollte
-*jede* Bewertung verarbeiten.
-
-**Fix.**
-1. Source des Cron-Jobs finden (`SELECT * FROM cron.job WHERE jobname = 'lern-worker-process-ratings'` -> Command-Spalte zeigt was er aufruft).
-2. Pruefen ob er `update_customer_embedding()` aus Playbook 6.3 implementiert.
-3. Falls nein: in M5c implementieren und in den Worker einhaengen.
-4. Integration-Test: Bewertung abgeben, 15 Min warten, vorher/nachher
-   `customers.taste_embedding` vergleichen — muss sich messbar bewegen.
-
-**Trigger.** Vor erstem echten Kunden mit Subscription — sonst lernt
-das System nicht aus Feedback.
-
-**Aufwand.** Audit ~30 min. Falls Implementation fehlt: ~3 h fuer
-update_customer_embedding + Tests.
+Erweitert in Migration `20260510130000_lern_worker_embedding_drift.sql`:
+`drift_customer_embedding()` + `centroid_reclassification_check()` werden
+jetzt pro Bewertung von `process_pending_ratings()` aufgerufen. Smoke-Test
+am 2026-05-10 zeigte messbare Drift (Cosine-Distanz Customer↔Coffee von
+0.3246 auf 0.2705 nach einer 4-Sterne-Bewertung).
 
 ---
 
