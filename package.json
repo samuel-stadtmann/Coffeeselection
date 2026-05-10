@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:pipeline": "tsx scripts/test_e2e.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -16,6 +19,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
