@@ -198,3 +198,37 @@ Beim Bauen aufgedeckt + gefixt:
   Fix unterscheidet RPC-Error (-> JS-Fallback) von RPC-leer (-> []).
 
 ---
+
+## P11 — Resend Sender-Domain bei Hostpoint live schalten
+
+**Problem.** Die Reklassifikations-E-Mail (Playbook 6.5, Edge Function
+`send-reclassification-emails`) läuft aktuell mit Resends Test-
+Domain `onboarding@resend.dev`. Diese hat zwei harte Limits:
+
+- Empfänger muss eine bei Resend verifizierte Adresse sein
+  (typischerweise nur die des Account-Inhabers).
+- Max 100 Mails/Tag, „Sent via Resend"-Hinweis im Footer.
+
+Für echte Kunden müssen wir auf die eigene Domain (bei Hostpoint
+registriert, aktuell noch nicht live) umstellen.
+
+**Fix.**
+1. Domain bei Hostpoint live schalten (DNS-Zone aktiv).
+2. Resend Dashboard → **Domains** → **Add domain** → die echte Domain
+   (z. B. `coffeeselection.ch`) eintragen.
+3. Resend zeigt drei DNS-Einträge an (TXT für SPF, CNAME für DKIM,
+   optional TXT für DMARC). Diese im Hostpoint-Control-Panel
+   eintragen — kann 1–24h dauern bis Resend sie validiert.
+4. Sobald Resend den grünen Haken zeigt: Supabase Edge Function
+   Secret aktualisieren:
+   `RESEND_FROM_EMAIL = Coffee Selection <hello@coffeeselection.ch>`
+   (oder welche Absender-Adresse auch immer).
+5. Smoke-Test: Edge Function manuell mit `{ "customer_id": "<eigene_id>" }`
+   triggern → E-Mail muss bei eigenem Postfach ankommen, ohne
+   „via resend.dev"-Footer.
+
+**Trigger.** Vor dem ersten echten Reklassifikations-Mail-Versand
+(also vor dem ersten Kunden mit ≥ 5 Bewertungen die das Profil
+spürbar driftet) — und vor jedem geplanten Onboarding-Mail-Versand.
+
+**Aufwand.** ~30 min Resend + DNS, plus DNS-Propagation-Wartezeit.
