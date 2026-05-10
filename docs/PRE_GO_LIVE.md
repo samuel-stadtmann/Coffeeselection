@@ -137,3 +137,81 @@ wieder kommen, je nach Coffee-Anzahl deutlich groesser.
 **Aufwand.** Wenige Minuten — aber Plan-Upgrade ist eine Cost-Decision.
 
 ---
+
+## P5 — Dead Code aufraeumen: `coffees` / `roasters` in `lib/taste-types.ts`
+
+**Problem.** Die statische Datei `lib/taste-types.ts` (261 Zeilen)
+enthaelt pro Geschmackstyp ein `coffees: [...]`-Array und ein
+`roasters: [...]`-Array mit jeweils 3 Fake-Eintraegen (Names wie
+"Brasil Cerrado · Miro Coffee · CHF 22 · matchScore 95"). Diese Daten
+werden nirgends in der UI angezeigt — alle Coffee- und Roaster-Listen
+kommen aus der DB ueber `getCoffeesForTasteType`.
+
+**Fix.** Die beiden Arrays aus `lib/taste-types.ts` ersatzlos streichen,
+inklusive der Felder im `TasteType`-Type. Pruefen dass die Importe in
+`app/match-result/page.tsx` und `app/account/dashboard/page.tsx` (nur
+`type TasteType`) durch das schmalere Interface gluecklich bleiben.
+
+**Trigger.** Beliebig — kein User-Impact, nur Code-Hygiene. Idealer
+Pickup-Task wenn jemand neu in den Code reinschaut.
+
+**Aufwand.** ~10 min.
+
+---
+
+## P6 — `taste_types` DB-Tabelle als Single-Source-Of-Truth
+
+**Problem.** Aktuell ist die Beschreibung der 8 Geschmackstypen
+**doppelt vorhanden**: einmal in der DB (`taste_types.name_de`,
+`description_de`, `aroma_families`, `acidity/body/sweetness/...`) und
+einmal in `lib/taste-types.ts` (`name`, `tagline`, `heroDesc`,
+`longDesc`, `aromas`, `profile`-Achsen, `brewing`).
+
+Die statischen Strings sind handgeschriebenes Marketing-Copy und
+detaillierter als die DB-Felder — aber: wenn Mattia oder ein
+Roaster die DB-Werte aendert (z.B. `aroma_families` erweitert), faellt
+das *auf der Website nicht auf* — die Aromas kommen weiterhin aus
+`lib/taste-types.ts`. Gleichzeitig **aendert sich aber das
+`taste_embedding`** im Onboarding via `embedding_seed_text`, und damit
+das Match-Ranking. Folge: Beschreibung und Empfehlung driften
+auseinander, ohne dass es jemand merkt.
+
+**Fix-Optionen.**
+- **Option A (klein, schnell):** DB-Felder ergaenzen
+  (`tagline_de`, `hero_desc_de`, `long_desc_de`, `brewing_methods text[]`,
+  `seo_title_de`, `seo_description_de`, `seo_keywords text[]`),
+  Marketing-Copy einmalig ruebermigrieren, `lib/taste-types.ts` durch
+  einen DB-Query in `lib/db/taste-types.ts` ersetzen. Pages bleiben
+  Server-Components, `generateStaticParams` zieht aus DB.
+- **Option B (gross):** statisches Build-Step (Next.js `generateStaticParams` +
+  ISR mit Revalidation-Tag), sodass DB-Aenderungen automatisch in die
+  statische Generierung einfliessen.
+
+**Trigger.** Vor dem ersten Roaster der Geschmackstyp-Inhalte selbst
+pflegen koennen soll, oder vor erster Marketing-Iteration.
+
+**Aufwand.** Option A ~3-4 h. Option B ~6-8 h.
+
+---
+
+## P7 — Sensorik-Skala-Konflikt: Code 0-100 vs DB 1-5
+
+**Problem.** `lib/taste-types.ts` hat `profile: [{ label: "Saeure",
+value: 50 }, ...]` mit Werten **0-100**. Die DB-Tabellen
+`taste_types`, `coffees`, `coffee_ratings` (Achsen `acidity_perceived`
+etc.) verwenden alle die SCA-Skala **1-5**. Die Recommender-Logik
+in `lib/db/recommendations.ts` arbeitet auf 1-5.
+
+Der 0-100-Code-Wert ist nur ein Visual-Effekt fuer die Geschmackstyp-
+Detail-Page (Progress-Bars). Die Mathematik laeuft komplett auf 1-5.
+
+**Fix.** Beim Refactoring (P6) konsequent auf 1-5 umstellen und im
+JSX `value * 20` rechnen falls man optisch 0-100% Bars haben will.
+Damit gibt es nur eine Wahrheit.
+
+**Trigger.** Im selben Schritt wie P6 — sonst haben wir es zweimal
+angefasst.
+
+**Aufwand.** ~30 min on top of P6.
+
+---
