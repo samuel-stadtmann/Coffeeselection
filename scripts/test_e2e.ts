@@ -105,21 +105,22 @@ async function main() {
   }
   const authUserId = authData.user.id;
 
+  // Ein DB-Trigger legt die customers-Row automatisch beim Auth-User an.
+  // Wir laden die existierende Row und updaten sie auf das Test-Profil.
   const { data: customer, error: custErr } = await sb
     .from("customers")
-    .insert({
-      auth_user_id: authUserId,
-      email: TEST_EMAIL,
+    .update({
       first_name: "E2E",
       last_name: "Test",
       taste_type_id: TASTE_TYPE_ID,
       confidence: 0.85,
       num_ratings_given: 0,
     })
+    .eq("auth_user_id", authUserId)
     .select("id")
     .single();
   if (custErr || !customer) {
-    console.error("Cannot create customer:", custErr);
+    console.error("Cannot prepare customer:", custErr);
     await sb.auth.admin.deleteUser(authUserId).catch(() => {});
     return 1;
   }
