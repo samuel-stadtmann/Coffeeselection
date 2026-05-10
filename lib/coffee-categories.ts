@@ -11,6 +11,8 @@ export type CoffeeDetail = {
   origin: string;
   price: string;
   matchScore: number;
+  /** 1-Satz-Pitch aus der DB; faellt auf die Type-Tagline zurueck wenn null. */
+  shortDescription: string | null;
   tasteTypes: TasteType[];
 };
 
@@ -248,6 +250,7 @@ export async function getCoffeesForCategory(cat: CoffeeCategory): Promise<Coffee
         origin: c.origin_name ?? "",
         price: `CHF ${c.price_chf.toFixed(2)}`,
         matchScore: matchPct,
+        shortDescription: c.short_description ?? c.tasting_summary ?? null,
         tasteTypes: [ft.type],
       });
     }

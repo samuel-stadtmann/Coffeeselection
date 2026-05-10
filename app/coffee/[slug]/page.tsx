@@ -131,7 +131,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                         {c.name}
                       </h3>
                       <p className="text-xs text-on-surface-variant mb-3">{c.roaster}</p>
-                      <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.tasteTypes[0]?.tagline}</p>
+                      <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.shortDescription ?? c.tasteTypes[0]?.tagline ?? ""}</p>
                       <div className="flex justify-between items-center pt-4 border-t border-surface-container">
                         <span className="font-headline font-bold text-primary text-lg">{c.price}</span>
                         <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary group-hover:translate-x-1 transition-transform">
