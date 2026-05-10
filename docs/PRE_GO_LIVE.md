@@ -243,3 +243,32 @@ oder spaetestens vor dem ersten Public-Launch.
 **Aufwand.** ~1 h (Migration mit FK-Updates ist der teure Teil).
 
 ---
+
+## P9 — E2E-Test ergaenzen: HTTP-Layer + Hard-Filter Edge-Case
+
+**Stand.** `scripts/test_e2e.ts` deckt den M5b/M5c-Pfad direkt via
+service_role + getCoffeesForTasteType ab (Embedding-Generation,
+Hybrid-Recommendation, Rating-Drift). Was fehlt:
+
+1. **HTTP-Round-Trip durch /api/quiz/submit, /api/recommendation/next,
+   /api/rating/submit.** Diese Routes sind Cookie-Auth-bound. Aktueller
+   Test umgeht sie. Vorschlag: Playwright-basierter Test der einen
+   Test-Browser-Kontext oeffnet, sich mit Test-Account einloggt, dann
+   die drei Endpoints aufruft und die DB-Effekte verifiziert.
+
+2. **Scenario 2 — Edge-Case "kein passender Coffee".** Playbook 9.11
+   wollte einen Test mit sehr restriktivem Customer (z.B. mehrere
+   Allergene, alle Top-Coffees in Cooldown) und Pruefung der
+   Fallback-Cascade. Setzt das Hard-Filter-System aus 9.8 voraus
+   (= P1).
+
+**Trigger.**
+- HTTP-E2E: bevor das Frontend grosse Refactorings am Quiz/Reco-Flow
+  macht — sonst merken wir Regressions erst im Browser.
+- Scenario 2: nachdem P1 erledigt ist (Ranking-Function aktiv).
+
+**Aufwand.**
+- HTTP-E2E: ~3-4 h (Playwright Setup + 3 Tests).
+- Scenario 2: ~1 h on top von P1.
+
+---
