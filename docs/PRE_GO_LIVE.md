@@ -118,62 +118,39 @@ Coffees statt Fake-Daten.
 
 ---
 
-## P6 — `taste_types` DB-Tabelle als Single-Source-Of-Truth
+## ~~P6+P7 — `taste_types` als Single-Source-Of-Truth + Skala vereinheitlicht~~ ✅ erledigt
 
-**Problem.** Aktuell ist die Beschreibung der 8 Geschmackstypen
-**doppelt vorhanden**: einmal in der DB (`taste_types.name_de`,
-`description_de`, `aroma_families`, `acidity/body/sweetness/...`) und
-einmal in `lib/taste-types.ts` (`name`, `tagline`, `heroDesc`,
-`longDesc`, `aromas`, `profile`-Achsen, `brewing`).
+DB ist jetzt die einzige Wahrheit fuer Geschmackstypen. Drei
+Migrations am 2026-05-10 (`20260510200000`, `_210000_fix_slugs_reseed`,
+`_220000_real_umlauts`):
 
-Die statischen Strings sind handgeschriebenes Marketing-Copy und
-detaillierter als die DB-Felder — aber: wenn Mattia oder ein
-Roaster die DB-Werte aendert (z.B. `aroma_families` erweitert), faellt
-das *auf der Website nicht auf* — die Aromas kommen weiterhin aus
-`lib/taste-types.ts`. Gleichzeitig **aendert sich aber das
-`taste_embedding`** im Onboarding via `embedding_seed_text`, und damit
-das Match-Ranking. Folge: Beschreibung und Empfehlung driften
-auseinander, ohne dass es jemand merkt.
+- 9 neue Spalten in `taste_types`: `tagline_de`, `icon`,
+  `hero_desc_de`, `long_desc_de`, `aromas_de`, `brewing_methods`,
+  `seo_title_de`, `seo_description_de`, `seo_keywords`.
+- DB-Slugs auf Deutsch normiert (`classic` -> `der-klassiker` etc.),
+  damit Frontend-URLs konsistent sind.
+- Marketing-Copy aus dem alten `lib/taste-types.ts` reinmigriert,
+  inklusive echter Umlaute.
 
-**Fix-Optionen.**
-- **Option A (klein, schnell):** DB-Felder ergaenzen
-  (`tagline_de`, `hero_desc_de`, `long_desc_de`, `brewing_methods text[]`,
-  `seo_title_de`, `seo_description_de`, `seo_keywords text[]`),
-  Marketing-Copy einmalig ruebermigrieren, `lib/taste-types.ts` durch
-  einen DB-Query in `lib/db/taste-types.ts` ersetzen. Pages bleiben
-  Server-Components, `generateStaticParams` zieht aus DB.
-- **Option B (gross):** statisches Build-Step (Next.js `generateStaticParams` +
-  ISR mit Revalidation-Tag), sodass DB-Aenderungen automatisch in die
-  statische Generierung einfliessen.
+Code-Refactor:
+- `lib/db/taste-types.ts` mit async `getTasteTypes()`,
+  `getTasteTypeBySlug()`, `getTasteTypeById()`. Skala 1-5 -> 0-100
+  (mal 20) wird hier zentral gerechnet (P7 erledigt).
+- `/api/taste-types` GET-Endpoint mit Cache-Control fuer
+  Client-Komponenten die Bedarf haben.
+- `lib/taste-types.ts` geloescht. `lib/taste-types-map.ts` reduziert
+  auf nur das statische ID<->Slug-Mapping.
+- Alle Consumer (taste-types-Seiten, dashboard, match-result,
+  alternatives, coffee-categories) ziehen die Daten jetzt async
+  aus der DB.
 
-**Trigger.** Vor dem ersten Roaster der Geschmackstyp-Inhalte selbst
-pflegen koennen soll, oder vor erster Marketing-Iteration.
-
-**Aufwand.** Option A ~3-4 h. Option B ~6-8 h.
+Damit kann Mattia ab sofort Texte/Aromen/Brewing direkt in
+`taste_types` aendern — Frontend spiegelt das beim naechsten
+Page-Load.
 
 ---
 
-## P7 — Sensorik-Skala-Konflikt: Code 0-100 vs DB 1-5
 
-**Problem.** `lib/taste-types.ts` hat `profile: [{ label: "Saeure",
-value: 50 }, ...]` mit Werten **0-100**. Die DB-Tabellen
-`taste_types`, `coffees`, `coffee_ratings` (Achsen `acidity_perceived`
-etc.) verwenden alle die SCA-Skala **1-5**. Die Recommender-Logik
-in `lib/db/recommendations.ts` arbeitet auf 1-5.
-
-Der 0-100-Code-Wert ist nur ein Visual-Effekt fuer die Geschmackstyp-
-Detail-Page (Progress-Bars). Die Mathematik laeuft komplett auf 1-5.
-
-**Fix.** Beim Refactoring (P6) konsequent auf 1-5 umstellen und im
-JSX `value * 20` rechnen falls man optisch 0-100% Bars haben will.
-Damit gibt es nur eine Wahrheit.
-
-**Trigger.** Im selben Schritt wie P6 — sonst haben wir es zweimal
-angefasst.
-
-**Aufwand.** ~30 min on top of P6.
-
----
 
 ## ~~P8 — Demo-UUIDs durch echte UUIDs~~ ✅ erledigt
 
