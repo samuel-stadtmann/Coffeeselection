@@ -146,7 +146,7 @@ export default function CoffeeActions({
             className={overrideClass}
             title={
               verified
-                ? "Override entziehen — Coffee wird wieder nur ueber automatischen Score empfohlen (-2 Bonus)."
+                ? "Override entziehen — Coffee wird wieder nur über automatischen Score empfohlen (-2 Bonus)."
                 : "Manuell freigeben trotz Score < 75. Setzt data_verified_at + bringt +2 Score-Bonus."
             }
           >
