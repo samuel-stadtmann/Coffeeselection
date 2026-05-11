@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createServiceClient } from "@/lib/supabase/service";
 import VerifyToggle from "./VerifyToggle";
+import StatusActions from "./StatusActions";
 
 export const metadata: Metadata = {
   title: "Admin · Coffees — Coffee Selection",
@@ -22,6 +23,13 @@ type CoffeeRow = {
   roaster: { name: string } | { name: string }[] | null;
 };
 
+const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
+  draft: { label: "Entwurf", cls: "bg-amber-100 text-amber-900" },
+  active: { label: "Live", cls: "bg-emerald-100 text-emerald-800" },
+  paused: { label: "Pausiert", cls: "bg-stone-100 text-stone-700" },
+  discontinued: { label: "Auslauf", cls: "bg-rose-100 text-rose-900" },
+};
+
 export default async function AdminCoffeesPage() {
   const sb = createServiceClient();
   const { data, error } = await sb
@@ -30,6 +38,7 @@ export default async function AdminCoffeesPage() {
       "id, slug, name, status, roast_level, price_chf, weight_g, data_quality_score, data_verified_at, data_verified_by, roaster:roasters(name)"
     )
     .is("deleted_at", null)
+    .order("status", { ascending: true })          // drafts zuerst
     .order("name");
 
   if (error) {
@@ -41,22 +50,41 @@ export default async function AdminCoffeesPage() {
   }
 
   const rows = (data ?? []) as CoffeeRow[];
+  const drafts = rows.filter((r) => r.status === "draft");
+  const others = rows.filter((r) => r.status !== "draft");
 
   return (
     <>
-      <div className="mb-8">
-        <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
-          Sortiment · Verifikation
-        </span>
-        <h1 className="text-4xl md:text-5xl text-primary uppercase tracking-tight font-headline font-bold mb-4">
-          Coffees verwalten
-        </h1>
-        <p className="text-on-surface-variant max-w-2xl text-sm">
-          {rows.length} Coffees im Sortiment. Verifiziere einen Coffee nach
-          eigener Verkostung — verifizierte Coffees bekommen +2 auf
-          data_quality_score (Playbook 8.4).
-        </p>
+      <div className="flex justify-between items-end mb-8 gap-4 flex-wrap">
+        <div>
+          <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
+            Sortiment · Freigabe & Verifikation
+          </span>
+          <h1 className="text-4xl md:text-5xl text-primary uppercase tracking-tight font-headline font-bold mb-2">
+            Coffees verwalten
+          </h1>
+          <p className="text-on-surface-variant text-sm max-w-2xl">
+            {rows.length} Coffees insgesamt · {drafts.length} im Entwurf ·
+            {" "}{rows.filter((r) => r.status === "active").length} live.
+          </p>
+        </div>
+        <Link
+          href="/admin/coffees/new"
+          className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
+        >
+          + Neuer Coffee
+        </Link>
       </div>
+
+      {drafts.length > 0 && (
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-8">
+          <p className="text-sm text-amber-900">
+            <strong>{drafts.length} Coffee{drafts.length === 1 ? "" : "s"} im Entwurf</strong> —
+            review die Daten und gib sie frei (status → active), sobald die
+            Qualität stimmt.
+          </p>
+        </div>
+      )}
 
       <div className="bg-white shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
@@ -71,25 +99,24 @@ export default async function AdminCoffeesPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((c) => {
+            {[...drafts, ...others].map((c) => {
               const roaster = Array.isArray(c.roaster) ? c.roaster[0] : c.roaster;
               const verified = Boolean(c.data_verified_at);
               const verifiedDate = c.data_verified_at
                 ? new Date(c.data_verified_at).toLocaleDateString("de-CH")
                 : null;
+              const statusInfo = STATUS_LABEL[c.status] ?? { label: c.status, cls: "bg-stone-100" };
               return (
-                <tr key={c.id} className="border-b border-primary/5">
+                <tr key={c.id} className={"border-b border-primary/5 " + (c.status === "draft" ? "bg-amber-50/30" : "")}>
                   <td className="px-4 py-3 font-bold">
-                    <Link href={`/coffee/${c.slug}`} className="hover:text-tertiary">
+                    <Link href={`/coffee/${c.slug}`} className="hover:text-tertiary" target="_blank">
                       {c.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-on-surface-variant">
-                    {roaster?.name ?? "—"}
-                  </td>
+                  <td className="px-4 py-3 text-on-surface-variant">{roaster?.name ?? "—"}</td>
                   <td className="px-4 py-3">
-                    <span className="font-headline text-[10px] uppercase tracking-widest">
-                      {c.status}
+                    <span className={"font-headline text-[10px] uppercase tracking-widest font-bold px-2 py-1 " + statusInfo.cls}>
+                      {statusInfo.label}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -107,7 +134,10 @@ export default async function AdminCoffeesPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <VerifyToggle coffeeId={c.id} verified={verified} />
+                    <div className="flex flex-col items-end gap-2">
+                      <StatusActions coffeeId={c.id} status={c.status as "draft" | "active" | "paused" | "discontinued"} />
+                      <VerifyToggle coffeeId={c.id} verified={verified} />
+                    </div>
                   </td>
                 </tr>
               );
@@ -115,7 +145,7 @@ export default async function AdminCoffeesPage() {
             {rows.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-on-surface-variant italic">
-                  Keine Coffees im Sortiment.
+                  Noch keine Coffees. Click „Neuer Coffee" oben.
                 </td>
               </tr>
             )}
@@ -124,9 +154,7 @@ export default async function AdminCoffeesPage() {
       </div>
 
       <p className="text-xs text-on-surface-variant mt-8">
-        Verifikation: +2 auf data_quality_score (Trigger
-        <code className="bg-white px-1.5 py-0.5">trg_coffees_verification_bonus</code>).
-        Entzug der Verifikation bringt -2.
+        Workflow: Entwurf → review → Freigeben (status → active) → optional verifizieren (+2 quality).
       </p>
     </>
   );
