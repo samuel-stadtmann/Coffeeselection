@@ -26,6 +26,7 @@ Aus `validateCoffee()` in `lib/coffee/form-helpers.ts`:
 
 - **`is_decaf` + `decaf_method`-Konsistenz** — Decaf-Kunden bekommen sonst keinen Treffer
 - **Konsistenz-Plausibilitäten** (Light + hohe Bitterkeit, Dunkel + max Säure, …) — UX-Hilfe, nicht algorithmisch
+- **`roast_profile`** (espresso / filter / omni) — wird seit Migration `20260512100000` direkt vom Algo gelesen für Brewing-Match-Bonus. Default 'omni' bekommt immer Bonus, sonst nur bei Match zur Kunden-Bruehmethode aus Quiz Frage 1.
 
 ## Score-Boni (Form lässt durch, aber `data_quality_score` sinkt)
 

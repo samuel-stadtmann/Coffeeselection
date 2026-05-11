@@ -153,7 +153,13 @@ export async function persistQuizForCurrentUser(
     })
     .eq("id", response.id);
 
-  // 5) customers updaten
+  // 5) customers updaten — nur taste-type-Felder.
+  //
+  // NICHT abgeleitet: Frage 9 (Magen-Empfindlichkeit / Säuretoleranz).
+  // Semantisch waere requires_decaf falsch — Saeure-Empfindlichkeit ist
+  // NICHT gleich Koffein-Empfindlichkeit. Die richtige Mappung waere eine
+  // neue Spalte `prefers_low_acidity` plus Integration in das Soft-Scoring
+  // (Target-Profile-Adjustment). Bewusst aufgeschoben — separater PR.
   await supabase
     .from("customers")
     .update({
@@ -162,6 +168,56 @@ export async function persistQuizForCurrentUser(
       confidence,
     })
     .eq("id", customer.id);
+
+  // 5b) Frage 1 (Bruehmethode) -> customer_brewing_methods (n:m mit Catalog).
+  //     Mapping Quiz-answer_code -> brewing_methods_catalog.slug.
+  //     Wir setzen genau einen Eintrag als is_primary=true (Partial Unique
+  //     Index erlaubt nur einen).
+  const brewingAnswer = answers.find(
+    (a) => a.question_code === "question-1-brewing-method"
+  )?.answer_code;
+  const slugByAnswer: Record<string, string> = {
+    vollautomat: "fully_auto",
+    siebtraeger: "espresso",
+    "v60-filter": "v60",
+    "french-press": "frenchpress",
+    "moka-pot": "moka",
+  };
+  const brewingSlug = brewingAnswer ? slugByAnswer[brewingAnswer] : undefined;
+  if (brewingSlug) {
+    // Catalog-ID nachschlagen
+    const { data: bm } = await supabase
+      .from("brewing_methods_catalog")
+      .select("id")
+      .eq("slug", brewingSlug)
+      .maybeSingle();
+    if (bm?.id) {
+      // Bestehende primary deaktivieren (Re-Quiz-Fall)
+      await supabase
+        .from("customer_brewing_methods")
+        .update({ is_primary: false })
+        .eq("customer_id", customer.id)
+        .eq("is_primary", true);
+      // Upsert auf (customer_id, brewing_method_id)
+      await supabase
+        .from("customer_brewing_methods")
+        .upsert(
+          {
+            customer_id: customer.id,
+            brewing_method_id: bm.id,
+            is_primary: true,
+            frequency: "daily",
+          },
+          { onConflict: "customer_id,brewing_method_id" }
+        );
+    } else {
+      console.warn(
+        "[quiz] brewing_methods_catalog slug not found:",
+        brewingSlug,
+        "— customer_brewing_methods not updated"
+      );
+    }
+  }
 
   // 6) Embedding-Generation triggern (fire-and-forget, blockiert die Quiz-Antwort nicht).
   //    Edge Function build-customer-embedding berechnet das taste_embedding aus
