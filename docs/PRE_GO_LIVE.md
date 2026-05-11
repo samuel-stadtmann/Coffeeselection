@@ -274,3 +274,29 @@ Damit:
 **Trigger.** Direkt nach P11 (Domain live).
 
 **Aufwand.** ~10 min + DNS-Propagation.
+
+---
+
+## P13 — Roaster-Self-Onboarding-UI (Playbook 8.4 M1+M2)
+
+**Stand.** Wir haben heute (2026-05-10) Massnahme 3 aus 8.4 umgesetzt:
+Admin-Verifikations-Tooling unter `/admin/coffees` mit +2-Quality-Bonus.
+Offen bleiben:
+
+- **Massnahme 1 — Onboarding-Guide:** PDF/Markdown-Doku die jedem
+  neuen Roaster erklärt wie er die 1-5-Skalen interpretiert. Säure 1
+  = "wie Sumatra Mandheling", Säure 5 = "wie äthiopischer
+  Yirgacheffe washed". Reine Doku-Arbeit, ~2 h.
+
+- **Massnahme 2 — Konsistenzvalidierung im Frontend:** Roaster-Self-
+  Service-Formular um Coffees selbst anzulegen. Validiert
+  unplausible Kombinationen mit Inline-Warnungen
+  („Light Roast + Bitterkeit 5 → Bist du sicher?"). Plus
+  Draft/Submit/Review-Workflow weil das Frontend dann Roaster-
+  Zugang braucht (eigener Auth-Pfad).
+
+**Trigger.** Sobald wir mehr als 2-3 Röster onboarden wollen ohne
+selbst jeden Coffee einzupflegen.
+
+**Aufwand.** Massnahme 1: ~2 h Copy. Massnahme 2: 6-10 h für ein
+robustes Formular mit Validation + Roaster-Auth.
