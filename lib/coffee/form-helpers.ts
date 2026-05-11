@@ -20,39 +20,61 @@ export const SENSORY_AXES: Array<{
   key: SensoryAxisKey;
   label: string;
   hint1: string;
-  hint5: string;
+  hint10: string;
 }> = [
   {
     key: "acidity",
     label: "Säure",
-    hint1: "1 = praktisch keine Säure (Sumatra Mandheling)",
-    hint5: "5 = sehr lebendige Säure (Yirgacheffe washed)",
+    hint1: "1-2 = praktisch keine Säure (Sumatra Mandheling)",
+    hint10: "9-10 = sehr lebendige Säure (Yirgacheffe washed)",
   },
   {
     key: "body",
     label: "Körper",
-    hint1: "1 = wässrig / leicht wie Tee",
-    hint5: "5 = sirupartig dicht / vollmundig",
+    hint1: "1-2 = wässrig / leicht wie Tee",
+    hint10: "9-10 = sirupartig dicht / vollmundig",
   },
   {
     key: "sweetness",
     label: "Süße",
-    hint1: "1 = trocken, keine wahrnehmbare Süße",
-    hint5: "5 = honig-/karamellartig süß",
+    hint1: "1-2 = trocken, keine wahrnehmbare Süße",
+    hint10: "9-10 = honig-/karamellartig süß",
   },
   {
     key: "bitterness",
     label: "Bitterkeit",
-    hint1: "1 = sehr milde Bitterkeit",
-    hint5: "5 = stark bitter (über-extrahierte Espresso-Note)",
+    hint1: "1-2 = sehr milde Bitterkeit",
+    hint10: "9-10 = stark bitter (über-extrahierte Espresso-Note)",
   },
   {
     key: "complexity",
     label: "Komplexität",
-    hint1: "1 = eine dominante Note (z.B. nur Schokolade)",
-    hint5: "5 = vielschichtig (mehrere klare Noten in Reihenfolge)",
+    hint1: "1-2 = eine dominante Note (z.B. nur Schokolade)",
+    hint10: "9-10 = vielschichtig (mehrere klare Noten in Reihenfolge)",
   },
 ];
+
+/**
+ * Roester arbeiten mit der branchen-üblichen 1-10-Skala (10er-Cupping-Bogen).
+ * Die DB + der Algorithmus arbeiten intern mit der SCA-1-5-Skala.
+ * Mapping: 1+2 -> 1, 3+4 -> 2, 5+6 -> 3, 7+8 -> 4, 9+10 -> 5.
+ *
+ * Math.ceil(v / 2) macht genau das, mit Clamp auf [1, 5].
+ */
+export function tenToFive(v: number): number {
+  if (!Number.isFinite(v)) return 3;
+  return Math.max(1, Math.min(5, Math.ceil(v / 2)));
+}
+
+/**
+ * Rückwärtsweg fürs Edit-Form: 1-5 -> mittlerer Wert auf 1-10
+ *   1 -> 2, 2 -> 4, 3 -> 6, 4 -> 8, 5 -> 10
+ * Verlustbehaftet (wir kennen den Original-1-10-Wert nicht mehr).
+ */
+export function fiveToTen(v: number | null | undefined): number {
+  if (v == null || !Number.isFinite(v)) return 6;
+  return Math.max(1, Math.min(10, v * 2));
+}
 
 export const ROAST_LEVELS: Array<{ value: number; label: string; hint: string }> = [
   { value: 1, label: "Light", hint: "Hell — z.B. nordischer Filterstil" },
@@ -118,7 +140,8 @@ export type CoffeeFormState = {
   roast_profile: "espresso" | "filter" | "omni";
   is_decaf: boolean;
   decaf_method: "swiss_water" | "co2" | "sugarcane_ea" | "solvent_ea" | "other" | "";
-  // Sensorik 1-5 (Pflicht fuer Algorithmus)
+  // Sensorik im Form 1-10 (Roester-Cupping-Bogen). Wird beim Submit
+  // via tenToFive() auf 1-5 normalisiert bevor's in die DB geht.
   acidity: number;
   body: number;
   sweetness: number;
@@ -166,11 +189,11 @@ export function emptyCoffeeForm(): CoffeeFormState {
     roast_profile: "omni",
     is_decaf: false,
     decaf_method: "",
-    acidity: 3,
-    body: 3,
-    sweetness: 3,
-    bitterness: 3,
-    complexity: 3,
+    acidity: 6,
+    body: 6,
+    sweetness: 6,
+    bitterness: 6,
+    complexity: 6,
     aroma_families: [],
     price_chf: null,
     weight_g: 250,
@@ -227,29 +250,29 @@ export function validateCoffee(c: CoffeeFormState): ValidationIssue[] {
     issues.push({ field: "weight_g", severity: "error", message: "Gewicht in Gramm ist Pflicht." });
   }
 
-  // Konsistenz-Warnungen
+  // Konsistenz-Warnungen — alle Sensorik-Werte hier sind 1-10.
   // Light Roast + Bitterkeit hoch
-  if (c.roast_level <= 2 && c.bitterness >= 4) {
+  if (c.roast_level <= 2 && c.bitterness >= 8) {
     issues.push({
       field: "bitterness",
       severity: "warn",
-      message: `Light/Medium-Light Röstung (${c.roast_level}) und Bitterkeit ${c.bitterness}/5 — ist das wirklich so? Helle Röstungen haben üblicherweise wenig Bitterkeit.`,
+      message: `Light/Medium-Light Röstung (${c.roast_level}/5) und Bitterkeit ${c.bitterness}/10 — ist das wirklich so? Helle Röstungen haben üblicherweise wenig Bitterkeit.`,
     });
   }
   // Dark Roast + sehr hohe Säure
-  if (c.roast_level >= 4 && c.acidity >= 5) {
+  if (c.roast_level >= 4 && c.acidity >= 9) {
     issues.push({
       field: "acidity",
       severity: "warn",
-      message: `Dunkle Röstung (${c.roast_level}) und Säure 5/5 — ungewöhnlich, dunkle Röstungen reduzieren Säure.`,
+      message: `Dunkle Röstung (${c.roast_level}/5) und Säure ${c.acidity}/10 — ungewöhnlich, dunkle Röstungen reduzieren Säure.`,
     });
   }
   // Sehr volle Süße + sehr hohe Bitterkeit
-  if (c.sweetness >= 5 && c.bitterness >= 5) {
+  if (c.sweetness >= 9 && c.bitterness >= 9) {
     issues.push({
       field: "sweetness",
       severity: "warn",
-      message: "Süße 5 UND Bitterkeit 5 schließen sich sensorisch oft aus — bitte nochmal prüfen.",
+      message: `Süße ${c.sweetness}/10 UND Bitterkeit ${c.bitterness}/10 schließen sich sensorisch oft aus — bitte nochmal prüfen.`,
     });
   }
   // Decaf-Konsistenz

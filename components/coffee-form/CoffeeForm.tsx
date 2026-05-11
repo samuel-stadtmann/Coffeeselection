@@ -8,8 +8,8 @@ import {
   type CoffeeFormState,
   ROAST_LEVELS,
   SENSORY_AXES,
-  type ValidationIssue,
   slugify,
+  tenToFive,
   validateCoffee,
 } from "@/lib/coffee/form-helpers";
 
@@ -89,10 +89,20 @@ export default function CoffeeForm({
 
     setSubmitting(true);
     try {
+      // Sensorik-Achsen kommen im Form als 1-10 (Roester-Cupping-Skala),
+      // die DB will 1-5 (SCA). Konvertieren bevor wir senden.
+      const payload = {
+        ...s,
+        acidity: tenToFive(s.acidity),
+        body: tenToFive(s.body),
+        sweetness: tenToFive(s.sweetness),
+        bitterness: tenToFive(s.bitterness),
+        complexity: tenToFive(s.complexity),
+      };
       const res = await fetch(submitEndpoint, {
         method: submitMethod,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(s),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string; details?: unknown };
@@ -128,13 +138,17 @@ export default function CoffeeForm({
             placeholder="z.B. Yirgacheffe Reko Washed"
           />
         </Field>
-        <Field label="Slug (URL-Fragment) *" hint="Klein, Bindestriche, keine Umlaute.">
+        <Field
+          label="Slug (URL-Fragment) *"
+          hint='Wird Teil der URL: coffeeselection.ch/coffee/<slug>. Nur Kleinbuchstaben, Zahlen und Bindestriche. Keine Leerzeichen, Umlaute oder Sonderzeichen. Beispiel: "yirgacheffe-reko-washed". Wird automatisch aus dem Namen erzeugt — kannst du aber überschreiben.'
+        >
           <input
             type="text"
             value={s.slug}
             onChange={(e) => setS({ ...s, slug: e.target.value })}
             required
             className="form-input font-mono text-sm"
+            placeholder="z.B. yirgacheffe-reko-washed"
           />
         </Field>
         <Field label="Röster *">
@@ -195,31 +209,41 @@ export default function CoffeeForm({
         </Field>
       </Section>
 
-      {/* Sensorik 1-5 */}
+      {/* Sensorik — Eingabe 1-10 (Roester-Cupping), wird zu 1-5 fuer Algorithmus konvertiert */}
       <Section
-        title="Sensorik (SCA-Skala 1–5)"
-        sub="Das Herz des Algorithmus. Diese fünf Achsen bestimmen welchem Geschmackstyp der Coffee passt."
+        title="Sensorik (Cupping-Skala 1–10)"
+        sub="Das Herz des Algorithmus. Eingabe in der branchenüblichen 1-10-Skala. Wird beim Speichern automatisch auf die SCA-Skala 1-5 normalisiert (1+2→1, 3+4→2, 5+6→3, 7+8→4, 9+10→5)."
       >
-        {SENSORY_AXES.map((ax) => (
-          <Field
-            key={ax.key}
-            label={`${ax.label}: ${s[ax.key]} / 5`}
-            hint={`${ax.hint1} · ${ax.hint5}`}
-          >
-            <input
-              type="range"
-              min={1}
-              max={5}
-              step={1}
-              value={s[ax.key]}
-              onChange={(e) => setS({ ...s, [ax.key]: Number(e.target.value) } as CoffeeFormState)}
-              className="w-full"
-            />
-            <div className="flex justify-between text-[10px] text-on-surface-variant mt-1">
-              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-            </div>
-          </Field>
-        ))}
+        {SENSORY_AXES.map((ax) => {
+          const value = s[ax.key];
+          const sca = tenToFive(value);
+          return (
+            <Field
+              key={ax.key}
+              label={ax.label}
+              hint={`${ax.hint1} · ${ax.hint10} · entspricht SCA-Wert ${sca}/5 für den Algorithmus`}
+            >
+              <input
+                type="number"
+                min={1}
+                max={10}
+                step={1}
+                value={value}
+                onChange={(e) => {
+                  const raw = Number(e.target.value);
+                  const clamped = Number.isFinite(raw)
+                    ? Math.max(1, Math.min(10, Math.round(raw)))
+                    : 6;
+                  setS({ ...s, [ax.key]: clamped } as CoffeeFormState);
+                }}
+                className="form-input w-24"
+              />
+              <span className="ml-3 text-xs text-on-surface-variant">
+                {value}/10 → SCA {sca}/5
+              </span>
+            </Field>
+          );
+        })}
       </Section>
 
       {/* Aroma-Familien */}
