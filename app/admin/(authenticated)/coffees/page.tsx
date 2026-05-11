@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createServiceClient } from "@/lib/supabase/service";
-import VerifyToggle from "./VerifyToggle";
-import StatusActions from "./StatusActions";
+import CoffeeActions from "./CoffeeActions";
 
 export const metadata: Metadata = {
   title: "Admin · Coffees — Coffee Selection",
@@ -134,10 +133,11 @@ export default async function AdminCoffeesPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex flex-col items-end gap-2">
-                      <StatusActions coffeeId={c.id} status={c.status as "draft" | "active" | "paused" | "discontinued"} />
-                      <VerifyToggle coffeeId={c.id} verified={verified} />
-                    </div>
+                    <CoffeeActions
+                      coffeeId={c.id}
+                      status={c.status as "draft" | "active" | "paused" | "discontinued"}
+                      verified={verified}
+                    />
                   </td>
                 </tr>
               );

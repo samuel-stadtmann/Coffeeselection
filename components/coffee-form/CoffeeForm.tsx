@@ -8,6 +8,7 @@ import {
   type CoffeeFormState,
   ROAST_LEVELS,
   SENSORY_AXES,
+  computeQualityScorePreview,
   slugify,
   tenToFive,
   validateCoffee,
@@ -53,6 +54,7 @@ export default function CoffeeForm({
   const issues = useMemo(() => validateCoffee(s), [s]);
   const errors = issues.filter((i) => i.severity === "error");
   const warnings = issues.filter((i) => i.severity === "warn");
+  const score = useMemo(() => computeQualityScorePreview(s), [s]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -165,6 +167,7 @@ export default function CoffeeForm({
               );
             })}
             <div className="pt-4 mt-4 border-t border-primary/10">
+              <ScoreBox score={score} />
               <Status label="Pflichtfelder" value={errors.length === 0 ? "OK" : `${errors.length} offen`} variant={errors.length === 0 ? "ok" : "alert"} />
               <Status label="Warnungen" value={warnings.length === 0 ? "—" : `${warnings.length}`} variant={warnings.length === 0 ? "ok" : "warn"} />
             </div>
@@ -644,6 +647,54 @@ function Toggle({
       />
       <span className="text-sm">{label}</span>
     </label>
+  );
+}
+
+function ScoreBox({ score }: { score: ReturnType<typeof computeQualityScorePreview> }) {
+  const pct = Math.round((score.total / score.max) * 100);
+  const variant = pct >= 75 ? "ok" : pct >= 50 ? "warn" : "alert";
+  const barCls = variant === "ok" ? "bg-emerald-500" : variant === "warn" ? "bg-amber-500" : "bg-rose-500";
+  const textCls = variant === "ok" ? "text-emerald-700" : variant === "warn" ? "text-amber-700" : "text-rose-700";
+  return (
+    <details className="mb-3">
+      <summary className="cursor-pointer list-none">
+        <div className="flex justify-between items-baseline">
+          <span className="text-[11px] text-on-surface-variant">Quality-Score</span>
+          <span className={"font-bold text-lg " + textCls}>{score.total}/100</span>
+        </div>
+        <div className="h-1.5 bg-primary/10 mt-1">
+          <div className={"h-full " + barCls} style={{ width: `${pct}%` }} />
+        </div>
+        <p className="text-[10px] text-on-surface-variant/60 mt-1">
+          Vorschau · Ziel ≥ 75 für Freigabe · klicken für Details
+        </p>
+      </summary>
+      <div className="mt-3 space-y-3 text-[11px]">
+        {score.groups.map((g) => (
+          <div key={g.label}>
+            <div className="flex justify-between font-bold text-on-surface-variant uppercase tracking-widest text-[10px]">
+              <span>{g.label}</span>
+              <span>{g.earned}/{g.max}</span>
+            </div>
+            <ul className="mt-1 space-y-0.5">
+              {g.items.map((it, i) => (
+                <li key={i} className="flex justify-between gap-2">
+                  <span className={it.earned > 0 ? "text-emerald-700" : "text-on-surface-variant/70"}>
+                    {it.earned > 0 ? "✓" : "○"} {it.label}
+                    {it.reason && (
+                      <span className="block text-[9px] text-on-surface-variant/60 ml-3">
+                        {it.reason}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-on-surface-variant/60">{it.earned}/{it.max}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
 

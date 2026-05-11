@@ -326,3 +326,140 @@ export function slugify(s: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 }
+
+/**
+ * Spiegelt den DB-Trigger public.compute_coffee_quality_score()
+ * 1:1 in JS, damit das Form eine LIVE-Vorschau zeigen kann was die DB
+ * nach dem Speichern als data_quality_score errechnen wird.
+ *
+ * 4 Gruppen × 5 Eintraege × 5 Punkte = 100.
+ *   Basis (40)   — Sensorik 5 Achsen + Roest + Aromen + Flavor-Description >=50 Zeichen
+ *   Herkunft (20) — Origin, Region, Processing, Variety
+ *   Konsistenz (20) — 4 Plausibilitaets-Checks (es gibt Punkte wenn KONSISTENT oder felder leer)
+ *   Optionale Boni (20) — Hoehe, Erntejahr, SCA>=80, Embedding (= nach Save vorhanden)
+ *
+ * Hinweis: Die Sensorik-Achsen sind im Form als 1-10 gespeichert,
+ * werden aber via tenToFive() vor dem Speichern auf 1-5 normalisiert.
+ * Der DB-Trigger prueft IS NOT NULL — er bekommt also nach Save 1-5-Werte.
+ * Da wir das Preview-State 1-10 haben, behandeln wir alles als "gesetzt"
+ * sobald ein Wert da ist (ist immer der Fall im Form).
+ *
+ * flavor_embedding wird erst NACH Save durch den Edge-Function-Webhook
+ * generiert — daher kann der Score in der Preview maximal 95/100 sein.
+ * Nach dem Save aktualisiert die DB den Score auf 100 sobald das
+ * Embedding da ist.
+ */
+export type QualityScoreBreakdown = {
+  total: number;
+  max: number;
+  groups: Array<{
+    label: string;
+    earned: number;
+    max: number;
+    items: Array<{ label: string; earned: number; max: number; reason?: string }>;
+  }>;
+};
+
+export function computeQualityScorePreview(c: CoffeeFormState): QualityScoreBreakdown {
+  // Basis (40)
+  const basis = [
+    { label: "Säure erfasst", earned: c.acidity != null ? 5 : 0, max: 5 },
+    { label: "Körper erfasst", earned: c.body != null ? 5 : 0, max: 5 },
+    { label: "Süße erfasst", earned: c.sweetness != null ? 5 : 0, max: 5 },
+    { label: "Bitterkeit erfasst", earned: c.bitterness != null ? 5 : 0, max: 5 },
+    { label: "Röstgrad erfasst", earned: c.roast_level != null ? 5 : 0, max: 5 },
+    { label: "Komplexität erfasst", earned: c.complexity != null ? 5 : 0, max: 5 },
+    {
+      label: "Aroma-Familien (mind. 1)",
+      earned: c.aroma_families.length >= 1 ? 5 : 0,
+      max: 5,
+      reason: c.aroma_families.length === 0 ? "Noch keine ausgewählt" : undefined,
+    },
+    {
+      label: "Flavor-Description ≥ 50 Zeichen",
+      earned: (c.flavor_description ?? "").length >= 50 ? 5 : 0,
+      max: 5,
+      reason:
+        (c.flavor_description ?? "").length < 50
+          ? `Aktuell ${(c.flavor_description ?? "").length} Zeichen`
+          : undefined,
+    },
+  ];
+
+  // Herkunft (20)
+  const origin = [
+    { label: "Origin gewählt", earned: c.origin_id ? 5 : 0, max: 5 },
+    { label: "Region eingetragen", earned: c.region.trim() ? 5 : 0, max: 5 },
+    { label: "Processing gewählt", earned: c.processing_method_id ? 5 : 0, max: 5 },
+    { label: "Varietät gewählt", earned: c.variety_id ? 5 : 0, max: 5 },
+  ];
+
+  // Konsistenz (20) — Trigger: gib 5 Punkte wenn felder NULL ODER konsistent.
+  // Mapping: Form-Sensorik (1-10) muss auf SCA (1-5) konvertiert werden für die Vergleiche.
+  const rl = c.roast_level;
+  const bit5 = tenToFive(c.bitterness);
+  const acid5 = tenToFive(c.acidity);
+  const aromaSet = new Set(c.aroma_families);
+  const consistency = [
+    {
+      label: "Röstung × Bitterkeit",
+      earned: !(rl <= 2 && bit5 >= 4) ? 5 : 0,
+      max: 5,
+      reason: rl <= 2 && bit5 >= 4 ? "Light/Medium-Light + Bitterkeit hoch unplausibel" : undefined,
+    },
+    {
+      label: "Röstung × Säure",
+      earned: !(rl >= 4 && acid5 === 5) ? 5 : 0,
+      max: 5,
+      reason: rl >= 4 && acid5 === 5 ? "Dunkle Röstung mit max. Säure unplausibel" : undefined,
+    },
+    {
+      label: "Röstung × erdige Aromen",
+      earned: !(rl === 1 && aromaSet.has("earthy")) ? 5 : 0,
+      max: 5,
+      reason: rl === 1 && aromaSet.has("earthy") ? "Light + erdige Aromen unplausibel" : undefined,
+    },
+    {
+      label: "Decaf × Bitterkeit",
+      earned: !(c.is_decaf && bit5 === 5) ? 5 : 0,
+      max: 5,
+      reason: c.is_decaf && bit5 === 5 ? "Decaf + max. Bitterkeit unplausibel" : undefined,
+    },
+  ];
+
+  // Boni (20). flavor_embedding kann erst nach Save erreicht werden.
+  const boni = [
+    { label: "Höhe Min erfasst", earned: c.altitude_m_min != null ? 5 : 0, max: 5 },
+    { label: "Ernte-Jahr erfasst", earned: c.harvest_year != null ? 5 : 0, max: 5 },
+    {
+      label: "SCA-Score ≥ 80",
+      earned: c.sca_score != null && c.sca_score >= 80 ? 5 : 0,
+      max: 5,
+      reason: c.sca_score != null && c.sca_score < 80 ? `${c.sca_score} < 80` : undefined,
+    },
+    {
+      label: "Embedding generiert",
+      earned: 0,
+      max: 5,
+      reason: "Wird nach dem Speichern automatisch erzeugt (+5 nach erstem Save)",
+    },
+  ];
+
+  const groups = [
+    { label: "Pflicht-Basis", items: basis },
+    { label: "Herkunft / Verarbeitung", items: origin },
+    { label: "Konsistenz-Plausibilität", items: consistency },
+    { label: "Optionale Boni", items: boni },
+  ].map((g) => ({
+    label: g.label,
+    items: g.items,
+    earned: g.items.reduce((sum, i) => sum + i.earned, 0),
+    max: g.items.reduce((sum, i) => sum + i.max, 0),
+  }));
+
+  return {
+    total: groups.reduce((sum, g) => sum + g.earned, 0),
+    max: groups.reduce((sum, g) => sum + g.max, 0),
+    groups,
+  };
+}
