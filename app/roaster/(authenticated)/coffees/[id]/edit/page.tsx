@@ -149,6 +149,16 @@ export default async function RoasterEditCoffeePage({
     sweetness: fiveToTen(coffee.sweetness),
     bitterness: fiveToTen(coffee.bitterness),
     complexity: fiveToTen(coffee.complexity),
+    // Edit-Form: existierende DB-Werte gelten als "vom Roester gesetzt"
+    // — sonst muesste der Roester bei jedem bestehenden Coffee jede
+    // Achse neu anfassen.
+    sensory_touched: {
+      acidity: coffee.acidity != null,
+      body: coffee.body != null,
+      sweetness: coffee.sweetness != null,
+      bitterness: coffee.bitterness != null,
+      complexity: coffee.complexity != null,
+    },
     aroma_families: (coffee.aroma_families ?? []) as CoffeeFormState["aroma_families"],
     price_chf: coffee.price_chf ?? null,
     wholesale_price_chf: coffee.wholesale_price_chf ?? null,

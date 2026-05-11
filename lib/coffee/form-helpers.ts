@@ -147,6 +147,17 @@ export type CoffeeFormState = {
   sweetness: number;
   bitterness: number;
   complexity: number;
+  // Pro Achse: hat der User aktiv getoucht? Defaults schon vorhanden, aber
+  // wenn der Roester nichts angefasst hat, ist das ein Fehler — das
+  // Manhattan-Distance-Scoring im Algorithmus braucht echte Werte, nicht
+  // den "Median fuer alle Achsen"-Default.
+  sensory_touched: {
+    acidity: boolean;
+    body: boolean;
+    sweetness: boolean;
+    bitterness: boolean;
+    complexity: boolean;
+  };
   // Aroma-Familien (Algorithmus)
   aroma_families: AromaFamily[];
   // Kommerz
@@ -208,6 +219,13 @@ export function emptyCoffeeForm(): CoffeeFormState {
     sweetness: 6,
     bitterness: 6,
     complexity: 6,
+    sensory_touched: {
+      acidity: false,
+      body: false,
+      sweetness: false,
+      bitterness: false,
+      complexity: false,
+    },
     aroma_families: [],
     price_chf: null,
     wholesale_price_chf: null,
@@ -247,18 +265,47 @@ export function validateCoffee(c: CoffeeFormState): ValidationIssue[] {
   if (!c.name.trim()) issues.push({ field: "name", severity: "error", message: "Name ist Pflicht." });
   if (!c.slug.trim()) issues.push({ field: "slug", severity: "error", message: "Slug ist Pflicht." });
   if (!c.roaster_id) issues.push({ field: "roaster_id", severity: "error", message: "Röster auswählen." });
-  if (!c.flavor_description.trim() && !c.tasting_summary.trim() && !c.short_description.trim()) {
+  // flavor_description: das geht direkt ins OpenAI-Embedding. Unter 100
+  // Zeichen ist die semantische Dichte zu niedrig — Embedding-Qualitaet
+  // faellt deutlich. Mind. 100 Zeichen ist ungefaehr 2-3 saubere Saetze.
+  const flavorLen = c.flavor_description.trim().length;
+  if (flavorLen === 0) {
     issues.push({
       field: "flavor_description",
       severity: "error",
-      message: "Mindestens eine Geschmacks-Beschreibung (flavor_description / tasting_summary / short_description) — das Embedding braucht Text.",
+      message: "Geschmacks-Beschreibung ist Pflicht — das Embedding braucht Text. Mindestens 100 Zeichen, 2–3 Sätze.",
+    });
+  } else if (flavorLen < 100) {
+    issues.push({
+      field: "flavor_description",
+      severity: "error",
+      message: `Geschmacks-Beschreibung zu kurz (${flavorLen} Zeichen). Mindestens 100 Zeichen — sonst ist das Embedding semantisch arm und der Algorithmus matcht schlecht.`,
     });
   }
+  // Aroma-Familien: vom Algorithmus im Soft-Scoring + im Embedding-Text
+  // verwendet. Leer = ~15% Matching-Verlust fuer Aroma-affine Kunden.
   if (c.aroma_families.length === 0) {
     issues.push({
       field: "aroma_families",
-      severity: "warn",
-      message: "Keine Aroma-Familien ausgewählt — der Algorithmus matcht dann nur über die 5 Sensorik-Achsen, ungefährer Match.",
+      severity: "error",
+      message: "Mindestens eine Aroma-Familie wählen — der Algorithmus matcht primär darüber. Ohne Aroma-Familie liefert das Quiz keine guten Empfehlungen für diesen Coffee.",
+    });
+  }
+  // Sensorik-Achsen: alle 5 muessen aktiv eingestellt sein. Defaults (6/10
+  // = 3/5) sind "neutral" und sabotieren das Manhattan-Distance-Scoring.
+  const SENSORY_FIELDS: Array<keyof CoffeeFormState["sensory_touched"]> = [
+    "acidity",
+    "body",
+    "sweetness",
+    "bitterness",
+    "complexity",
+  ];
+  const untouched = SENSORY_FIELDS.filter((k) => !c.sensory_touched[k]);
+  if (untouched.length > 0) {
+    issues.push({
+      field: "sensory",
+      severity: "error",
+      message: `Sensorik-Achse${untouched.length === 1 ? "" : "n"} nicht eingestellt: ${untouched.join(", ")}. Bitte jede Achse aktiv setzen — Defaults verfälschen das Matching.`,
     });
   }
   if (c.price_chf == null || c.price_chf <= 0) {
@@ -494,12 +541,12 @@ function computeQualityScoreCore(c: ScoreCoreInput): QualityScoreBreakdown {
       reason: c.aroma_families.length === 0 ? "Noch keine ausgewählt" : undefined,
     },
     {
-      label: "Flavor-Description ≥ 50 Zeichen",
-      earned: c.flavor_description.length >= 50 ? 5 : 0,
+      label: "Flavor-Description ≥ 100 Zeichen",
+      earned: c.flavor_description.length >= 100 ? 5 : 0,
       max: 5,
       reason:
-        c.flavor_description.length < 50
-          ? `Aktuell ${c.flavor_description.length} Zeichen`
+        c.flavor_description.length < 100
+          ? `Aktuell ${c.flavor_description.length} Zeichen — Embedding-Qualität fällt unter 100 ab`
           : undefined,
     },
   ];
