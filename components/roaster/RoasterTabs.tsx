@@ -3,25 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-/**
- * Tab-Navigation oben in der Admin-Sektion. Aktive-Markierung via
- * usePathname (Client). Tabs sind im Code definiert — wenn wir neue
- * Admin-Bereiche bauen, hier die Eintraege ergaenzen.
- */
 type Tab = { href: string; label: string };
 
 const TABS: Tab[] = [
-  { href: "/admin/metrics", label: "Metriken" },
-  { href: "/admin/coffees", label: "Coffees" },
-  { href: "/admin/roasters", label: "Röster" },
-  { href: "/admin/health", label: "System" },
-  // Zukuenftig:
-  // { href: "/admin/users", label: "Kunden" },
+  { href: "/roaster/dashboard", label: "Übersicht" },
+  { href: "/roaster/coffees", label: "Meine Coffees" },
 ];
 
-export default function AdminTabs() {
+export default function RoasterTabs() {
   const pathname = usePathname();
-
   return (
     <nav className="border-b border-primary/10 mb-12">
       <ul className="flex gap-2 -mb-px">

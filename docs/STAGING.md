@@ -169,7 +169,27 @@ Stable-URL (Punkt 1)
 
 ---
 
-## 7) Was kommt noch (für später)
+## 7) DB-Migrations nach Vercel-Deploy
+
+**Wichtig:** Vercel deployed nur den Next.js-Code, **nicht** Supabase-
+Migrations. Wenn ein PR eine neue `supabase/migrations/*.sql` enthält,
+musst du sie manuell im Supabase SQL Editor ausführen:
+
+1. `supabase/migrations/<timestamp>_*.sql` öffnen, Inhalt kopieren.
+2. Supabase Dashboard → SQL Editor → neuer Query → einfügen → Run.
+3. Bei Erfolg: keine Fehler. Bei Konflikt mit existierenden Migrations
+   meistens `IF NOT EXISTS` / `OR REPLACE`-Schutz drin, also idempotent
+   re-runbar.
+
+**Aktuelle Migrations die noch nicht in Staging-DB sein könnten:**
+- `20260510280000_coffee_verification.sql` (Verifikations-Felder)
+- `20260510290000_wholesale_price.sql` (Einkaufspreis-Spalte)
+- `20260511120000_roaster_users.sql` (Roaster-Portal — P13/P15)
+
+Im Zweifel SQL ausführen und schauen ob Fehler kommen. Bei `IF NOT EXISTS`-
+geschützten Migrations passiert nichts wenn sie schon angewendet wurden.
+
+## 8) Was kommt noch (für später)
 
 - **Baustein C — automatisches Smoke-Test-Skript**:
   `npm run smoke:staging` läuft Playwright durch Login → /admin/coffees

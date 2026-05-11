@@ -646,6 +646,7 @@ export default function HomePage() {
             <Link href="/privacy" className="hover:text-tertiary transition-colors">Privacy</Link>
             <Link href="#" className="hover:text-tertiary transition-colors">Terms</Link>
             <Link href="/contact" className="hover:text-tertiary transition-colors">Kontakt</Link>
+            <Link href="/roaster/login" className="hover:text-tertiary transition-colors">Röster-Portal</Link>
             <AdminFooterLink />
           </div>
         </div>
