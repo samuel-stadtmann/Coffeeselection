@@ -153,17 +153,56 @@ export async function persistQuizForCurrentUser(
     })
     .eq("id", response.id);
 
-  // 5) customers updaten — taste-type + Hartfilter-Flags aus Quiz.
+  // 5) customers updaten — taste-type + alle direkt-wirkenden Quiz-Praefs.
   //
-  // Frage 9 (Saeure-Empfindlichkeit / Magen) -> prefers_low_acidity:
-  //   'no-issues' / 'sometimes' -> false
-  //   'often' / 'always'        -> true
-  // Genutzt im Algorithmus (rank_coffees_for_customer): linearer Bonus
-  // fuer saeurearme Coffees, additiv zum final_score.
+  // Frage 9 (Saeure-Empfindlichkeit / Magen) -> prefers_low_acidity
   const acidityAnswer = answers.find(
     (a) => a.question_code === "question-9-acidity-sensitivity"
   )?.answer_code;
   const prefersLowAcidity = acidityAnswer === "often" || acidityAnswer === "always";
+
+  // Frage 10 (Mouthfeel / Konsistenz) -> preferred_body (1-5)
+  const consistencyAnswer = answers.find(
+    (a) => a.question_code === "question-10-mouthfeel"
+  )?.answer_code;
+  const bodyByAnswer: Record<string, number> = {
+    "tea-like": 1,
+    balanced: 3,
+    creamy: 4,
+    syrupy: 5,
+  };
+  const preferredBody = consistencyAnswer
+    ? bodyByAnswer[consistencyAnswer] ?? null
+    : null;
+
+  // Frage 11 (Erfahrung) -> preferred_complexity (1-5)
+  const experienceAnswer = answers.find(
+    (a) => a.question_code === "question-11-experience-level"
+  )?.answer_code;
+  const complexityByAnswer: Record<string, number> = {
+    beginner: 2,
+    casual: 3,
+    enthusiast: 4,
+    expert: 5,
+  };
+  const preferredComplexity = experienceAnswer
+    ? complexityByAnswer[experienceAnswer] ?? null
+    : null;
+
+  // Frage 12 (Offenheit fuer Neues) -> exploration_level (1-4)
+  // Steuert v_mmr_lambda in rank_coffees_for_customer (Discovery-Modus).
+  const opennessAnswer = answers.find(
+    (a) => a.question_code === "question-12-openness"
+  )?.answer_code;
+  const explorationByAnswer: Record<string, number> = {
+    comfort: 1,
+    open: 2,
+    explorer: 3,
+    extreme: 4,
+  };
+  const explorationLevel = opennessAnswer
+    ? explorationByAnswer[opennessAnswer] ?? null
+    : null;
 
   await supabase
     .from("customers")
@@ -172,6 +211,9 @@ export async function persistQuizForCurrentUser(
       secondary_type: secondary?.type ?? null,
       confidence,
       prefers_low_acidity: prefersLowAcidity,
+      preferred_body: preferredBody,
+      preferred_complexity: preferredComplexity,
+      exploration_level: explorationLevel,
     })
     .eq("id", customer.id);
 

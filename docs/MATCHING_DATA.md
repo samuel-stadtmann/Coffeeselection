@@ -28,6 +28,18 @@ Aus `validateCoffee()` in `lib/coffee/form-helpers.ts`:
 - **Konsistenz-Plausibilitäten** (Light + hohe Bitterkeit, Dunkel + max Säure, …) — UX-Hilfe, nicht algorithmisch
 - **`roast_profile`** (espresso / filter / omni) — wird seit Migration `20260512100000` direkt vom Algo gelesen für Brewing-Match-Bonus. Default 'omni' bekommt immer Bonus, sonst nur bei Match zur Kunden-Bruehmethode aus Quiz Frage 1.
 - **`acidity`** — wird seit Migration `20260512200000` zusätzlich genutzt für Low-Acidity-Bonus: Kunden mit Quiz-Antwort `often`/`always` auf Frage 9 (Magen-Empfindlichkeit) bekommen einen linearen Bonus (max +10) für Coffees mit acidity ≤ 2. Säurearme Coffees ranken bei diesen Kunden also höher, ohne dass säurereiche ausgeschlossen werden.
+- **`body`** — wird seit Migration `20260512300000` für Body-Match-Bonus genutzt. Quiz-Frage 10 (Konsistenz) mappt auf `customers.preferred_body` (1=tea-like, 3=balanced, 4=creamy, 5=syrupy). Coffee mit gleichem body bekommt den vollen Bonus (max +8, linear abfallend mit Distanz).
+- **`complexity`** — wird seit Migration `20260512300000` für Complexity-Match-Bonus genutzt. Quiz-Frage 11 (Erfahrung) mappt auf `customers.preferred_complexity` (2=beginner, 3=casual, 4=enthusiast, 5=expert). Beginner bekommen einfachere Coffees höher gerankt, Experts komplexere.
+
+## Quiz-Frage 12 (Offenheit für Neues)
+
+Beeinflusst seit Migration `20260512300000` das `v_mmr_lambda` in `rank_coffees_for_customer` (Discovery-Modus):
+- comfort → 0.85 (mehr Relevanz, weniger Diversity)
+- open → 0.75
+- explorer → 0.60
+- extreme → 0.50 (mehr Diversity, weniger reine Score-Maximierung)
+
+Default (kein Quiz) bleibt 0.70 aus `algorithm_config.mmr_lambda`.
 
 ## Score-Boni (Form lässt durch, aber `data_quality_score` sinkt)
 
