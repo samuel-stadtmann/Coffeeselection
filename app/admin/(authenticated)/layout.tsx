@@ -36,7 +36,7 @@ export default async function AdminAuthenticatedLayout({
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5 overflow-hidden">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center">
             <img
