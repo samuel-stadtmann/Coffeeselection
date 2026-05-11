@@ -116,9 +116,11 @@ export default function CoffeeForm({
   const sectionErrors: Record<string, number> = {
     identity: errors.filter((e) => ["name", "slug", "roaster_id"].includes(e.field)).length,
     description: errors.filter((e) => e.field === "flavor_description").length,
-    sensory: errors.filter((e) => SENSORY_AXES.some((ax) => ax.key === e.field)).length,
+    sensory: errors.filter(
+      (e) => e.field === "sensory" || SENSORY_AXES.some((ax) => ax.key === e.field)
+    ).length,
     aroma: errors.filter((e) => e.field === "aroma_families").length,
-    roast: 0,
+    roast: errors.filter((e) => e.field === "roast_level").length,
     origin: errors.filter((e) => e.field === "altitude_m_max").length,
     commerce: errors.filter((e) => ["price_chf", "weight_g"].includes(e.field)).length,
     allergens: 0,
@@ -133,7 +135,7 @@ export default function CoffeeForm({
     { id: "aroma", label: "Aroma-Familien" },
     { id: "flavor_notes", label: "Aroma-Noten" },
     { id: "brewing", label: "Brühmethoden" },
-    { id: "roast", label: "Röstung" },
+    { id: "roast", label: "Röstung", required: true },
     { id: "origin", label: "Herkunft" },
     { id: "commerce", label: "Kommerz", required: true },
     { id: "allergens", label: "Allergene" },
@@ -264,20 +266,34 @@ export default function CoffeeForm({
           {/* SENSORY — Grid of 5 cards 1-10 */}
           <Card
             id="sensory"
-            title="Sensorik (Cupping-Skala 1–10)"
-            hint="Branchenübliche 10-Punkt-Skala. Wird intern auf SCA 1–5 normalisiert (1+2→1, 3+4→2, 5+6→3, 7+8→4, 9+10→5)."
+            title="Sensorik (Cupping-Skala 1–10) *"
+            hint="Pflicht. Branchenübliche 10-Punkt-Skala. Wird intern auf SCA 1–5 normalisiert. Jede der 5 Achsen muss aktiv eingestellt werden — der Algorithmus matcht über Manhattan-Distanz und Defaults verfälschen das Ergebnis."
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {SENSORY_AXES.map((ax) => {
                 const v = s[ax.key];
                 const sca = tenToFive(v);
+                const touched = s.sensory_touched[ax.key];
                 return (
-                  <div key={ax.key} className="bg-surface-container-low/50 p-4 border border-primary/5">
+                  <div
+                    key={ax.key}
+                    className={
+                      "p-4 border " +
+                      (touched
+                        ? "bg-surface-container-low/50 border-primary/5"
+                        : "bg-amber-50/50 border-amber-300")
+                    }
+                  >
                     <div className="flex items-baseline justify-between mb-2">
                       <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">
                         {ax.label}
+                        {!touched && (
+                          <span className="ml-2 text-amber-700">· bitte einstellen</span>
+                        )}
                       </span>
-                      <span className="text-[10px] text-on-surface-variant">SCA {sca}/5</span>
+                      <span className="text-[10px] text-on-surface-variant">
+                        {touched ? `SCA ${sca}/5` : "—"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <input
@@ -289,20 +305,36 @@ export default function CoffeeForm({
                         onFocus={(e) => e.currentTarget.select()}
                         onChange={(e) => {
                           const raw = e.target.value;
-                          // Leerer Wert beim Loeschen erlauben — sonst kann man die "1" nicht weghauen.
                           if (raw === "") {
-                            setS({ ...s, [ax.key]: 1 } as CoffeeFormState);
+                            setS({
+                              ...s,
+                              [ax.key]: 1,
+                              sensory_touched: { ...s.sensory_touched, [ax.key]: true },
+                            } as CoffeeFormState);
                             return;
                           }
                           const n = Number(raw);
                           const clamped = Number.isFinite(n) ? Math.max(1, Math.min(10, Math.round(n))) : 6;
-                          setS({ ...s, [ax.key]: clamped } as CoffeeFormState);
+                          setS({
+                            ...s,
+                            [ax.key]: clamped,
+                            sensory_touched: { ...s.sensory_touched, [ax.key]: true },
+                          } as CoffeeFormState);
                         }}
-                        className="form-input w-20 text-2xl font-bold text-center"
+                        className={
+                          "form-input w-20 text-2xl font-bold text-center " +
+                          (touched ? "" : "opacity-50")
+                        }
                       />
                       <div className="flex-1">
                         <div className="h-2 bg-primary/10 rounded">
-                          <div className="h-full bg-tertiary rounded transition-all" style={{ width: `${(v / 10) * 100}%` }} />
+                          <div
+                            className={
+                              "h-full rounded transition-all " +
+                              (touched ? "bg-tertiary" : "bg-amber-300")
+                            }
+                            style={{ width: `${(v / 10) * 100}%` }}
+                          />
                         </div>
                         <div className="flex justify-between text-[9px] text-on-surface-variant/60 mt-1">
                           <span>1</span><span>5</span><span>10</span>
@@ -383,17 +415,31 @@ export default function CoffeeForm({
           </Card>
 
           {/* ROAST */}
-          <Card id="roast" title="Röstung">
-            <Box label="Röstgrad" hint={`Aktuell: ${ROAST_LEVELS[s.roast_level - 1]?.label ?? "—"}`}>
-              <div className="grid grid-cols-5 gap-2">
+          <Card id="roast" title="Röstung *">
+            <Box
+              label={
+                s.roast_level_touched
+                  ? `Röstgrad — Aktuell: ${ROAST_LEVELS[s.roast_level - 1]?.label ?? "—"}`
+                  : "Röstgrad · bitte einstellen"
+              }
+              hint="Pflicht. Hell/Medium/Dunkel ist algorithm-relevant — fließt in Embedding-Text + Quiz-Brühmethoden-Matching."
+            >
+              <div
+                className={
+                  "grid grid-cols-5 gap-2 p-2 " +
+                  (s.roast_level_touched ? "" : "bg-amber-50/50 border border-amber-300")
+                }
+              >
                 {ROAST_LEVELS.map((r) => (
                   <button
                     key={r.value}
                     type="button"
-                    onClick={() => setS({ ...s, roast_level: r.value })}
+                    onClick={() =>
+                      setS({ ...s, roast_level: r.value, roast_level_touched: true })
+                    }
                     className={
                       "px-2 py-3 text-xs border transition-colors " +
-                      (s.roast_level === r.value
+                      (s.roast_level_touched && s.roast_level === r.value
                         ? "border-tertiary bg-tertiary/10 text-primary font-bold"
                         : "border-primary/10 bg-white hover:border-primary/30")
                     }
