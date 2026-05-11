@@ -153,19 +153,25 @@ export async function persistQuizForCurrentUser(
     })
     .eq("id", response.id);
 
-  // 5) customers updaten — nur taste-type-Felder.
+  // 5) customers updaten — taste-type + Hartfilter-Flags aus Quiz.
   //
-  // NICHT abgeleitet: Frage 9 (Magen-Empfindlichkeit / Säuretoleranz).
-  // Semantisch waere requires_decaf falsch — Saeure-Empfindlichkeit ist
-  // NICHT gleich Koffein-Empfindlichkeit. Die richtige Mappung waere eine
-  // neue Spalte `prefers_low_acidity` plus Integration in das Soft-Scoring
-  // (Target-Profile-Adjustment). Bewusst aufgeschoben — separater PR.
+  // Frage 9 (Saeure-Empfindlichkeit / Magen) -> prefers_low_acidity:
+  //   'no-issues' / 'sometimes' -> false
+  //   'often' / 'always'        -> true
+  // Genutzt im Algorithmus (rank_coffees_for_customer): linearer Bonus
+  // fuer saeurearme Coffees, additiv zum final_score.
+  const acidityAnswer = answers.find(
+    (a) => a.question_code === "question-9-acidity-sensitivity"
+  )?.answer_code;
+  const prefersLowAcidity = acidityAnswer === "often" || acidityAnswer === "always";
+
   await supabase
     .from("customers")
     .update({
       taste_type_id: primary.type,
       secondary_type: secondary?.type ?? null,
       confidence,
+      prefers_low_acidity: prefersLowAcidity,
     })
     .eq("id", customer.id);
 
