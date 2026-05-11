@@ -55,6 +55,21 @@ export async function isAdminReauthValid(): Promise<boolean> {
   return Date.now() - ts < TTL_MS;
 }
 
+/**
+ * Sliding-Expiry: jede erfolgreiche Admin-Aktion ruft dies auf, damit
+ * der Reauth-Timestamp auf "jetzt" rutscht. Solange der Admin aktiv
+ * klickt, bleibt das Cookie frisch. Erst bei 30 Min Inaktivitaet
+ * laeuft es ab und es kommt /admin/reauth.
+ *
+ * Returns true wenn das Cookie verlaengert wurde, false wenn's nicht
+ * mehr gueltig war (Caller muss dann 401 returnen).
+ */
+export async function refreshAdminReauthCookie(): Promise<boolean> {
+  if (!(await isAdminReauthValid())) return false;
+  await setAdminReauthCookie();
+  return true;
+}
+
 export async function setAdminReauthCookie(): Promise<void> {
   const ts = String(Date.now());
   const sig = sign(ts);

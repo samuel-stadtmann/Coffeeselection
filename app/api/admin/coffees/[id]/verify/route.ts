@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
-import { isAdminReauthValid } from "@/lib/admin/reauth";
+import { refreshAdminReauthCookie } from "@/lib/admin/reauth";
 import { createServiceClient } from "@/lib/supabase/service";
 
 // POST /api/admin/coffees/[id]/verify
@@ -33,7 +33,7 @@ export async function POST(
 
   const user = await getAdminUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  if (!(await isAdminReauthValid())) {
+  if (!(await refreshAdminReauthCookie())) {
     return NextResponse.json({ error: "reauth_required" }, { status: 401 });
   }
 
