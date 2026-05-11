@@ -4,14 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 /**
- * Aktion-Buttons pro Coffee-Zeile. Status + Verifikation in einer
- * horizontalen Reihe, damit alle Zeilen visuell auf gleicher Hoehe sind.
+ * Aktion-Buttons pro Coffee-Zeile. Status + manueller Score-Override in
+ * einer horizontalen Reihe.
  *
- * Beschriftung in Endkunden-Sprache (nicht Status-Slang):
- *   - draft        -> "Im Shop veroeffentlichen" + "Ablehnen"
- *   - active       -> "Im Shop verstecken" + "Auslaufen lassen"
- *   - paused       -> "Wieder veroeffentlichen"
- *   - discontinued -> "Wieder veroeffentlichen"
+ * Score-driven Workflow (P14):
+ *   - data_quality_score >= 75: empfohlen vom Algorithmus, kein Override noetig.
+ *   - data_quality_score < 75:  Override-Button "Manuell freigeben" hebt
+ *     +2 Bonus auf den Score (Trigger trg_coffees_verification_bonus).
+ *     Damit kann ein knapp-unter-Schwelle-Coffee live gehen, wenn Samuel
+ *     die Daten manuell abgesegnet hat.
  */
 type Status = "draft" | "active" | "paused" | "discontinued";
 
@@ -19,10 +20,12 @@ export default function CoffeeActions({
   coffeeId,
   status,
   verified,
+  score,
 }: {
   coffeeId: string;
   status: Status;
   verified: boolean;
+  score: number | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -68,9 +71,14 @@ export default function CoffeeActions({
   const primary = baseBtn + " bg-emerald-600 text-white hover:bg-emerald-700";
   const secondary = baseBtn + " bg-stone-100 text-stone-700 hover:bg-stone-200";
   const danger = baseBtn + " bg-rose-100 text-rose-900 hover:bg-rose-200";
-  const verifyBtn =
+
+  // Override-Button: nur sinnvoll wenn Score < 75 (oder bereits override gesetzt).
+  const showOverride = (score ?? 0) < 75 || verified;
+  const overrideClass =
     baseBtn +
-    (verified ? " bg-emerald-100 text-emerald-800 hover:bg-emerald-200" : " bg-white text-on-surface-variant border border-primary/20 hover:border-primary/40");
+    (verified
+      ? " bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+      : " bg-white text-on-surface-variant border border-primary/20 hover:border-primary/40");
 
   return (
     <div className="flex flex-col items-end gap-1.5">
@@ -130,19 +138,21 @@ export default function CoffeeActions({
             Wieder veröffentlichen
           </button>
         )}
-        <button
-          type="button"
-          onClick={toggleVerify}
-          disabled={pending}
-          className={verifyBtn}
-          title={
-            verified
-              ? "Verifikation entziehen (-2 auf Quality-Score)"
-              : "Als verifiziert markieren (+2 auf Quality-Score nach eigener Verkostung)"
-          }
-        >
-          {verified ? "✓ Verifiziert" : "Verifizieren"}
-        </button>
+        {showOverride && (
+          <button
+            type="button"
+            onClick={toggleVerify}
+            disabled={pending}
+            className={overrideClass}
+            title={
+              verified
+                ? "Override entziehen — Coffee wird wieder nur ueber automatischen Score empfohlen (-2 Bonus)."
+                : "Manuell freigeben trotz Score < 75. Setzt data_verified_at + bringt +2 Score-Bonus."
+            }
+          >
+            {verified ? "✓ Manuell freigegeben" : "Manuell freigeben"}
+          </button>
+        )}
       </div>
       {err && <span className="text-[10px] text-rose-700">{err}</span>}
     </div>

@@ -361,14 +361,116 @@ export type QualityScoreBreakdown = {
 };
 
 export function computeQualityScorePreview(c: CoffeeFormState): QualityScoreBreakdown {
+  return computeQualityScoreCore({
+    acidity: c.acidity != null,
+    body: c.body != null,
+    sweetness: c.sweetness != null,
+    bitterness: c.bitterness != null,
+    complexity: c.complexity != null,
+    roast_level_set: c.roast_level != null,
+    aroma_families: c.aroma_families,
+    flavor_description: c.flavor_description ?? "",
+    origin_id: c.origin_id,
+    region: c.region,
+    processing_method_id: c.processing_method_id,
+    variety_id: c.variety_id,
+    altitude_m_min: c.altitude_m_min,
+    harvest_year: c.harvest_year,
+    sca_score: c.sca_score,
+    is_decaf: c.is_decaf,
+    // Form: 1-10 → für Konsistenz-Checks auf 1-5 mappen
+    roast_level_1_5: c.roast_level,
+    bitterness_1_5: tenToFive(c.bitterness),
+    acidity_1_5: tenToFive(c.acidity),
+    has_embedding: false,
+    embedding_pending_label: "Wird nach dem Speichern automatisch erzeugt (+5 nach erstem Save)",
+  });
+}
+
+/**
+ * Berechnet denselben Breakdown aus einer DB-Coffee-Row (Sensorik 1-5).
+ * Wird in /admin/coffees genutzt, um pro Zeile aufzuklappen welche Felder
+ * den Score drücken.
+ */
+export type CoffeeRowForScore = {
+  acidity: number | null;
+  body: number | null;
+  sweetness: number | null;
+  bitterness: number | null;
+  complexity: number | null;
+  roast_level: number | null;
+  aroma_families: string[] | null;
+  flavor_description: string | null;
+  origin_id: string | null;
+  region: string | null;
+  processing_method_id: string | null;
+  variety_id: string | null;
+  altitude_m_min: number | null;
+  harvest_year: number | null;
+  sca_score: number | null;
+  is_decaf: boolean | null;
+  flavor_embedding: unknown | null;
+};
+
+export function computeQualityScoreFromCoffeeRow(c: CoffeeRowForScore): QualityScoreBreakdown {
+  return computeQualityScoreCore({
+    acidity: c.acidity != null,
+    body: c.body != null,
+    sweetness: c.sweetness != null,
+    bitterness: c.bitterness != null,
+    complexity: c.complexity != null,
+    roast_level_set: c.roast_level != null,
+    aroma_families: (c.aroma_families ?? []) as AromaFamily[],
+    flavor_description: c.flavor_description ?? "",
+    origin_id: c.origin_id,
+    region: c.region ?? "",
+    processing_method_id: c.processing_method_id,
+    variety_id: c.variety_id,
+    altitude_m_min: c.altitude_m_min,
+    harvest_year: c.harvest_year,
+    sca_score: c.sca_score,
+    is_decaf: !!c.is_decaf,
+    roast_level_1_5: c.roast_level ?? 3,
+    bitterness_1_5: c.bitterness ?? 3,
+    acidity_1_5: c.acidity ?? 3,
+    has_embedding: c.flavor_embedding != null,
+    embedding_pending_label: "Embedding fehlt — Webhook prüfen",
+  });
+}
+
+type ScoreCoreInput = {
+  acidity: boolean;
+  body: boolean;
+  sweetness: boolean;
+  bitterness: boolean;
+  complexity: boolean;
+  roast_level_set: boolean;
+  aroma_families: AromaFamily[] | string[];
+  flavor_description: string;
+  origin_id: string | null;
+  region: string;
+  processing_method_id: string | null;
+  variety_id: string | null;
+  altitude_m_min: number | null;
+  harvest_year: number | null;
+  sca_score: number | null;
+  is_decaf: boolean;
+  roast_level_1_5: number;
+  bitterness_1_5: number;
+  acidity_1_5: number;
+  has_embedding: boolean;
+  embedding_pending_label: string;
+};
+
+function computeQualityScoreCore(c: ScoreCoreInput): QualityScoreBreakdown {
   // Basis (40)
   const basis = [
-    { label: "Säure erfasst", earned: c.acidity != null ? 5 : 0, max: 5 },
-    { label: "Körper erfasst", earned: c.body != null ? 5 : 0, max: 5 },
-    { label: "Süße erfasst", earned: c.sweetness != null ? 5 : 0, max: 5 },
-    { label: "Bitterkeit erfasst", earned: c.bitterness != null ? 5 : 0, max: 5 },
-    { label: "Röstgrad erfasst", earned: c.roast_level != null ? 5 : 0, max: 5 },
-    { label: "Komplexität erfasst", earned: c.complexity != null ? 5 : 0, max: 5 },
+    { label: "Säure erfasst", earned: c.acidity ? 5 : 0, max: 5 },
+    { label: "Körper erfasst", earned: c.body ? 5 : 0, max: 5 },
+    { label: "Süße erfasst", earned: c.sweetness ? 5 : 0, max: 5 },
+    { label: "Bitterkeit erfasst", earned: c.bitterness ? 5 : 0, max: 5 },
+    { label: "Röstgrad erfasst", earned: c.roast_level_set ? 5 : 0, max: 5 },
+    { label: "Komplexität erfasst", earned: c.complexity ? 5 : 0, max: 5 },
     {
       label: "Aroma-Familien (mind. 1)",
       earned: c.aroma_families.length >= 1 ? 5 : 0,
@@ -377,11 +479,11 @@ export function computeQualityScorePreview(c: CoffeeFormState): QualityScoreBrea
     },
     {
       label: "Flavor-Description ≥ 50 Zeichen",
-      earned: (c.flavor_description ?? "").length >= 50 ? 5 : 0,
+      earned: c.flavor_description.length >= 50 ? 5 : 0,
       max: 5,
       reason:
-        (c.flavor_description ?? "").length < 50
-          ? `Aktuell ${(c.flavor_description ?? "").length} Zeichen`
+        c.flavor_description.length < 50
+          ? `Aktuell ${c.flavor_description.length} Zeichen`
           : undefined,
     },
   ];
@@ -394,11 +496,10 @@ export function computeQualityScorePreview(c: CoffeeFormState): QualityScoreBrea
     { label: "Varietät gewählt", earned: c.variety_id ? 5 : 0, max: 5 },
   ];
 
-  // Konsistenz (20) — Trigger: gib 5 Punkte wenn felder NULL ODER konsistent.
-  // Mapping: Form-Sensorik (1-10) muss auf SCA (1-5) konvertiert werden für die Vergleiche.
-  const rl = c.roast_level;
-  const bit5 = tenToFive(c.bitterness);
-  const acid5 = tenToFive(c.acidity);
+  // Konsistenz (20)
+  const rl = c.roast_level_1_5;
+  const bit5 = c.bitterness_1_5;
+  const acid5 = c.acidity_1_5;
   const aromaSet = new Set(c.aroma_families);
   const consistency = [
     {
@@ -427,7 +528,7 @@ export function computeQualityScorePreview(c: CoffeeFormState): QualityScoreBrea
     },
   ];
 
-  // Boni (20). flavor_embedding kann erst nach Save erreicht werden.
+  // Boni (20)
   const boni = [
     { label: "Höhe Min erfasst", earned: c.altitude_m_min != null ? 5 : 0, max: 5 },
     { label: "Ernte-Jahr erfasst", earned: c.harvest_year != null ? 5 : 0, max: 5 },
@@ -439,9 +540,9 @@ export function computeQualityScorePreview(c: CoffeeFormState): QualityScoreBrea
     },
     {
       label: "Embedding generiert",
-      earned: 0,
+      earned: c.has_embedding ? 5 : 0,
       max: 5,
-      reason: "Wird nach dem Speichern automatisch erzeugt (+5 nach erstem Save)",
+      reason: c.has_embedding ? undefined : c.embedding_pending_label,
     },
   ];
 
@@ -462,4 +563,18 @@ export function computeQualityScorePreview(c: CoffeeFormState): QualityScoreBrea
     max: groups.reduce((sum, g) => sum + g.max, 0),
     groups,
   };
+}
+
+/**
+ * Top-N fehlende Items aus einem Breakdown extrahieren — für kompakte
+ * Inline-Anzeige in der Coffee-Liste.
+ */
+export function topMissingItems(b: QualityScoreBreakdown, n = 3): Array<{ label: string; reason?: string }> {
+  const missing: Array<{ label: string; reason?: string }> = [];
+  for (const g of b.groups) {
+    for (const i of g.items) {
+      if (i.earned < i.max) missing.push({ label: i.label, reason: i.reason });
+    }
+  }
+  return missing.slice(0, n);
 }
