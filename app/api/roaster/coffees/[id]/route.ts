@@ -57,6 +57,26 @@ const BodySchema = z.object({
   is_fresh_roast_on_demand: z.boolean().default(false),
   allergen_slugs: z.array(z.string().min(1).max(50)).max(20).default([]),
   certification_ids: z.array(z.string().regex(UUID_LOOSE)).max(20).default([]),
+  image_url: z.string().max(1000).optional().default(""),
+  brewing_methods: z
+    .array(
+      z.object({
+        brewing_method_id: z.string().regex(UUID_LOOSE),
+        is_recommended: z.boolean().default(true),
+        notes: z.string().max(500).optional().default(""),
+      })
+    )
+    .max(20)
+    .default([]),
+  flavor_notes: z
+    .array(
+      z.object({
+        flavor_note_id: z.string().regex(UUID_LOOSE),
+        intensity: z.number().int().min(1).max(5),
+      })
+    )
+    .max(30)
+    .default([]),
   // Form schickt aktuellen Status mit — wir clampen unten so dass Roaster
   // den nicht auf 'active' setzen kann (siehe safeStatus-Logik).
   status: z.enum(["draft", "active", "paused", "discontinued"]).default("draft"),
@@ -109,7 +129,15 @@ export async function PATCH(
     }
   }
 
-  const { allergen_slugs, certification_ids, decaf_method, ...coffeeFields } = parsed;
+  const {
+    allergen_slugs,
+    certification_ids,
+    brewing_methods,
+    flavor_notes,
+    decaf_method,
+    image_url,
+    ...coffeeFields
+  } = parsed;
 
   // Status: Roaster darf nicht auf 'active' setzen. Wenn das Form 'active'
   // schickt (z.B. weil der Coffee live ist und der Roaster ihn nur bearbeitet),
@@ -125,6 +153,7 @@ export async function PATCH(
     ...coffeeFields,
     status: safeStatus,
     decaf_method: decaf_method || null,
+    image_url: image_url || null,
     price_per_250g:
       parsed.price_chf && parsed.weight_g > 0
         ? Math.round((parsed.price_chf * 250 * 100) / parsed.weight_g) / 100
@@ -158,6 +187,32 @@ export async function PATCH(
       .insert(
         certification_ids.map((cid) => ({ coffee_id: coffeeId, certification_id: cid }))
       );
+  }
+
+  // Bruehmethoden — Replace
+  await sb.from("coffee_brewing_methods").delete().eq("coffee_id", coffeeId);
+  if (brewing_methods.length > 0) {
+    await sb.from("coffee_brewing_methods").insert(
+      brewing_methods.map((b) => ({
+        coffee_id: coffeeId,
+        brewing_method_id: b.brewing_method_id,
+        is_recommended: b.is_recommended,
+        notes: b.notes || null,
+      }))
+    );
+  }
+
+  // Flavor-Notes mit Intensitaet — Replace
+  await sb.from("coffee_flavor_notes").delete().eq("coffee_id", coffeeId);
+  if (flavor_notes.length > 0) {
+    await sb.from("coffee_flavor_notes").insert(
+      flavor_notes.map((f, idx) => ({
+        coffee_id: coffeeId,
+        flavor_note_id: f.flavor_note_id,
+        intensity: f.intensity,
+        sort_order: idx,
+      }))
+    );
   }
 
   return NextResponse.json({ ok: true, coffee_id: coffeeId });

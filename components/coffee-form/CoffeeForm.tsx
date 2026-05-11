@@ -15,6 +15,8 @@ import {
 } from "@/lib/coffee/form-helpers";
 
 export type LookupOption = { id: string; label: string };
+export type BrewingMethodOption = { id: string; label: string; category: string };
+export type FlavorNoteOption = { id: string; label: string; family: string };
 
 type Props = {
   initial: CoffeeFormState;
@@ -24,6 +26,8 @@ type Props = {
   processings: LookupOption[];
   allergens: Array<{ slug: string; label: string }>;
   certifications: LookupOption[];
+  brewingMethods: BrewingMethodOption[];
+  flavorNotes: FlavorNoteOption[];
   submitEndpoint: string;
   submitMethod: "POST" | "PATCH";
   afterSaveHref: string;
@@ -37,6 +41,8 @@ export default function CoffeeForm({
   processings,
   allergens,
   certifications,
+  brewingMethods,
+  flavorNotes,
   submitEndpoint,
   submitMethod,
   afterSaveHref,
@@ -121,9 +127,12 @@ export default function CoffeeForm({
 
   const NAV: Array<{ id: string; label: string; required?: boolean }> = [
     { id: "identity", label: "Stammdaten", required: true },
+    { id: "media", label: "Bild" },
     { id: "description", label: "Geschmack", required: true },
     { id: "sensory", label: "Sensorik", required: true },
-    { id: "aroma", label: "Aromen" },
+    { id: "aroma", label: "Aroma-Familien" },
+    { id: "flavor_notes", label: "Aroma-Noten" },
+    { id: "brewing", label: "Brühmethoden" },
     { id: "roast", label: "Röstung" },
     { id: "origin", label: "Herkunft" },
     { id: "commerce", label: "Kommerz", required: true },
@@ -207,6 +216,39 @@ export default function CoffeeForm({
             <Box label="Beschreibung" hint="Markdown ok. Erscheint auf der Coffee-Detail-Seite.">
               <textarea value={s.description} onChange={(e) => setS({ ...s, description: e.target.value })} rows={3} className="form-input" />
             </Box>
+          </Card>
+
+          {/* MEDIA */}
+          <Card
+            id="media"
+            title="Bild"
+            hint="Produktbild für Shop, Empfehlungen und Detailseite. Quadratisches oder leicht hochkantes Format funktioniert am besten (z.B. 1200×1200 oder 1200×1500)."
+          >
+            <Box
+              label="Bild-URL"
+              hint="Vollständige URL zum Bild. Wenn leer, zeigt der Shop einen Fallback."
+            >
+              <input
+                type="url"
+                placeholder="https://…"
+                value={s.image_url}
+                onChange={(e) => setS({ ...s, image_url: e.target.value })}
+                className="form-input"
+              />
+            </Box>
+            {s.image_url && /^https?:\/\//i.test(s.image_url) && (
+              <div className="mt-3">
+                <p className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-2">
+                  Vorschau
+                </p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={s.image_url}
+                  alt="Vorschau"
+                  className="max-w-xs max-h-64 object-cover border border-primary/10"
+                />
+              </div>
+            )}
           </Card>
 
           {/* DESCRIPTION (Geschmack-Texte fuer Algorithmus) */}
@@ -300,6 +342,44 @@ export default function CoffeeForm({
                 );
               })}
             </div>
+          </Card>
+
+          {/* FLAVOR NOTES (granular, mit Intensität) */}
+          <Card
+            id="flavor_notes"
+            title="Aroma-Noten (detailliert)"
+            hint="Optional. Spezifische Aroma-Noten aus dem Katalog mit Intensität 1–5. Hilft Kunden, den Geschmack vor dem Kauf einzuschätzen."
+          >
+            {flavorNotes.length === 0 ? (
+              <p className="text-sm text-on-surface-variant italic">
+                Kein Aroma-Noten-Katalog geladen.
+              </p>
+            ) : (
+              <FlavorNotesPicker
+                catalog={flavorNotes}
+                selected={s.flavor_notes}
+                onChange={(next) => setS({ ...s, flavor_notes: next })}
+              />
+            )}
+          </Card>
+
+          {/* BREWING METHODS */}
+          <Card
+            id="brewing"
+            title="Empfohlene Brühmethoden"
+            hint="Optional. Für welche Brühmethoden ist dieser Coffee gemacht? Pro Methode kannst du eine Notiz zur Dosierung/Brühzeit ergänzen."
+          >
+            {brewingMethods.length === 0 ? (
+              <p className="text-sm text-on-surface-variant italic">
+                Kein Brühmethoden-Katalog geladen.
+              </p>
+            ) : (
+              <BrewingMethodsPicker
+                catalog={brewingMethods}
+                selected={s.brewing_methods}
+                onChange={(next) => setS({ ...s, brewing_methods: next })}
+              />
+            )}
           </Card>
 
           {/* ROAST */}
@@ -743,6 +823,210 @@ function Status({
     <div className="flex justify-between text-[11px] py-1">
       <span className="text-on-surface-variant">{label}</span>
       <span className={"font-bold " + cls}>{value}</span>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Brewing Methods Picker — multi-select, pro Methode optional is_recommended +
+// freie Notiz (z.B. "18g auf 36g, 28 Sekunden").
+// ----------------------------------------------------------------------------
+function BrewingMethodsPicker({
+  catalog,
+  selected,
+  onChange,
+}: {
+  catalog: BrewingMethodOption[];
+  selected: CoffeeFormState["brewing_methods"];
+  onChange: (next: CoffeeFormState["brewing_methods"]) => void;
+}) {
+  const byCategory = catalog.reduce<Record<string, BrewingMethodOption[]>>((acc, m) => {
+    (acc[m.category] ??= []).push(m);
+    return acc;
+  }, {});
+  const categoryLabel: Record<string, string> = {
+    espresso: "Espresso & Vollautomat",
+    filter: "Filter / Pour Over",
+    immersion: "Immersion",
+    other: "Andere",
+  };
+
+  function toggle(methodId: string) {
+    const existing = selected.find((b) => b.brewing_method_id === methodId);
+    if (existing) {
+      onChange(selected.filter((b) => b.brewing_method_id !== methodId));
+    } else {
+      onChange([
+        ...selected,
+        { brewing_method_id: methodId, is_recommended: true, notes: "" },
+      ]);
+    }
+  }
+
+  function update(methodId: string, patch: Partial<CoffeeFormState["brewing_methods"][number]>) {
+    onChange(
+      selected.map((b) => (b.brewing_method_id === methodId ? { ...b, ...patch } : b))
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {Object.entries(byCategory).map(([cat, methods]) => (
+        <div key={cat}>
+          <p className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-2">
+            {categoryLabel[cat] ?? cat}
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-2">
+            {methods.map((m) => {
+              const sel = selected.find((b) => b.brewing_method_id === m.id);
+              return (
+                <button
+                  type="button"
+                  key={m.id}
+                  onClick={() => toggle(m.id)}
+                  className={
+                    "text-left px-3 py-2 border text-sm transition-colors " +
+                    (sel
+                      ? "border-tertiary bg-tertiary/10 text-primary font-bold"
+                      : "border-primary/10 bg-white hover:border-primary/30")
+                  }
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+          {/* Pro ausgewaehlte Methode: Detail-Inputs */}
+          {methods.some((m) => selected.find((b) => b.brewing_method_id === m.id)) && (
+            <div className="ml-2 space-y-2">
+              {methods
+                .map((m) => ({ m, sel: selected.find((b) => b.brewing_method_id === m.id) }))
+                .filter((x) => x.sel)
+                .map(({ m, sel }) => (
+                  <div
+                    key={m.id}
+                    className="bg-stone-50 p-3 border-l-2 border-tertiary/30 text-sm"
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold">{m.label}</span>
+                      <label className="text-[11px] flex items-center gap-2 text-on-surface-variant">
+                        <input
+                          type="checkbox"
+                          checked={sel?.is_recommended ?? true}
+                          onChange={(e) => update(m.id, { is_recommended: e.target.checked })}
+                        />
+                        Primär empfohlen
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Notiz (z.B. 18g → 36g in 28 s, 92°C)"
+                      value={sel?.notes ?? ""}
+                      onChange={(e) => update(m.id, { notes: e.target.value })}
+                      className="w-full px-2 py-1 bg-white border border-primary/15 focus:border-primary focus:outline-none text-xs"
+                    />
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Flavor-Notes Picker — multi-select aus flavor_notes_catalog, pro Note
+// Intensitaet 1-5. Gruppiert nach 'family'.
+// ----------------------------------------------------------------------------
+function FlavorNotesPicker({
+  catalog,
+  selected,
+  onChange,
+}: {
+  catalog: FlavorNoteOption[];
+  selected: CoffeeFormState["flavor_notes"];
+  onChange: (next: CoffeeFormState["flavor_notes"]) => void;
+}) {
+  const byFamily = catalog.reduce<Record<string, FlavorNoteOption[]>>((acc, n) => {
+    (acc[n.family] ??= []).push(n);
+    return acc;
+  }, {});
+
+  function toggle(noteId: string) {
+    const existing = selected.find((f) => f.flavor_note_id === noteId);
+    if (existing) {
+      onChange(selected.filter((f) => f.flavor_note_id !== noteId));
+    } else {
+      onChange([...selected, { flavor_note_id: noteId, intensity: 3 }]);
+    }
+  }
+
+  function setIntensity(noteId: string, intensity: number) {
+    onChange(
+      selected.map((f) =>
+        f.flavor_note_id === noteId ? { ...f, intensity } : f
+      )
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {Object.entries(byFamily).map(([family, notes]) => (
+        <div key={family}>
+          <p className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-2 capitalize">
+            {family}
+          </p>
+          <div className="space-y-2">
+            {notes.map((n) => {
+              const sel = selected.find((f) => f.flavor_note_id === n.id);
+              return (
+                <div
+                  key={n.id}
+                  className={
+                    "flex items-center gap-3 px-3 py-2 border text-sm transition-colors " +
+                    (sel
+                      ? "border-tertiary bg-tertiary/10"
+                      : "border-primary/10 bg-white")
+                  }
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggle(n.id)}
+                    className={
+                      "flex-1 text-left " + (sel ? "font-bold text-primary" : "")
+                    }
+                  >
+                    {sel ? "✓ " : ""}{n.label}
+                  </button>
+                  {sel && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] uppercase tracking-widest text-tertiary mr-1">
+                        Intensität
+                      </span>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <button
+                          type="button"
+                          key={i}
+                          onClick={() => setIntensity(n.id, i)}
+                          className={
+                            "w-6 h-6 text-[11px] font-bold transition-colors " +
+                            (sel.intensity === i
+                              ? "bg-primary text-on-primary"
+                              : "bg-white border border-primary/15 hover:border-primary/40")
+                          }
+                        >
+                          {i}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
