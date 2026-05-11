@@ -141,6 +141,12 @@ export type CoffeeFormState = {
                                 // werden — Default 3 (medium) ist neutral
                                 // und verfaelscht sonst das Embedding.
   roast_profile: "espresso" | "filter" | "omni";
+  roast_profile_touched: boolean; // Pflicht. Default 'omni' bekommt den
+                                  // brewing_match_bonus immer (egal welche
+                                  // Bruehmethode der Kunde gewaehlt hat).
+                                  // Wenn ein Roester nichts setzt, gewinnen
+                                  // alle seine Coffees den Quiz-Frage-1-Effekt
+                                  // unverdient — verfaelscht das Matching.
   is_decaf: boolean;
   decaf_method: "swiss_water" | "co2" | "sugarcane_ea" | "solvent_ea" | "other" | "";
   // Sensorik im Form 1-10 (Roester-Cupping-Bogen). Wird beim Submit
@@ -216,6 +222,7 @@ export function emptyCoffeeForm(): CoffeeFormState {
     roast_level: 3,
     roast_level_touched: false,
     roast_profile: "omni",
+    roast_profile_touched: false,
     is_decaf: false,
     decaf_method: "",
     acidity: 6,
@@ -321,6 +328,18 @@ export function validateCoffee(c: CoffeeFormState): ValidationIssue[] {
       severity: "error",
       message:
         "Röstgrad ist nicht aktiv gesetzt. Bitte hell/medium/dunkel wählen — der Algorithmus matcht über den Röstgrad gegen die Brühmethoden-Präferenz aus dem Quiz.",
+    });
+  }
+  // Röst-Profil (espresso/filter/omni) muss aktiv eingestellt sein.
+  // Default 'omni' bekommt automatisch den brewing_match_bonus — wenn
+  // ein Roester nichts setzt, gewinnen alle seine Coffees den
+  // Quiz-Frage-1-Effekt unverdient.
+  if (!c.roast_profile_touched) {
+    issues.push({
+      field: "roast_profile",
+      severity: "error",
+      message:
+        "Röst-Profil ist nicht aktiv gesetzt. Bitte Espresso / Filter / Omni wählen — der Algorithmus bevorzugt Coffees, deren Profil zur Brühmethode des Kunden passt (Quiz Frage 1).",
     });
   }
   if (c.price_chf == null || c.price_chf <= 0) {

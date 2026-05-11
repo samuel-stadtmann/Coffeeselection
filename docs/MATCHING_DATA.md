@@ -18,7 +18,9 @@ Aus `validateCoffee()` in `lib/coffee/form-helpers.ts`:
 | `roaster_id` | FK + RLS | — |
 | `flavor_description` ≥ 100 Zeichen | **Embedding-Text-Input #1** (Edge Function `generate-coffee-embedding`) | Embedding ist semantisch leer → Cosine-Similarity-Score ist Rauschen |
 | `aroma_families` ≥ 1 Eintrag | Soft-Scoring (`compute_scoring_score`) + Embedding-Text | Kunden mit Aroma-Quiz-Antworten bekommen diesen Coffee nicht passend gerankt |
-| Alle 5 Sensorik-Achsen aktiv eingestellt (`sensory_touched`) | Manhattan-Distance-Scoring + Embedding-Text + Soft-Score | Defaults (alles Median 6/10) sabotieren das Distance-Scoring — alle Coffees mit Defaults sehen identisch aus, kein Matching möglich |
+| Alle 5 Sensorik-Achsen aktiv eingestellt (`sensory_touched`) | Manhattan-Distance-Scoring + Embedding-Text + Soft-Score + acidity/body/complexity-Match-Boni | Defaults (alles Median 6/10) sabotieren das Distance-Scoring — alle Coffees mit Defaults sehen identisch aus, kein Matching möglich |
+| `roast_level` aktiv eingestellt (`roast_level_touched`) | Embedding-Text + Quiz-Brühmethoden-Match | Default 3 (medium) verfälscht das Embedding und macht Coffees ununterscheidbar |
+| `roast_profile` aktiv eingestellt (`roast_profile_touched`) | **brewing_match_bonus** (Quiz Frage 1) | Default 'omni' bekommt automatisch den Bonus für jeden Kunden → der Quiz-Brühmethoden-Effekt wird zunichte gemacht |
 | `price_chf > 0` | Hartfilter `get_eligible_coffees` (Preisvergleich) | Coffee wird ausgefiltert (Division durch undefined) |
 | `weight_g > 0` | Hartfilter (Preis-Normalisierung auf 250 g) | Wie oben |
 
