@@ -371,3 +371,56 @@ Roester anlegen.
 
 **Trigger.** Sobald > 2-3 Roester aktiv mitmachen und nicht jeder
 Coffee manuell durch Samuel angelegt werden soll.
+
+---
+
+## P16 — End-to-End Mail-Test (Resend live)
+
+**Stand.** P11 A+B sind im DNS durch (siehe oben). Resend-Domain
+`coffeeselection.ch` ist **Verified**. Was noch fehlt: die letzten
+Konfigurations-Schritte + ein echter Test-Versand.
+
+**Schritte (in dieser Reihenfolge):**
+
+1. **Supabase Edge Function Secret setzen**
+   - Dashboard → Edge Functions → Manage Secrets
+   - Name: `RESEND_FROM_EMAIL`
+   - Value: `Coffee Selection <hello@coffeeselection.ch>`
+   - Save
+
+2. **Vercel Env-Variable setzen**
+   - Settings → Environment Variables
+   - Key: `NEXT_PUBLIC_SITE_URL`
+   - Value: `https://staging.coffeeselection.ch`
+   - Scopes: Production + Preview + Development
+   - Save → **Redeploy** (Deployments → "⋯" → Redeploy)
+
+3. **Supabase Auth Site-URL pruefen**
+   - Dashboard → Authentication → URL Configuration
+   - "Site URL" muss auf `https://staging.coffeeselection.ch` zeigen
+   - "Redirect URLs" sollte `https://staging.coffeeselection.ch/**`
+     enthalten
+
+4. **Test-Account anlegen** (vor dem Mail-Test)
+   - Zweit-E-Mail-Adresse von Samuel oder Test-Roester
+
+5. **Echten Mail-Test fahren**
+   - `https://staging.coffeeselection.ch/admin/roasters`
+   - Roester wählen → "User verwalten" → Test-E-Mail einladen
+   - Pruefen: Mail kommt von `hello@coffeeselection.ch`,
+     nicht von `onboarding@resend.dev`
+   - Spam-Ordner checken (erste Mails landen oft dort)
+   - Klick Set-Password-Link → soll zu
+     `https://staging.coffeeselection.ch/roaster/login` führen
+   - Passwort setzen → einloggen → `/roaster/dashboard` erscheint?
+
+6. **Falls Reklassifikations-Mails ausgelöst werden sollen**
+   - Edge Function `send-reclassification-emails` Logs prüfen
+   - Mail an Test-Customer mit ≥ 5 Bewertungen + Profil-Drift triggern
+   - Footer: kein "via resend.dev" mehr
+
+**Trigger.** Bevor erste echte Roester eingeladen oder erste Kunden
+Reklassifikations-Mails kriegen sollen. Kein Code-Aufwand — nur
+Klicks im Dashboard + Test.
+
+**Aufwand.** ~15 Min Setup + ~10 Min Test.
