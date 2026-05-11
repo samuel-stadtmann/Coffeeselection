@@ -241,9 +241,16 @@ export default function CoffeeForm({
                         max={10}
                         step={1}
                         value={v}
+                        onFocus={(e) => e.currentTarget.select()}
                         onChange={(e) => {
-                          const raw = Number(e.target.value);
-                          const clamped = Number.isFinite(raw) ? Math.max(1, Math.min(10, Math.round(raw))) : 6;
+                          const raw = e.target.value;
+                          // Leerer Wert beim Loeschen erlauben — sonst kann man die "1" nicht weghauen.
+                          if (raw === "") {
+                            setS({ ...s, [ax.key]: 1 } as CoffeeFormState);
+                            return;
+                          }
+                          const n = Number(raw);
+                          const clamped = Number.isFinite(n) ? Math.max(1, Math.min(10, Math.round(n))) : 6;
                           setS({ ...s, [ax.key]: clamped } as CoffeeFormState);
                         }}
                         className="form-input w-20 text-2xl font-bold text-center"
@@ -396,9 +403,35 @@ export default function CoffeeForm({
 
           {/* COMMERCE */}
           <Card id="commerce" title="Kommerz / Sortiment">
-            <div className="grid grid-cols-2 gap-4">
-              <Box label="Preis CHF *">
-                <input type="number" step="0.01" min={0} value={s.price_chf ?? ""} onChange={(e) => setS({ ...s, price_chf: e.target.value ? Number(e.target.value) : null })} required className="form-input" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Box
+                label="Verkaufspreis CHF *"
+                hint="Was der Endkunde im Shop zahlt (inkl. Marge, inkl. MwSt)."
+              >
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={s.price_chf ?? ""}
+                  onChange={(e) => setS({ ...s, price_chf: e.target.value ? Number(e.target.value) : null })}
+                  required
+                  className="form-input"
+                  placeholder="z.B. 24.90"
+                />
+              </Box>
+              <Box
+                label="Einkaufspreis CHF"
+                hint="Was Coffee Selection an dich/den Röster zahlt (Wholesale, vertraulich — nicht im Shop sichtbar)."
+              >
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={s.wholesale_price_chf ?? ""}
+                  onChange={(e) => setS({ ...s, wholesale_price_chf: e.target.value ? Number(e.target.value) : null })}
+                  className="form-input"
+                  placeholder="z.B. 14.50"
+                />
               </Box>
               <Box label="Gewicht (g) *">
                 <input type="number" min={1} value={s.weight_g} onChange={(e) => setS({ ...s, weight_g: Number(e.target.value) })} required className="form-input" />

@@ -150,7 +150,8 @@ export type CoffeeFormState = {
   // Aroma-Familien (Algorithmus)
   aroma_families: AromaFamily[];
   // Kommerz
-  price_chf: number | null;
+  price_chf: number | null;          // VERKAUFSpreis an den Endkunden
+  wholesale_price_chf: number | null; // EINKAUFspreis vom Roester (vertraulich)
   weight_g: number;
   stock_kg: number | null;
   stock_status: "in_stock" | "low_stock" | "out_of_stock" | "discontinued";
@@ -196,6 +197,7 @@ export function emptyCoffeeForm(): CoffeeFormState {
     complexity: 6,
     aroma_families: [],
     price_chf: null,
+    wholesale_price_chf: null,
     weight_g: 250,
     stock_kg: null,
     stock_status: "in_stock",

@@ -47,6 +47,7 @@ const BodySchema = z.object({
   complexity: z.number().int().min(1).max(5),
   aroma_families: z.array(z.string().min(1).max(50)).max(20),
   price_chf: z.number().positive(),
+  wholesale_price_chf: z.number().min(0).nullable().optional(),
   weight_g: z.number().int().positive(),
   stock_kg: z.number().min(0).nullable().optional(),
   stock_status: z.enum(["in_stock", "low_stock", "out_of_stock", "discontinued"]),
