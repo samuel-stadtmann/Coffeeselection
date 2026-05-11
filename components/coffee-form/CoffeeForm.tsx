@@ -655,20 +655,47 @@ function ScoreBox({ score }: { score: ReturnType<typeof computeQualityScorePrevi
   const variant = pct >= 75 ? "ok" : pct >= 50 ? "warn" : "alert";
   const barCls = variant === "ok" ? "bg-emerald-500" : variant === "warn" ? "bg-amber-500" : "bg-rose-500";
   const textCls = variant === "ok" ? "text-emerald-700" : variant === "warn" ? "text-amber-700" : "text-rose-700";
+
+  // Top 3 Items die noch fehlen — zeigen wir prominent, damit klar ist
+  // welche Felder den Score bewegen wuerden.
+  const missing = score.groups
+    .flatMap((g) => g.items.filter((it) => it.earned === 0).map((it) => ({ ...it, group: g.label })))
+    .slice(0, 3);
+
   return (
     <details className="mb-3">
       <summary className="cursor-pointer list-none">
         <div className="flex justify-between items-baseline">
-          <span className="text-[11px] text-on-surface-variant">Quality-Score</span>
+          <span className="text-[11px] text-on-surface-variant">Daten-Vollständigkeit</span>
           <span className={"font-bold text-lg " + textCls}>{score.total}/100</span>
         </div>
         <div className="h-1.5 bg-primary/10 mt-1">
           <div className={"h-full " + barCls} style={{ width: `${pct}%` }} />
         </div>
-        <p className="text-[10px] text-on-surface-variant/60 mt-1">
-          Vorschau · Ziel ≥ 75 für Freigabe · klicken für Details
+        <p className="text-[10px] text-on-surface-variant/60 mt-1 leading-snug">
+          Misst wie vollständig die Daten erfasst sind — nicht die Coffee-Qualität.
+          Ziel ≥ 75 für Freigabe.
         </p>
       </summary>
+
+      {missing.length > 0 && (
+        <div className="mt-3 p-2 bg-amber-50 border-l-2 border-amber-400">
+          <p className="font-headline text-[9px] uppercase tracking-widest text-amber-900 font-bold mb-1">
+            Nächste Punkte holen
+          </p>
+          <ul className="space-y-1 text-[11px] text-amber-900">
+            {missing.map((it, i) => (
+              <li key={i}>
+                + {it.max} Pkt: {it.label}
+                {it.reason && (
+                  <span className="block text-[10px] text-amber-700/80 ml-3">{it.reason}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-3 space-y-3 text-[11px]">
         {score.groups.map((g) => (
           <div key={g.label}>
