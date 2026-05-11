@@ -63,7 +63,10 @@ export async function setAdminReauthCookie(): Promise<void> {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    path: "/admin",
+    // Path "/" damit das Cookie auch an /api/admin/* mitgeschickt wird —
+    // Browser-Cookies matchen Pfade prefix-strikt: "/admin" trifft NICHT
+    // "/api/admin/...". HTTP-only + HMAC-Signatur verhindert Missbrauch.
+    path: "/",
     maxAge: Math.floor(TTL_MS / 1000),
   });
 }

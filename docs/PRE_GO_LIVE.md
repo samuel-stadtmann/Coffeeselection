@@ -300,3 +300,35 @@ selbst jeden Coffee einzupflegen.
 
 **Aufwand.** Massnahme 1: ~2 h Copy. Massnahme 2: 6-10 h für ein
 robustes Formular mit Validation + Roaster-Auth.
+
+---
+
+## P14 — Coffee-Verifikation an echten Workflow anpassen (data_quality_score-driven)
+
+**Stand.** Heute (8.4 M3) ist die Verifikation als „nach eigener
+Verkostung bestaetigen" gebaut. Tatsaechlicher Workflow von Samuel
+ist aber: er entscheidet anhand `data_quality_score` (>=75 = ok), er
+verkostet die Coffees nicht selber.
+
+**Was muss anders?**
+- Dashboard `/admin/coffees` soll die Entscheidung nach Score
+  unterstuetzen: Coffees mit `data_quality_score < 75` markieren als
+  „braucht Aufmerksamkeit", Coffees >= 75 als „freigegeben".
+- Die `data_verified_at`/`data_verified_by`-Felder bleiben, aber
+  bekommen eine andere Semantik: „von Samuel manuell freigegeben
+  trotz Score < 75" — also Override-Flag fuer Edge-Cases, nicht
+  Default-Workflow.
+- Plus: wir brauchen eine **Erklaerung wo der quality_score
+  herkommt**. Aktuell ist das ein opaker `smallint`. Mattia/Samuel
+  muessten sehen koennen: „Score 65 weil flavor_description fehlt,
+  Aroma-Familien leer, kein Variety-Eintrag, …". Computed via
+  Trigger `compute_coffee_quality_score` der bereits in der DB
+  existiert — wir muessten den Body extrahieren und im UI rendern.
+
+**Aufwand.** ~2-3 h:
+- 30 min: data_quality_score-Breakdown-View (welche Felder fehlen)
+- 1 h: Dashboard-Refactor mit Filter „< 75" und Detail-Aufklappen
+- 30 min: Verifikation umtexten zu „Override / freigeben trotz Score"
+
+**Trigger.** Wenn Samuel das Dashboard regelmaessig benutzt und das
+heutige Tool-Setup ihm im Weg ist.
