@@ -27,6 +27,7 @@ Aus `validateCoffee()` in `lib/coffee/form-helpers.ts`:
 - **`is_decaf` + `decaf_method`-Konsistenz** — Decaf-Kunden bekommen sonst keinen Treffer
 - **Konsistenz-Plausibilitäten** (Light + hohe Bitterkeit, Dunkel + max Säure, …) — UX-Hilfe, nicht algorithmisch
 - **`roast_profile`** (espresso / filter / omni) — wird seit Migration `20260512100000` direkt vom Algo gelesen für Brewing-Match-Bonus. Default 'omni' bekommt immer Bonus, sonst nur bei Match zur Kunden-Bruehmethode aus Quiz Frage 1.
+- **`acidity`** — wird seit Migration `20260512200000` zusätzlich genutzt für Low-Acidity-Bonus: Kunden mit Quiz-Antwort `often`/`always` auf Frage 9 (Magen-Empfindlichkeit) bekommen einen linearen Bonus (max +10) für Coffees mit acidity ≤ 2. Säurearme Coffees ranken bei diesen Kunden also höher, ohne dass säurereiche ausgeschlossen werden.
 
 ## Score-Boni (Form lässt durch, aber `data_quality_score` sinkt)
 
