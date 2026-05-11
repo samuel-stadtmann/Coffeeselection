@@ -137,6 +137,9 @@ export type CoffeeFormState = {
   harvest_year: number | null;
   // Roest
   roast_level: number;          // 1-5
+  roast_level_touched: boolean; // Pflicht: muss aktiv vom Roester gesetzt
+                                // werden — Default 3 (medium) ist neutral
+                                // und verfaelscht sonst das Embedding.
   roast_profile: "espresso" | "filter" | "omni";
   is_decaf: boolean;
   decaf_method: "swiss_water" | "co2" | "sugarcane_ea" | "solvent_ea" | "other" | "";
@@ -211,6 +214,7 @@ export function emptyCoffeeForm(): CoffeeFormState {
     altitude_m_max: null,
     harvest_year: null,
     roast_level: 3,
+    roast_level_touched: false,
     roast_profile: "omni",
     is_decaf: false,
     decaf_method: "",
@@ -306,6 +310,17 @@ export function validateCoffee(c: CoffeeFormState): ValidationIssue[] {
       field: "sensory",
       severity: "error",
       message: `Sensorik-Achse${untouched.length === 1 ? "" : "n"} nicht eingestellt: ${untouched.join(", ")}. Bitte jede Achse aktiv setzen — Defaults verfälschen das Matching.`,
+    });
+  }
+  // Röstgrad muss aktiv eingestellt sein. Default = 3 (medium) ist
+  // neutral und sabotiert den Embedding-Text — der Algorithmus matcht
+  // u.a. die Quiz-Brühmethode (Frage 1) gegen Röstgrad-Implikationen.
+  if (!c.roast_level_touched) {
+    issues.push({
+      field: "roast_level",
+      severity: "error",
+      message:
+        "Röstgrad ist nicht aktiv gesetzt. Bitte hell/medium/dunkel wählen — der Algorithmus matcht über den Röstgrad gegen die Brühmethoden-Präferenz aus dem Quiz.",
     });
   }
   if (c.price_chf == null || c.price_chf <= 0) {

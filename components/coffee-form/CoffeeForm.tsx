@@ -120,7 +120,7 @@ export default function CoffeeForm({
       (e) => e.field === "sensory" || SENSORY_AXES.some((ax) => ax.key === e.field)
     ).length,
     aroma: errors.filter((e) => e.field === "aroma_families").length,
-    roast: 0,
+    roast: errors.filter((e) => e.field === "roast_level").length,
     origin: errors.filter((e) => e.field === "altitude_m_max").length,
     commerce: errors.filter((e) => ["price_chf", "weight_g"].includes(e.field)).length,
     allergens: 0,
@@ -135,7 +135,7 @@ export default function CoffeeForm({
     { id: "aroma", label: "Aroma-Familien" },
     { id: "flavor_notes", label: "Aroma-Noten" },
     { id: "brewing", label: "Brühmethoden" },
-    { id: "roast", label: "Röstung" },
+    { id: "roast", label: "Röstung", required: true },
     { id: "origin", label: "Herkunft" },
     { id: "commerce", label: "Kommerz", required: true },
     { id: "allergens", label: "Allergene" },
@@ -415,17 +415,31 @@ export default function CoffeeForm({
           </Card>
 
           {/* ROAST */}
-          <Card id="roast" title="Röstung">
-            <Box label="Röstgrad" hint={`Aktuell: ${ROAST_LEVELS[s.roast_level - 1]?.label ?? "—"}`}>
-              <div className="grid grid-cols-5 gap-2">
+          <Card id="roast" title="Röstung *">
+            <Box
+              label={
+                s.roast_level_touched
+                  ? `Röstgrad — Aktuell: ${ROAST_LEVELS[s.roast_level - 1]?.label ?? "—"}`
+                  : "Röstgrad · bitte einstellen"
+              }
+              hint="Pflicht. Hell/Medium/Dunkel ist algorithm-relevant — fließt in Embedding-Text + Quiz-Brühmethoden-Matching."
+            >
+              <div
+                className={
+                  "grid grid-cols-5 gap-2 p-2 " +
+                  (s.roast_level_touched ? "" : "bg-amber-50/50 border border-amber-300")
+                }
+              >
                 {ROAST_LEVELS.map((r) => (
                   <button
                     key={r.value}
                     type="button"
-                    onClick={() => setS({ ...s, roast_level: r.value })}
+                    onClick={() =>
+                      setS({ ...s, roast_level: r.value, roast_level_touched: true })
+                    }
                     className={
                       "px-2 py-3 text-xs border transition-colors " +
-                      (s.roast_level === r.value
+                      (s.roast_level_touched && s.roast_level === r.value
                         ? "border-tertiary bg-tertiary/10 text-primary font-bold"
                         : "border-primary/10 bg-white hover:border-primary/30")
                     }
