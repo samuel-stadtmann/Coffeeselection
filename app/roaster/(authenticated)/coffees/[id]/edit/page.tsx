@@ -17,13 +17,32 @@ export const metadata: Metadata = {
 
 async function loadCatalogs(roasterIds: string[]) {
   const sb = createServiceClient();
-  const [roasters, origins, varieties, processings, certifications, allergens] = await Promise.all([
+  const [
+    roasters,
+    origins,
+    varieties,
+    processings,
+    certifications,
+    allergens,
+    brewingMethods,
+    flavorNotes,
+  ] = await Promise.all([
     sb.from("roasters").select("id, name").in("id", roasterIds).order("name"),
     sb.from("origins_catalog").select("id, name_de").eq("active", true).order("name_de"),
     sb.from("varieties_catalog").select("id, name").eq("active", true).order("name"),
     sb.from("processing_methods_catalog").select("id, name_de").eq("active", true).order("name_de"),
     sb.from("certifications_catalog").select("id, name").eq("active", true).order("name"),
     sb.from("allergens_catalog").select("slug, name_de").eq("active", true).order("sort_order"),
+    sb
+      .from("brewing_methods_catalog")
+      .select("id, name_de, category")
+      .eq("active", true)
+      .order("sort_order"),
+    sb
+      .from("flavor_notes_catalog")
+      .select("id, name_de, family")
+      .eq("active", true)
+      .order("sort_order"),
   ]);
 
   return {
@@ -51,6 +70,16 @@ async function loadCatalogs(roasterIds: string[]) {
       slug: a.slug,
       label: a.name_de,
     })),
+    brewingMethods: ((brewingMethods.data ?? []) as {
+      id: string;
+      name_de: string;
+      category: string;
+    }[]).map((b) => ({ id: b.id, label: b.name_de, category: b.category })),
+    flavorNotes: ((flavorNotes.data ?? []) as {
+      id: string;
+      name_de: string;
+      family: string;
+    }[]).map((f) => ({ id: f.id, label: f.name_de, family: f.family })),
   };
 }
 
@@ -66,7 +95,9 @@ export default async function RoasterEditCoffeePage({
   const sb = createServiceClient();
   const { data: coffee, error } = await sb
     .from("coffees")
-    .select("*, allergens:coffee_allergens(allergen), certifications:coffee_certifications(certification_id)")
+    .select(
+      "*, allergens:coffee_allergens(allergen), certifications:coffee_certifications(certification_id), brewing_methods:coffee_brewing_methods(brewing_method_id, is_recommended, notes), flavor_notes:coffee_flavor_notes(flavor_note_id, intensity)"
+    )
     .eq("id", id)
     .is("deleted_at", null)
     .single();
@@ -134,6 +165,27 @@ export default async function RoasterEditCoffeePage({
     ),
     status: (coffee.status as CoffeeFormState["status"]) ?? "draft",
     is_fresh_roast_on_demand: !!coffee.is_fresh_roast_on_demand,
+    image_url: coffee.image_url ?? "",
+    brewing_methods: (
+      (coffee.brewing_methods ?? []) as Array<{
+        brewing_method_id: string;
+        is_recommended: boolean | null;
+        notes: string | null;
+      }>
+    ).map((b) => ({
+      brewing_method_id: b.brewing_method_id,
+      is_recommended: b.is_recommended ?? true,
+      notes: b.notes ?? "",
+    })),
+    flavor_notes: (
+      (coffee.flavor_notes ?? []) as Array<{
+        flavor_note_id: string;
+        intensity: number | null;
+      }>
+    ).map((f) => ({
+      flavor_note_id: f.flavor_note_id,
+      intensity: f.intensity ?? 3,
+    })),
   };
 
   return (
@@ -163,6 +215,8 @@ export default async function RoasterEditCoffeePage({
         processings={cat.processings}
         allergens={cat.allergens}
         certifications={cat.certifications}
+        brewingMethods={cat.brewingMethods}
+        flavorNotes={cat.flavorNotes}
         submitEndpoint={`/api/roaster/coffees/${id}`}
         submitMethod="PATCH"
         afterSaveHref="/roaster/coffees"

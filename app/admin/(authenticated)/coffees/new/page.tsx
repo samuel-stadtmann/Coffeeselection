@@ -11,13 +11,32 @@ export const metadata: Metadata = {
 
 async function loadCatalogs() {
   const sb = createServiceClient();
-  const [roasters, origins, varieties, processings, certifications, allergens] = await Promise.all([
+  const [
+    roasters,
+    origins,
+    varieties,
+    processings,
+    certifications,
+    allergens,
+    brewingMethods,
+    flavorNotes,
+  ] = await Promise.all([
     sb.from("roasters").select("id, name").is("deleted_at", null).order("name"),
     sb.from("origins_catalog").select("id, name_de").eq("active", true).order("name_de"),
     sb.from("varieties_catalog").select("id, name").eq("active", true).order("name"),
     sb.from("processing_methods_catalog").select("id, name_de").eq("active", true).order("name_de"),
     sb.from("certifications_catalog").select("id, name").eq("active", true).order("name"),
     sb.from("allergens_catalog").select("slug, name_de").eq("active", true).order("sort_order"),
+    sb
+      .from("brewing_methods_catalog")
+      .select("id, name_de, category")
+      .eq("active", true)
+      .order("sort_order"),
+    sb
+      .from("flavor_notes_catalog")
+      .select("id, name_de, family")
+      .eq("active", true)
+      .order("sort_order"),
   ]);
 
   return {
@@ -45,6 +64,16 @@ async function loadCatalogs() {
       slug: a.slug,
       label: a.name_de,
     })),
+    brewingMethods: ((brewingMethods.data ?? []) as {
+      id: string;
+      name_de: string;
+      category: string;
+    }[]).map((b) => ({ id: b.id, label: b.name_de, category: b.category })),
+    flavorNotes: ((flavorNotes.data ?? []) as {
+      id: string;
+      name_de: string;
+      family: string;
+    }[]).map((f) => ({ id: f.id, label: f.name_de, family: f.family })),
   };
 }
 
@@ -79,6 +108,8 @@ export default async function AdminNewCoffeePage() {
         processings={cat.processings}
         allergens={cat.allergens}
         certifications={cat.certifications}
+        brewingMethods={cat.brewingMethods}
+        flavorNotes={cat.flavorNotes}
         submitEndpoint="/api/admin/coffees"
         submitMethod="POST"
         afterSaveHref="/admin/coffees"

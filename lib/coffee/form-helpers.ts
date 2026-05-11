@@ -166,6 +166,19 @@ export type CoffeeFormState = {
   status: "draft" | "active" | "paused" | "discontinued";
   is_fresh_roast_on_demand: boolean;
   lot_number: string;
+  // Medien
+  image_url: string;
+  // Brewing Methods (Join-Tabelle): pro Methode optional is_recommended + Notes
+  brewing_methods: Array<{
+    brewing_method_id: string;
+    is_recommended: boolean;
+    notes: string;
+  }>;
+  // Flavor-Notes (detaillierte Aromen aus flavor_notes_catalog) mit Intensitaet 1-5
+  flavor_notes: Array<{
+    flavor_note_id: string;
+    intensity: number; // 1-5
+  }>;
 };
 
 export function emptyCoffeeForm(): CoffeeFormState {
@@ -210,6 +223,9 @@ export function emptyCoffeeForm(): CoffeeFormState {
     status: "draft",
     is_fresh_roast_on_demand: false,
     lot_number: "",
+    image_url: "",
+    brewing_methods: [],
+    flavor_notes: [],
   };
 }
 

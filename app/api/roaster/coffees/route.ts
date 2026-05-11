@@ -61,6 +61,26 @@ const BodySchema = z.object({
   is_fresh_roast_on_demand: z.boolean().default(false),
   allergen_slugs: z.array(z.string().min(1).max(50)).max(20).default([]),
   certification_ids: z.array(z.string().regex(UUID_LOOSE)).max(20).default([]),
+  image_url: z.string().max(1000).optional().default(""),
+  brewing_methods: z
+    .array(
+      z.object({
+        brewing_method_id: z.string().regex(UUID_LOOSE),
+        is_recommended: z.boolean().default(true),
+        notes: z.string().max(500).optional().default(""),
+      })
+    )
+    .max(20)
+    .default([]),
+  flavor_notes: z
+    .array(
+      z.object({
+        flavor_note_id: z.string().regex(UUID_LOOSE),
+        intensity: z.number().int().min(1).max(5),
+      })
+    )
+    .max(30)
+    .default([]),
 });
 
 export async function POST(req: NextRequest) {
@@ -90,10 +110,19 @@ export async function POST(req: NextRequest) {
 
   const sb = createServiceClient();
 
-  const { allergen_slugs, certification_ids, decaf_method, ...coffeeFields } = parsed;
+  const {
+    allergen_slugs,
+    certification_ids,
+    brewing_methods,
+    flavor_notes,
+    decaf_method,
+    image_url,
+    ...coffeeFields
+  } = parsed;
   const insertPayload = {
     ...coffeeFields,
     decaf_method: decaf_method || null,
+    image_url: image_url || null,
     status: "draft" as const,
     price_per_250g:
       parsed.price_chf && parsed.weight_g > 0
@@ -130,6 +159,28 @@ export async function POST(req: NextRequest) {
     }));
     const { error: certErr } = await sb.from("coffee_certifications").insert(certRows);
     if (certErr) console.error("[roaster/coffees] cert link failed", certErr);
+  }
+
+  if (brewing_methods.length > 0) {
+    const rows = brewing_methods.map((b) => ({
+      coffee_id: coffeeId,
+      brewing_method_id: b.brewing_method_id,
+      is_recommended: b.is_recommended,
+      notes: b.notes || null,
+    }));
+    const { error: bmErr } = await sb.from("coffee_brewing_methods").insert(rows);
+    if (bmErr) console.error("[roaster/coffees] brewing methods link failed", bmErr);
+  }
+
+  if (flavor_notes.length > 0) {
+    const rows = flavor_notes.map((f, idx) => ({
+      coffee_id: coffeeId,
+      flavor_note_id: f.flavor_note_id,
+      intensity: f.intensity,
+      sort_order: idx,
+    }));
+    const { error: fnErr } = await sb.from("coffee_flavor_notes").insert(rows);
+    if (fnErr) console.error("[roaster/coffees] flavor notes link failed", fnErr);
   }
 
   return NextResponse.json({ ok: true, coffee_id: coffeeId });
