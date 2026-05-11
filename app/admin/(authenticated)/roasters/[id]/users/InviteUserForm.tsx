@@ -56,8 +56,8 @@ export default function InviteUserForm({ roasterId }: { roasterId: string }) {
           onChange={(e) => setRole(e.target.value as "owner" | "editor")}
           className="px-3 py-2 bg-white border border-primary/15 focus:border-primary focus:outline-none text-sm"
         >
-          <option value="editor">Editor (Coffees verwalten)</option>
-          <option value="owner">Owner (+ User einladen)</option>
+          <option value="editor">Editor — kann nur Coffees verwalten</option>
+          <option value="owner">Owner — kann zusätzlich weitere User einladen</option>
         </select>
         <button
           type="submit"
@@ -77,11 +77,20 @@ export default function InviteUserForm({ roasterId }: { roasterId: string }) {
           {msg.text}
         </p>
       )}
-      <p className="text-xs text-on-surface-variant">
-        Wenn die E-Mail noch keinen Account hat: Supabase verschickt eine
-        Set-Password-Mail. Wenn der Account schon existiert (z.B. als Kunde):
-        wir verknüpfen ihn nur mit dem Röster, kein neuer Login-Flow.
-      </p>
+      <div className="text-xs text-on-surface-variant space-y-1">
+        <p>
+          <strong>Rolle:</strong> Der Editor sieht und bearbeitet die Coffees
+          dieser Rösterei. Der Owner kann zusätzlich weitere Editor/Owner
+          für dieselbe Rösterei einladen oder entfernen. Im Zweifel:{" "}
+          <strong>Editor</strong> wählen.
+        </p>
+        <p>
+          <strong>Account:</strong> Wenn die E-Mail noch keinen Account hat,
+          verschickt Supabase eine Set-Password-Mail. Wenn der Account schon
+          existiert (z.B. als Kunde), verknüpfen wir ihn nur mit der Rösterei
+          — kein neuer Login-Flow.
+        </p>
+      </div>
     </form>
   );
 }

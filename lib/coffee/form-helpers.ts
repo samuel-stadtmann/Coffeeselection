@@ -242,7 +242,7 @@ export function validateCoffee(c: CoffeeFormState): ValidationIssue[] {
     issues.push({
       field: "aroma_families",
       severity: "warn",
-      message: "Keine Aroma-Familien ausgewählt — der Algorithmus matcht dann nur ueber die 5 Sensorik-Achsen, ungefaehrer Match.",
+      message: "Keine Aroma-Familien ausgewählt — der Algorithmus matcht dann nur über die 5 Sensorik-Achsen, ungefährer Match.",
     });
   }
   if (c.price_chf == null || c.price_chf <= 0) {
