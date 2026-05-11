@@ -332,3 +332,42 @@ verkostet die Coffees nicht selber.
 
 **Trigger.** Wenn Samuel das Dashboard regelmaessig benutzt und das
 heutige Tool-Setup ihm im Weg ist.
+
+---
+
+## P15 — Roaster-Self-Service-Portal (8.4 Massnahme 1+2 finale Stufe)
+
+**Stand.** Heute (2026-05-10) ist die Admin-Seite der Coffee-
+Erfassung gebaut: `/admin/coffees/new` + Edit + Freigeben-Workflow
+mit Konsistenz-Validierung. Samuel/Mattia koennen damit Coffees fuer
+Roester anlegen.
+
+**Was fehlt fuer echtes Roaster-Self-Service:**
+
+1. **Roaster-Auth.** Eigene Anmeldung (entweder neuer Supabase-Auth-
+   Flow oder Erweiterung des bestehenden customers-Pfads). Wir
+   brauchen eine `roaster_users(user_id, roaster_id, role)`-Tabelle
+   die einen auth.user mit einer Roaster-Organisation verknuepft.
+2. **Roaster-Portal-Routes** unter `/roaster/` mit Permission-Check
+   (nur eigene Roaster-Coffees lesen + bearbeiten):
+   - `/roaster/dashboard` (KPIs zum eigenen Sortiment)
+   - `/roaster/coffees` (Liste eigener Coffees)
+   - `/roaster/coffees/new` (gleiche `<CoffeeForm>` wie Admin, aber
+     `roaster_id` vorbefuellt + nicht aenderbar)
+   - `/roaster/coffees/[id]/edit`
+3. **Submit-for-Review-Workflow.** Roester speichert -> status=draft
+   -> Samuel sieht in `/admin/coffees` -> Freigabe per Button. Das
+   ist heute schon gegeben — wir muessen nur den Roaster-Pfad davor
+   bauen.
+4. **Onboarding-Guide.** PDF/Markdown mit Beispielen pro Skala
+   ("Saeure 1 = Sumatra, Saeure 5 = Yirgacheffe washed").
+
+**Aufwand.** ~6-10 h:
+- 1 h: roaster_users + RLS-Policies
+- 1 h: Roaster-Auth-Pfad (Signup-Form, Magic-Link oder Passwort)
+- 2 h: Roaster-Portal-Layout + Routes
+- 1 h: Permission-Check in API-Routes
+- 2 h: Onboarding-Guide-Doku
+
+**Trigger.** Sobald > 2-3 Roester aktiv mitmachen und nicht jeder
+Coffee manuell durch Samuel angelegt werden soll.
