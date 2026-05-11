@@ -1,6 +1,6 @@
 # Staging — Stabiler Admin-Test-Workflow
 
-**Letzte Aktualisierung: 2026-05-11**
+**Letzte Aktualisierung: 2026-05-12**
 
 Diese Doc ist die _Single Source of Truth_ für Staging. Bei jeder
 Unsicherheit ("welche URL?", "warum funktioniert XY nicht?") zuerst hier
@@ -11,29 +11,31 @@ nachschauen.
 ## 1) Die EINE URL die du nutzt
 
 ```
-https://coffeeselection-git-staging-samuelstadtmann-4931s-projects.vercel.app
+https://staging.coffeeselection.ch
 ```
 
 **Bookmarke diese URL.** Sie zeigt immer den letzten Commit auf dem
-`staging`-Branch.
+`staging`-Branch. Custom-Domain seit 2026-05-12 (vorher die hässliche
+`coffeeselection-git-staging-...vercel.app`-URL).
 
 **Nicht** verwenden:
-- `coffeeselection-h6xwocebo-...vercel.app` o.ä. (Hash-URLs sind
-  Deploy-spezifische Snapshots, andere Domain → Cookies werden nicht
-  geteilt, du bist auf dieser URL nicht eingeloggt).
-- Vercel-Production-Domain (gibt's auf `main`-Branch).
+- `coffeeselection-<hash>-...vercel.app` (Deploy-spezifische Snapshots,
+  andere Domain → Cookies werden nicht geteilt, du bist da nicht eingeloggt)
+- `coffeeselection.ch` (Apex/Production) — aktuell **nicht aktiv**, weil
+  `main`-Branch hinter `staging` ist. Wird erst beim echten Launch
+  reaktiviert.
 
 ---
 
 ## 2) Login-Flow (3 Schritte)
 
 1. **Browser-Login**:
-   `https://...staging.../login` → mit deiner Admin-E-Mail einloggen.
+   `https://staging.coffeeselection.ch/login` → mit deiner Admin-E-Mail einloggen.
 2. **Re-Auth**:
-   Klick auf einen Admin-Link (z.B. Footer der Homepage "Admin · Metriken")
-   → leitet auf `/admin/reauth` weiter → Passwort erneut eingeben.
+   Klick auf einen Admin-Link (Footer: "Admin · Metriken") → leitet auf
+   `/admin/reauth` → Passwort erneut eingeben.
 3. **Drin**:
-   Du landest auf `/admin/metrics`. Tabs oben: Metriken · Coffees · System.
+   Du landest auf `/admin/metrics`. Tabs oben: Metriken · Coffees · Röster · System.
 
 **Sliding-Expiry:** Solange du innerhalb 30 Min eine Admin-Aktion machst
 (Tab-Wechsel, Speichern, etc.), bleibt das Re-Auth-Cookie frisch. Erst
@@ -46,14 +48,13 @@ bei 30 Min Inaktivität wirst du wieder nach Passwort gefragt.
 Wenn irgendwas seltsam wirkt, **immer zuerst**:
 
 ```
-/admin/health
+https://staging.coffeeselection.ch/admin/health
 ```
 
 Diese Seite zeigt live:
 
-- ✓/✗ Alle Env-Variablen gesetzt (Supabase, OpenAI, Resend, Admin)
+- ✓/✗ Alle Env-Variablen gesetzt (Supabase, Admin)
 - ✓/✗ Supabase erreichbar (echter Query gegen `coffees`)
-- ✓/✗ OpenAI API erreichbar (echter HEAD-Request)
 - ✓/✗ Dein eingeloggter User ist in `ADMIN_EMAILS`
 - Deploy-Info: Commit-SHA, Branch, Environment, Region
 
@@ -68,19 +69,21 @@ In Vercel → Project → Settings → Environment Variables. **Wichtig**:
 für jede Variable müssen alle 3 Scopes gesetzt sein (Production, Preview,
 Development), sonst greift sie auf der Staging-Preview nicht.
 
-| Variable | Beispielwert | Wofür | Min-Länge |
-|---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | Supabase-Client | — |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGc...` | Anon-Reads, Auth | 40+ |
-| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGc...` | Service-Reads (Admin) | 40+ |
-| `ADMIN_REAUTH_SECRET` | 32-Hex-String | HMAC für Reauth-Cookie | 16+ |
-| `ADMIN_EMAILS` | `samuel@cs.ch,mattia@cs.ch` | Komma-getrennte Whitelist | — |
+| Variable | Beispielwert | Wofür |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | Supabase-Client |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGc...` | Anon-Reads, Auth |
+| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGc...` | Service-Reads (Admin) |
+| `ADMIN_REAUTH_SECRET` | 32-Hex-String (min 16 Zeichen) | HMAC für Reauth-Cookie |
+| `ADMIN_EMAILS` | `samuel@cs.ch,mattia@cs.ch` | Komma-getrennte Whitelist |
+| `NEXT_PUBLIC_SITE_URL` | `https://staging.coffeeselection.ch` | Redirect-Target in Invite-Mails |
 
 **Nicht auf Vercel** (sondern als Secrets im Supabase-Dashboard →
 Edge Functions → Manage Secrets):
 
 - `OPENAI_API_KEY_COFFEESELECTION` — für Embedding-Generierung
-- `RESEND_API_KEY` — für Re-Klassifikations-Mails
+- `RESEND_API_KEY` — für Re-Klassifikations- und Invite-Mails
+- `RESEND_FROM_EMAIL` — z.B. `Coffee Selection <hello@coffeeselection.ch>`
 
 Die laufen serverless auf Supabase-Seite, NICHT in der Next.js-App.
 
@@ -99,44 +102,30 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### "Admin-Link fehlt im Footer"
 
-→ Du bist nicht eingeloggt **auf dieser Domain**. Hash-URLs haben
-   eigene Cookies. Geh zurück auf die Stable-URL (Punkt 1).
+→ Du bist nicht eingeloggt **auf dieser Domain**. Geh zurück auf die
+   Stable-URL (Punkt 1).
 
 → Falls Stable-URL und trotzdem kein Link: F12 → Network →
    `/api/admin/check` aufrufen. Antwort `{isAdmin: false}` heißt:
    entweder nicht eingeloggt oder E-Mail nicht in `ADMIN_EMAILS`.
    `/admin/health` zeigt dir das eindeutig.
 
-### "Re-Auth fehlgeschlagen — Versuch's nochmal"
+### "Re-Auth fehlgeschlagen"
 
-Reihenfolge zum Diagnosen:
-
-1. `ADMIN_REAUTH_SECRET` auf Vercel gesetzt? → `/admin/health` checken.
-2. Tippfehler im Secret? → Wert neu setzen, **Redeploy**, nochmal versuchen.
-3. Passwort wirklich richtig? → Inkognito-Tab + `/login` direkt testen.
-
-### "Tab-Klick führt auf Startseite"
-
-→ War ein Bug (Logo-Overlay klaute Klicks). Fix wurde in PR #9 gemerged.
-   Falls neuer Vercel-Deploy noch nicht durch ist: 1–2 Min warten,
-   dann `Strg+Shift+R` (Hard-Reload) auf der Seite.
+1. `ADMIN_REAUTH_SECRET` auf Vercel gesetzt? → `/admin/health` checken
+2. Tippfehler im Secret? → Wert neu setzen, **Redeploy**, nochmal versuchen
+3. Passwort wirklich richtig? → Inkognito-Tab + `/login` direkt testen
 
 ### "Coffee-Liste leer"
 
 → `/admin/health` öffnen: Supabase-Check rot? Service-Role-Key fehlt
    oder das Supabase-Projekt ist pausiert.
 
-→ Supabase-Check grün, Liste trotzdem leer? Echter Datenbank-Zustand:
-   wirklich keine Coffees vorhanden. Über Supabase-Dashboard → Table
-   Editor → `coffees` nachschauen.
-
 ### "Hab gepusht, aber Staging zeigt alten Stand"
 
 → Vercel-Dashboard → Deployments → letzter Deploy. Status `Ready`?
-   Wenn `Failed` → Build-Logs lesen.
 
-→ `Ready` aber Stable-URL zeigt alt: Browser-Cache. `Strg+Shift+R`
-   (Hard-Reload).
+→ `Ready` aber Stable-URL zeigt alt: Browser-Cache. `Strg+Shift+R`.
 
 → `/admin/health` zeigt unter "Commit" den SHA, der wirklich live ist.
    Vergleich mit `git rev-parse origin/staging` lokal.
@@ -146,26 +135,35 @@ Reihenfolge zum Diagnosen:
 → Fehlende Env-Var bei `NEXT_PUBLIC_SUPABASE_URL` oder
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Auf allen 3 Scopes setzen + Redeploy.
 
+### "Invite-Mail kommt nicht an"
+
+→ Resend-Domain `coffeeselection.ch` verifiziert? Resend Dashboard →
+   Domains → Status muss "Verified" sein (grün).
+
+→ `RESEND_FROM_EMAIL` als Supabase-Edge-Function-Secret gesetzt
+   (Format: `Coffee Selection <hello@coffeeselection.ch>`).
+
+→ Spam-Ordner des Empfängers prüfen.
+
 ---
 
 ## 6) Workflow bei Code-Änderungen
 
 ```
-Feature-Branch (z.B. claude/implement-loop-XYZ)
+Feature-Branch (claude/implement-loop-XYZ)
    ↓ Push
    ↓ PR auf staging
    ↓ Merge
 staging-Branch
    ↓ Vercel auto-deploys
-Stable-URL (Punkt 1)
+https://staging.coffeeselection.ch
 ```
 
 **Bei jedem Merge nach staging:**
-1. Warten bis Vercel "Ready" zeigt (1–3 Min).
+1. Warten bis Vercel "Ready" zeigt (1–3 Min)
 2. `/admin/health` öffnen → Commit-SHA matched mit Merge-Commit?
-3. Smoke-Test: Login → Metrics → Coffees → einen Coffee öffnen.
-
-**Nur bei "alles grün" weitermachen.**
+3. **Falls neue Migration im PR**: SQL Editor → ausführen (siehe Punkt 7)
+4. Smoke-Test: Login → Metriken → Coffees → einen Coffee öffnen
 
 ---
 
@@ -173,28 +171,71 @@ Stable-URL (Punkt 1)
 
 **Wichtig:** Vercel deployed nur den Next.js-Code, **nicht** Supabase-
 Migrations. Wenn ein PR eine neue `supabase/migrations/*.sql` enthält,
-musst du sie manuell im Supabase SQL Editor ausführen:
+musst du sie manuell im Supabase SQL Editor ausführen.
 
-1. `supabase/migrations/<timestamp>_*.sql` öffnen, Inhalt kopieren.
-2. Supabase Dashboard → SQL Editor → neuer Query → einfügen → Run.
-3. Bei Erfolg: keine Fehler. Bei Konflikt mit existierenden Migrations
-   meistens `IF NOT EXISTS` / `OR REPLACE`-Schutz drin, also idempotent
-   re-runbar.
+**Schritte:**
+1. `supabase/migrations/<timestamp>_*.sql` öffnen, Inhalt kopieren
+2. Supabase Dashboard → SQL Editor → neuer Query → einfügen → Run
+3. Bei Erfolg: keine Fehler. Idempotent (`IF NOT EXISTS`) — kein Schaden
+   bei Re-Run
 
-**Aktuelle Migrations die noch nicht in Staging-DB sein könnten:**
-- `20260510280000_coffee_verification.sql` (Verifikations-Felder)
-- `20260510290000_wholesale_price.sql` (Einkaufspreis-Spalte)
-- `20260511120000_roaster_users.sql` (Roaster-Portal — P13/P15)
+**Status der jüngsten Migrations** (Stand 2026-05-12):
 
-Im Zweifel SQL ausführen und schauen ob Fehler kommen. Bei `IF NOT EXISTS`-
-geschützten Migrations passiert nichts wenn sie schon angewendet wurden.
+| Migration | Inhalt | Run? |
+|---|---|---|
+| `20260510280000_coffee_verification.sql` | Verifikations-Felder | ⚠ Bitte prüfen |
+| `20260510290000_wholesale_price.sql` | Einkaufspreis-Spalte | ⚠ Bitte prüfen |
+| `20260511120000_roaster_users.sql` | Roaster-Portal (P13/P15) | ⚠ Bitte prüfen |
+| `20260512000000_canonicalize_coffees_columns.sql` | flavor_description + stock_kg | ⚠ Bitte prüfen |
+| `20260512100000_brewing_match_score.sql` | Brewing-Match-Bonus + rank-Funktion | ❌ **Pending** |
+| `20260512200000_low_acidity_preference.sql` | Säure-Präferenz (Frage 9) | ❌ **Pending** |
+| `20260512300000_quiz_remaining_preferences.sql` | Body/Complexity/Exploration (Fragen 10/11/12) | ❌ **Pending** |
 
-## 8) Was kommt noch (für später)
+⚠ = "Bitte einmal SQL-Editor öffnen, Inhalt einkopieren, Run. Wenn alles
+schon drin ist, kommen 0 rows affected — kein Schaden."
 
-- **Baustein C — automatisches Smoke-Test-Skript**:
-  `npm run smoke:staging` läuft Playwright durch Login → /admin/coffees
-  → /admin/coffees/new → Form ausfüllen → Speichern. Fängt Regressions
-  ab bevor du sie merkst. Wird in separater Session gebaut, sobald
-  A + B stabil laufen.
-- **Vercel Production Domain** (Hostpoint) — siehe PRE_GO_LIVE.md P11.
-- **Roaster-Self-Service** — P13 in PRE_GO_LIVE.md.
+❌ = "Definitiv noch nicht ausgeführt, weil neu seit dem letzten Merge."
+
+**Reihenfolge (wichtig — neuere Migrations bauen auf älteren auf):**
+Genau in der oben gelisteten Reihenfolge ausführen. Speziell die drei
+`20260512_*` Migrations modifizieren alle `rank_coffees_for_customer` —
+nur die letzte gewinnt, aber sie sind aufeinander aufbauend (`brewing →
++acidity → +body/complexity/exploration`).
+
+Falls du sicher gehen willst dass alles drin ist:
+```sql
+-- Diese Query zeigt welche Spalten existieren:
+SELECT column_name FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'customers'
+  AND column_name IN (
+    'prefers_low_acidity', 'preferred_body',
+    'preferred_complexity', 'exploration_level'
+  );
+```
+Erwartet: 4 Zeilen. Wenn weniger → entsprechende Migration nachholen.
+
+---
+
+## 8) Resend (E-Mail-Versand)
+
+Stand 2026-05-12: Domain `coffeeselection.ch` ist via DNS in Resend
+authentifiziert. Sender ist `hello@coffeeselection.ch`.
+
+**Was funktioniert jetzt:**
+- Invite-Mails (Admin lädt Röster ein)
+- Password-Reset-Mails (jeder Empfänger, nicht nur verifizierte)
+- Reklassifikations-Mails (über Edge Function)
+
+**Vor jedem echten Versand prüfen:**
+- Resend Dashboard → Domains → `coffeeselection.ch` zeigt "Verified" (grün)
+- Supabase Edge Function Secret `RESEND_FROM_EMAIL` ist gesetzt
+
+---
+
+## 9) Was kommt noch (für später)
+
+- **Baustein C — Playwright Smoke-Test**: `npm run smoke:staging` läuft
+  Login → Coffees → Form → Speichern automatisiert
+- **Production-Launch**: `coffeeselection.ch` (Apex) wieder zu Vercel
+  hinzufügen, `staging → main` mergen, Migrations auf Production-DB
+- **Roaster-Onboarding-PDF**: Skalen-Beispiele für die 1–10-Sensorik
