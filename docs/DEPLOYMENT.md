@@ -130,3 +130,47 @@ FROM customers WHERE auth_user_id = '...';
 Wenn `profile_last_updated_at` nach der Bewertung fortgeschritten ist
 und `num_ratings_given` hochgezaehlt hat, hat der Lern-Worker den Drift
 gefahren.
+
+---
+
+## 5) Vercel-Gotchas
+
+### Env-Var-Aenderungen brauchen Redeploy
+
+Wenn du in Vercel eine Environment Variable **hinzufuegst oder
+aenderst**, triggert Vercel **nicht** automatisch einen neuen Build
+der existierenden Deploys. Konsequenz: dein letzter Deploy laeuft
+weiter mit den **alten** Werten — bei Middleware-Code der diese
+Vars braucht (z.B. `lib/supabase/middleware.ts` mit
+`NEXT_PUBLIC_SUPABASE_URL!`) endet das mit
+`MIDDLEWARE_INVOCATION_FAILED 500` auf jeder Page.
+
+**Fix:** Vercel Dashboard -> Deployments -> letzten Deploy der
+betroffenen Branch -> **„Redeploy"**. Der neue Build pickt die
+aktuellen Env-Vars.
+
+### Env-Var-Scope: Production / Preview / Development
+
+Vercel speichert pro Env-Variable drei Checkboxes (Production,
+Preview, Development). Beim Hinzufuegen ist standardmaessig nur
+**Production** aktiv. Wenn du den Wert auch fuer Preview-Deploys
+(staging-Branch, Feature-Branches) brauchst, **alle drei**
+Checkboxes anhakeln **bevor** du speicherst.
+
+**Variablen die fuer ALLE drei Environments aktiv sein muessen:**
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ADMIN_EMAILS`
+- `ADMIN_REAUTH_SECRET`
+
+### Repo-Namen-Case-Drift
+
+GitHub hat das Repo umbenannt von `coffeeselection` -> `Coffeeselection`.
+Beim Push warnt `git push`:
+`remote: This repository moved. Please use the new location: https://github.com/samuel-stadtmann/Coffeeselection.git`
+
+Push funktioniert weiter, aber sauberer:
+```powershell
+git remote set-url origin https://github.com/samuel-stadtmann/Coffeeselection.git
+```

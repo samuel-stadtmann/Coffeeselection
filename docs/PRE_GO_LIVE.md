@@ -274,3 +274,100 @@ Damit:
 **Trigger.** Direkt nach P11 (Domain live).
 
 **Aufwand.** ~10 min + DNS-Propagation.
+
+---
+
+## P13 — Roaster-Self-Onboarding-UI (Playbook 8.4 M1+M2)
+
+**Stand.** Wir haben heute (2026-05-10) Massnahme 3 aus 8.4 umgesetzt:
+Admin-Verifikations-Tooling unter `/admin/coffees` mit +2-Quality-Bonus.
+Offen bleiben:
+
+- **Massnahme 1 — Onboarding-Guide:** PDF/Markdown-Doku die jedem
+  neuen Roaster erklärt wie er die 1-5-Skalen interpretiert. Säure 1
+  = "wie Sumatra Mandheling", Säure 5 = "wie äthiopischer
+  Yirgacheffe washed". Reine Doku-Arbeit, ~2 h.
+
+- **Massnahme 2 — Konsistenzvalidierung im Frontend:** Roaster-Self-
+  Service-Formular um Coffees selbst anzulegen. Validiert
+  unplausible Kombinationen mit Inline-Warnungen
+  („Light Roast + Bitterkeit 5 → Bist du sicher?"). Plus
+  Draft/Submit/Review-Workflow weil das Frontend dann Roaster-
+  Zugang braucht (eigener Auth-Pfad).
+
+**Trigger.** Sobald wir mehr als 2-3 Röster onboarden wollen ohne
+selbst jeden Coffee einzupflegen.
+
+**Aufwand.** Massnahme 1: ~2 h Copy. Massnahme 2: 6-10 h für ein
+robustes Formular mit Validation + Roaster-Auth.
+
+---
+
+## P14 — Coffee-Verifikation an echten Workflow anpassen (data_quality_score-driven)
+
+**Stand.** Heute (8.4 M3) ist die Verifikation als „nach eigener
+Verkostung bestaetigen" gebaut. Tatsaechlicher Workflow von Samuel
+ist aber: er entscheidet anhand `data_quality_score` (>=75 = ok), er
+verkostet die Coffees nicht selber.
+
+**Was muss anders?**
+- Dashboard `/admin/coffees` soll die Entscheidung nach Score
+  unterstuetzen: Coffees mit `data_quality_score < 75` markieren als
+  „braucht Aufmerksamkeit", Coffees >= 75 als „freigegeben".
+- Die `data_verified_at`/`data_verified_by`-Felder bleiben, aber
+  bekommen eine andere Semantik: „von Samuel manuell freigegeben
+  trotz Score < 75" — also Override-Flag fuer Edge-Cases, nicht
+  Default-Workflow.
+- Plus: wir brauchen eine **Erklaerung wo der quality_score
+  herkommt**. Aktuell ist das ein opaker `smallint`. Mattia/Samuel
+  muessten sehen koennen: „Score 65 weil flavor_description fehlt,
+  Aroma-Familien leer, kein Variety-Eintrag, …". Computed via
+  Trigger `compute_coffee_quality_score` der bereits in der DB
+  existiert — wir muessten den Body extrahieren und im UI rendern.
+
+**Aufwand.** ~2-3 h:
+- 30 min: data_quality_score-Breakdown-View (welche Felder fehlen)
+- 1 h: Dashboard-Refactor mit Filter „< 75" und Detail-Aufklappen
+- 30 min: Verifikation umtexten zu „Override / freigeben trotz Score"
+
+**Trigger.** Wenn Samuel das Dashboard regelmaessig benutzt und das
+heutige Tool-Setup ihm im Weg ist.
+
+---
+
+## P15 — Roaster-Self-Service-Portal (8.4 Massnahme 1+2 finale Stufe)
+
+**Stand.** Heute (2026-05-10) ist die Admin-Seite der Coffee-
+Erfassung gebaut: `/admin/coffees/new` + Edit + Freigeben-Workflow
+mit Konsistenz-Validierung. Samuel/Mattia koennen damit Coffees fuer
+Roester anlegen.
+
+**Was fehlt fuer echtes Roaster-Self-Service:**
+
+1. **Roaster-Auth.** Eigene Anmeldung (entweder neuer Supabase-Auth-
+   Flow oder Erweiterung des bestehenden customers-Pfads). Wir
+   brauchen eine `roaster_users(user_id, roaster_id, role)`-Tabelle
+   die einen auth.user mit einer Roaster-Organisation verknuepft.
+2. **Roaster-Portal-Routes** unter `/roaster/` mit Permission-Check
+   (nur eigene Roaster-Coffees lesen + bearbeiten):
+   - `/roaster/dashboard` (KPIs zum eigenen Sortiment)
+   - `/roaster/coffees` (Liste eigener Coffees)
+   - `/roaster/coffees/new` (gleiche `<CoffeeForm>` wie Admin, aber
+     `roaster_id` vorbefuellt + nicht aenderbar)
+   - `/roaster/coffees/[id]/edit`
+3. **Submit-for-Review-Workflow.** Roester speichert -> status=draft
+   -> Samuel sieht in `/admin/coffees` -> Freigabe per Button. Das
+   ist heute schon gegeben — wir muessen nur den Roaster-Pfad davor
+   bauen.
+4. **Onboarding-Guide.** PDF/Markdown mit Beispielen pro Skala
+   ("Saeure 1 = Sumatra, Saeure 5 = Yirgacheffe washed").
+
+**Aufwand.** ~6-10 h:
+- 1 h: roaster_users + RLS-Policies
+- 1 h: Roaster-Auth-Pfad (Signup-Form, Magic-Link oder Passwort)
+- 2 h: Roaster-Portal-Layout + Routes
+- 1 h: Permission-Check in API-Routes
+- 2 h: Onboarding-Guide-Doku
+
+**Trigger.** Sobald > 2-3 Roester aktiv mitmachen und nicht jeder
+Coffee manuell durch Samuel angelegt werden soll.
