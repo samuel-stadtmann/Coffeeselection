@@ -120,7 +120,9 @@ export default function CoffeeForm({
       (e) => e.field === "sensory" || SENSORY_AXES.some((ax) => ax.key === e.field)
     ).length,
     aroma: errors.filter((e) => e.field === "aroma_families").length,
-    roast: errors.filter((e) => e.field === "roast_level").length,
+    roast: errors.filter(
+      (e) => e.field === "roast_level" || e.field === "roast_profile"
+    ).length,
     origin: errors.filter((e) => e.field === "altitude_m_max").length,
     commerce: errors.filter((e) => ["price_chf", "weight_g"].includes(e.field)).length,
     allergens: 0,
@@ -452,11 +454,30 @@ export default function CoffeeForm({
               </div>
             </Box>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Box label="Röst-Profil">
-                <select value={s.roast_profile} onChange={(e) => setS({ ...s, roast_profile: e.target.value as CoffeeFormState["roast_profile"] })} className="form-input">
-                  <option value="omni">Omni (universal)</option>
-                  <option value="filter">Filter</option>
-                  <option value="espresso">Espresso</option>
+              <Box
+                label={
+                  s.roast_profile_touched
+                    ? "Röst-Profil"
+                    : "Röst-Profil · bitte einstellen"
+                }
+                hint="Pflicht. Espresso/Filter/Omni — bestimmt zusammen mit der Kunden-Brühmethode (Quiz Frage 1) ob der Coffee bevorzugt wird."
+              >
+                <select
+                  value={s.roast_profile_touched ? s.roast_profile : ""}
+                  onChange={(e) => {
+                    const v = e.target.value as CoffeeFormState["roast_profile"];
+                    if (!v) return;
+                    setS({ ...s, roast_profile: v, roast_profile_touched: true });
+                  }}
+                  className={
+                    "form-input " +
+                    (s.roast_profile_touched ? "" : "bg-amber-50 border-amber-300")
+                  }
+                >
+                  <option value="" disabled>— bitte wählen —</option>
+                  <option value="omni">Omni (universal — passt für alle Brühmethoden)</option>
+                  <option value="filter">Filter (V60, French Press, etc.)</option>
+                  <option value="espresso">Espresso (Siebträger, Vollautomat, Moka)</option>
                 </select>
               </Box>
               <Box label="Frisch on-demand?" hint="z.B. Bündner Bohne röstet nach Bestellung.">

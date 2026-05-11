@@ -143,6 +143,7 @@ export default async function RoasterEditCoffeePage({
     roast_level: coffee.roast_level ?? 3,
     roast_level_touched: coffee.roast_level != null,
     roast_profile: (coffee.roast_profile as "espresso" | "filter" | "omni") ?? "omni",
+    roast_profile_touched: coffee.roast_profile != null,
     is_decaf: !!coffee.is_decaf,
     decaf_method: (coffee.decaf_method as CoffeeFormState["decaf_method"]) ?? "",
     acidity: fiveToTen(coffee.acidity),
