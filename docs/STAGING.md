@@ -75,8 +75,14 @@ Development), sonst greift sie auf der Staging-Preview nicht.
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGc...` | Service-Reads (Admin) | 40+ |
 | `ADMIN_REAUTH_SECRET` | 32-Hex-String | HMAC für Reauth-Cookie | 16+ |
 | `ADMIN_EMAILS` | `samuel@cs.ch,mattia@cs.ch` | Komma-getrennte Whitelist | — |
-| `OPENAI_API_KEY` | `sk-...` | Embedding-Generierung | 20+ |
-| `RESEND_API_KEY` | `re_...` | Re-Klassifikations-Mails | 20+ |
+
+**Nicht auf Vercel** (sondern als Secrets im Supabase-Dashboard →
+Edge Functions → Manage Secrets):
+
+- `OPENAI_API_KEY_COFFEESELECTION` — für Embedding-Generierung
+- `RESEND_API_KEY` — für Re-Klassifikations-Mails
+
+Die laufen serverless auf Supabase-Seite, NICHT in der Next.js-App.
 
 **Reauth-Secret generieren** (lokal in Node):
 

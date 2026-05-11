@@ -62,53 +62,29 @@ async function supabaseRead(): Promise<Check> {
   }
 }
 
-async function openaiReachable(): Promise<Check> {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) {
-    return {
-      label: "OpenAI API erreichbar",
-      ok: false,
-      detail: "OPENAI_API_KEY fehlt",
-      hint: "Nicht kritisch für Admin-UI, aber für Embedding-Generierung nötig.",
-    };
-  }
-  try {
-    const r = await fetch("https://api.openai.com/v1/models", {
-      headers: { Authorization: `Bearer ${key}` },
-      // 5s Timeout damit Page nicht hängt
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!r.ok) {
-      return {
-        label: "OpenAI API erreichbar",
-        ok: false,
-        detail: `HTTP ${r.status}`,
-        hint: "Key ungültig oder Rate-Limit.",
-      };
-    }
-    return { label: "OpenAI API erreichbar", ok: true, detail: "200 OK" };
-  } catch (e) {
-    return {
-      label: "OpenAI API erreichbar",
-      ok: false,
-      detail: e instanceof Error ? e.message : "fetch failed",
-    };
-  }
-}
-
 function deployInfo() {
   const sha = process.env.VERCEL_GIT_COMMIT_SHA;
   const branch = process.env.VERCEL_GIT_COMMIT_REF;
   const env = process.env.VERCEL_ENV;
   const region = process.env.VERCEL_REGION;
-  const deploymentId = process.env.VERCEL_DEPLOYMENT_ID;
   return {
     sha: sha ? sha.slice(0, 7) : "local",
     fullSha: sha ?? "—",
     branch: branch ?? "—",
     env: env ?? "development",
     region: region ?? "—",
-    deploymentId: deploymentId ?? "—",
+  };
+}
+
+async function supabaseEdgeFunctionsHint(): Promise<Check> {
+  // OPENAI_API_KEY und Resend leben als Secrets auf Supabase-Seite
+  // (Edge Functions). Hier auf Vercel sind sie NICHT noetig — der
+  // alte Check hat das falsch geflaggt.
+  return {
+    label: "Embeddings + Mails (Supabase Edge Functions)",
+    ok: true,
+    detail:
+      "Werden serverless auf Supabase ausgefuehrt mit eigenen Secrets (OPENAI_API_KEY_COFFEESELECTION, RESEND_API_KEY). Pruefung dieser Secrets im Supabase-Dashboard → Edge Functions → Manage Secrets, nicht hier.",
   };
 }
 
@@ -124,11 +100,9 @@ export default async function AdminHealthPage() {
     envCheck("SUPABASE_SERVICE_ROLE_KEY", { minLen: 40 }),
     envCheck("ADMIN_REAUTH_SECRET", { minLen: 16 }),
     envCheck("ADMIN_EMAILS"),
-    envCheck("OPENAI_API_KEY", { minLen: 20 }),
-    envCheck("RESEND_API_KEY", { minLen: 20 }),
   ]);
 
-  const services = await Promise.all([supabaseRead(), openaiReachable()]);
+  const services = await Promise.all([supabaseRead(), supabaseEdgeFunctionsHint()]);
 
   const adminEmailsRaw = process.env.ADMIN_EMAILS ?? "";
   const adminEmails = adminEmailsRaw
