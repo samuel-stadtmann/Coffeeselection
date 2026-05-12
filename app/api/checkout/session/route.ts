@@ -17,9 +17,16 @@ import { createServiceClient } from "@/lib/supabase/service";
  *   - Webhook /api/webhooks/stripe (C-5) setzt order.status='paid'
  *
  * Tax-Handling:
- *   automatic_tax: { enabled: true } → Stripe Tax berechnet CH-MWST anhand
- *   der Lieferadresse (im Stripe-Customer-Objekt gesetzt). Tax-Code pro
- *   Line-Item = txcd_19030000 (Coffee beans / Tea — reduzierter CH-Satz 2.6%).
+ *   Phase 1A: automatic_tax DEAKTIVIERT — Stripe Tax verlangt CH-VAT-
+ *   Registrierung (UID-Nummer), die wir noch nicht haben. Bis dahin sind
+ *   Preise als Brutto behandelt (inklusive MWST), Stripe berechnet keinen
+ *   separaten Steuer-Betrag.
+ *
+ *   Wieder aktivieren wenn UID da:
+ *     1. Stripe Dashboard → Tax → Activate (mit UID-Nummer)
+ *     2. In dieser Route: automatic_tax: { enabled: true }
+ *     3. tax_code: TAX_CODE_COFFEE_BEANS auf product_data UND shipping
+ *     4. tax_behavior: 'exclusive' auf shipping_rate_data
  *
  * Shipping:
  *   shipping_options als Stripe-Shipping-Rate. Wir berechnen den Betrag
@@ -30,9 +37,11 @@ const BodySchema = z.object({
   order_id: z.uuid(),
 });
 
-// Stripe Tax-Code fuer Kaffeebohnen / Tee — reduzierter CH-Mehrwertsteuer-Satz
-// 2.6% statt Standard 8.1%. Siehe Stripe Tax → Product types → Food & Beverage.
+// Stripe Tax-Code fuer Kaffeebohnen / Tee — reduzierter CH-MWST-Satz 2.6%.
+// Aktuell ungenutzt (automatic_tax deaktiviert) — wieder aktivieren wenn UID da.
+// Siehe Header-Kommentar in dieser Datei.
 const TAX_CODE_COFFEE_BEANS = "txcd_19030000";
+void TAX_CODE_COFFEE_BEANS; // Vermeidet "unused"-Warnung bis Re-Activation.
 
 // Session-Lebensdauer: 30 Minuten. Nach Ablauf muss Kunde neu starten.
 const SESSION_EXPIRES_AFTER_SEC = 30 * 60;
@@ -217,7 +226,7 @@ export async function POST(req: NextRequest) {
         product_data: {
           name: it.coffee_name_snapshot,
           description: `${it.weight_g}g · ${it.roaster_name_snapshot}`,
-          tax_code: TAX_CODE_COFFEE_BEANS,
+          // tax_code: TAX_CODE_COFFEE_BEANS, // erst aktivieren wenn UID da
           metadata: {
             coffee_id: it.coffee_id,
             weight_g: String(it.weight_g),
@@ -245,9 +254,7 @@ export async function POST(req: NextRequest) {
         minimum: { unit: "business_day" as const, value: 2 },
         maximum: { unit: "business_day" as const, value: 5 },
       },
-      tax_behavior: "exclusive" as const,
-      // Auch Versand wird mit CH-MWST belastet → gleicher Tax-Code wie Ware
-      tax_code: TAX_CODE_COFFEE_BEANS,
+      // tax_behavior + tax_code erst wenn UID da (siehe Header)
     },
   };
 
@@ -278,7 +285,7 @@ export async function POST(req: NextRequest) {
       customer_update: { address: "auto", shipping: "auto", name: "auto" },
       line_items: lineItems,
       shipping_options: [shippingOption],
-      automatic_tax: { enabled: true },
+      // automatic_tax: { enabled: true },  // erst wenn UID + Stripe-Tax-Reg da
       payment_method_types: ["card"],
       // Phase 1A: nur Card. Spaeter werden hier weitere PMs auftauchen
       // (Apple/Google Pay sind automatisch in 'card' enthalten).
