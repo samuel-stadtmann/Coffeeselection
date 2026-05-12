@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCoffeeBySlug, getCoffeeSlugsForStatic } from "@/lib/db/coffees";
 import { coffeeCategories, categoryBySlug, getCoffeesForCategory } from "@/lib/coffee-categories";
+import { AddToCartButton } from "./AddToCartButton";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -294,12 +295,14 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                   <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block">Preis · {coffee.weight_g}g</span>
                   <span className="font-headline font-bold text-3xl md:text-4xl text-tertiary">{priceLabel}</span>
                 </div>
-                <Link
-                  href="/checkout/cart"
-                  className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
-                >
-                  In den Warenkorb · Einmalig
-                </Link>
+                <AddToCartButton
+                  coffee_id={coffee.id}
+                  coffee_name={coffee.name}
+                  coffee_slug={coffee.slug}
+                  image_url={coffee.image_url ?? null}
+                  roaster_name={coffee.roaster_name}
+                  unit_price_chf_250g={Number(coffee.price_chf)}
+                />
                 <Link
                   href="/match-result"
                   className="block w-full text-center border-2 border-tertiary text-tertiary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
