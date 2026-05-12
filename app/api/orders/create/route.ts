@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
   const { data: coffees, error: coffeesErr } = await svc
     .from("coffees")
     .select(
-      "id, name, price_chf, weight_g, is_active, roaster:roasters(name), roast_level"
+      "id, name, price_chf, weight_g, status, stock_status, roaster:roasters(name), roast_level"
     )
     .in("id", coffeeIds);
 
@@ -258,9 +258,20 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (!c.is_active) {
+    if (c.status !== "active") {
       return NextResponse.json(
-        { error: "coffee_inactive", coffee_id: item.coffee_id, name: c.name },
+        {
+          error: "coffee_not_active",
+          coffee_id: item.coffee_id,
+          name: c.name,
+          status: c.status,
+        },
+        { status: 400 }
+      );
+    }
+    if (c.stock_status === "out_of_stock") {
+      return NextResponse.json(
+        { error: "coffee_out_of_stock", coffee_id: item.coffee_id, name: c.name },
         { status: 400 }
       );
     }
