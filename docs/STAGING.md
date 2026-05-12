@@ -77,6 +77,9 @@ Development), sonst greift sie auf der Staging-Preview nicht.
 | `ADMIN_REAUTH_SECRET` | 32-Hex-String (min 16 Zeichen) | HMAC für Reauth-Cookie |
 | `ADMIN_EMAILS` | `samuel@cs.ch,mattia@cs.ch` | Komma-getrennte Whitelist |
 | `NEXT_PUBLIC_SITE_URL` | `https://staging.coffeeselection.ch` | Redirect-Target in Invite-Mails |
+| `STRIPE_SECRET_KEY` | `sk_test_...` (testmode) bzw. `sk_live_...` (prod) | Server-seitige Stripe-API-Calls. **Privat — nie an Browser leaken.** |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Webhook-Signatur-Validierung (eines pro Endpoint!) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` bzw. `pk_live_...` | Browser-seitiger Stripe-JS-Client. Public-safe. |
 
 **Nicht auf Vercel** (sondern als Secrets im Supabase-Dashboard →
 Edge Functions → Manage Secrets):
