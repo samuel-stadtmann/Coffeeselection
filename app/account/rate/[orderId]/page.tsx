@@ -66,7 +66,13 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) {
-        router.push(`/login?next=/account/rate/${slug}`);
+        // Ganze URL inkl. ?stars=N&order=uuid mitnehmen — sonst verliert der
+        // User nach Login die Auto-Submit-Daten aus der Bewertungs-Email.
+        const nextUrl =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : `/account/rate/${slug}`;
+        router.push(`/login?next=${encodeURIComponent(nextUrl)}`);
         return;
       }
       const { data: customer } = await supabase

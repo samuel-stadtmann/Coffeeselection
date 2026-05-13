@@ -32,6 +32,12 @@ export type RatingReminderProps = {
     coffeeName: string;
     roasterName: string;
     imageUrl: string | null;
+    /**
+     * Magic-Link-Token fuer 1-Klick-Bewertung. Wird pro Coffee
+     * (mit dem coffee_id eingebacken) generiert in
+     * /api/cron/rating-reminders via createRatingToken().
+     */
+    token: string;
   }>;
   siteUrl: string;
 };
@@ -40,14 +46,12 @@ const COLOR_TERTIARY = "#C8A064";
 const COLOR_PRIMARY = "#2D1810";
 const COLOR_MUTED = "#8A7560";
 
-function starRow(
-  coffeeSlug: string,
-  orderId: string,
-  siteUrl: string
-): string {
+function starRow(token: string, siteUrl: string): string {
   return Array.from({ length: 5 }, (_, i) => {
     const stars = i + 1;
-    const url = `${siteUrl}/account/rate/${encodeURIComponent(coffeeSlug)}?stars=${stars}&order=${encodeURIComponent(orderId)}`;
+    // Magic-Link: ein Klick = sofort gespeichert via /api/rate/via-token.
+    // Funktioniert ohne Login (auch fuer Gast-Customers ohne Passwort).
+    const url = `${siteUrl}/api/rate/via-token?t=${encodeURIComponent(token)}&s=${stars}`;
     return `<a href="${url}" style="display:inline-block;font-size:32px;color:${COLOR_TERTIARY};text-decoration:none;padding:4px 8px;line-height:1;">★</a>`;
   }).join("");
 }
@@ -87,7 +91,7 @@ export function ratingReminderEmail(props: RatingReminderProps): {
               </tr>
               <tr>
                 <td colspan="2" style="padding-top:12px;text-align:center;">
-                  ${starRow(c.coffeeSlug, props.orderId, props.siteUrl)}
+                  ${starRow(c.token, props.siteUrl)}
                 </td>
               </tr>
               <tr>
