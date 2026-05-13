@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
       .update({
         rating: stars,
         order_id: content.order_id,
-        source: "mail",
+        source: "email",
         // processed_at zuruecksetzen damit Lern-Worker es nochmal verarbeitet
         processed_at: null,
       })
