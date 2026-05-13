@@ -16,7 +16,9 @@ der Stripe-Charge auch wirklich durch ist.
 |---|---|---|---|
 | `RESEND_API_KEY` | ja | `re_AbCdEf123...` | API-Key aus Resend-Dashboard |
 | `EMAIL_FROM` | nein | `Coffee Selection <hello@coffeeselection.ch>` | Absender. Domain MUSS in Resend verifiziert sein. Default fuer Tests: `onboarding@resend.dev`. |
+| `RESEND_FROM_EMAIL` | nein | wie `EMAIL_FROM` | Alias-Name fuer `EMAIL_FROM`. Wenn beide gesetzt, gewinnt `EMAIL_FROM`. |
 | `EMAIL_REPLY_TO` | nein | `support@coffeeselection.ch` | Reply-To-Header (falls Kunden auf Mails antworten) |
+| `CRON_SECRET` | ja in Prod | `random-64-char-string` | Schuetzt `/api/cron/rating-reminders` vor externem Aufruf. Vercel setzt automatisch den `Authorization: Bearer <secret>` Header bei Cron-Calls. |
 
 Hosting-Plattform (z.B. Vercel): unter Settings → Environment Variables eintragen.
 
@@ -48,7 +50,10 @@ Alle Templates leben unter `lib/email/templates/`. Layout-Wrapper:
 | Order Confirmation | `checkout.session.completed` mit `mode=payment` | `order-confirmation.ts` |
 | Subscription Confirmation (Initial) | `checkout.session.completed` mit `mode=subscription` | `subscription-confirmation.ts` |
 | Subscription Renewal | `invoice.payment_succeeded` mit `billing_reason=subscription_cycle` | `subscription-renewal.ts` |
+| Subscription Paused | `customer.subscription.updated` mit Status-Transition aktiv → pausiert | `subscription-paused.ts` |
+| Subscription Resumed | `customer.subscription.updated` mit Status-Transition pausiert → aktiv | `subscription-resumed.ts` |
 | Subscription Cancelled | `customer.subscription.deleted` | `subscription-cancelled.ts` |
+| Rating Reminder | Vercel-Cron stuendlich, fuer Orders mit `paid_at` 5-14d, `rating_reminder_sent_at IS NULL` | `rating-reminder.ts` |
 
 Webhook ruft `await sendXxxMail(...)` nach dem DB-Update auf.
 `sendMail()` wirft **nie** — Mail-Fail blockiert NICHT den Webhook-Erfolg.

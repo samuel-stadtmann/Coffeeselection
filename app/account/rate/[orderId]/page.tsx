@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AccountSidebar from "@/components/AccountSidebar";
 import { createClient } from "@/lib/supabase/client";
 
@@ -34,13 +34,22 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
   // Sobald `orders`-Table befüllt ist, wandelt sich das zu echtem orderId → coffee_id Lookup.
   const { orderId: slug } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Mail-Deep-Link-Params (PA-Loop3 Bewertungs-Email):
+  //   ?stars=N       Pre-fill der Stern-Auswahl + Auto-Submit nach Login/Load
+  //   ?order=uuid    setzt order_id im coffee_ratings-Insert (fuer Idempotenz
+  //                  + Verknuepfung mit Bestellung)
+  const initialStars = Number(searchParams.get("stars") ?? 0);
+  const orderIdParam = searchParams.get("order");
+  const autoSubmit = initialStars >= 1 && initialStars <= 5;
 
   const [coffee, setCoffee] = useState<CoffeeForRating | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  const [stars, setStars] = useState(0);
+  const [stars, setStars] = useState(autoSubmit ? initialStars : 0);
   const [hoverStars, setHoverStars] = useState(0);
   const [positiveTags, setPositiveTags] = useState<string[]>([]);
   const [negativeTags, setNegativeTags] = useState<string[]>([]);
@@ -108,8 +117,25 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
     setPositiveTags((prev) => prev.filter((t) => t !== tag));
   };
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // Auto-Submit nach Coffee-Load wenn URL-Param ?stars=N gesetzt war.
+  // Klick aus Bewertungs-Email → User landet hier → 1 Klick = fertig.
+  // Triggert nur einmal: nach submit oder error wird's nicht nochmal versucht.
+  const [autoSubmitTriggered, setAutoSubmitTriggered] = useState(false);
+  useEffect(() => {
+    if (
+      autoSubmit &&
+      !autoSubmitTriggered &&
+      coffee &&
+      customerId &&
+      !submitting &&
+      !submitted
+    ) {
+      setAutoSubmitTriggered(true);
+      void submitRating();
+    }
+  }, [autoSubmit, autoSubmitTriggered, coffee, customerId, submitting, submitted]);
+
+  async function submitRating() {
     setSubmitError(null);
     if (stars === 0 || !coffee || !customerId) return;
     setSubmitting(true);
@@ -118,7 +144,7 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
     const { error } = await supabase.from("coffee_ratings").insert({
       customer_id: customerId,
       coffee_id: coffee.id,
-      order_id: null, // wird gesetzt sobald orders-Persistierung steht
+      order_id: orderIdParam ?? null,
       rating: stars,
       would_drink_again: wouldDrinkAgain,
       positive_tags: positiveTags,
@@ -135,6 +161,11 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
       return;
     }
     setSubmitted(true);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await submitRating();
   }
 
   if (loading) {
