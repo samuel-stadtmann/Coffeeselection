@@ -384,8 +384,26 @@ export async function POST(req: NextRequest) {
       });
     }
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[api/checkout/session] stripe.checkout.sessions.create failed", err);
+    // Stripe-Errors haben mehr Detail als nur .message — wir extrahieren
+    // param/code/type damit der Frontend-Toast aussagekraeftig wird.
+    type StripeishError = {
+      message?: string;
+      code?: string;
+      param?: string;
+      type?: string;
+    };
+    const e = err as StripeishError;
+    const parts = [
+      e.message,
+      e.code ? `code=${e.code}` : null,
+      e.param ? `param=${e.param}` : null,
+      e.type ? `type=${e.type}` : null,
+    ].filter(Boolean);
+    const msg = parts.length > 0 ? parts.join(" · ") : String(err);
+    console.error(
+      "[api/checkout/session] stripe.checkout.sessions.create failed",
+      { mode: isSubscriptionMode ? "subscription" : "payment", err }
+    );
     return NextResponse.json(
       { error: "stripe_session_create_failed", details: msg },
       { status: 500 }
