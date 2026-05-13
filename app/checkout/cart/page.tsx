@@ -182,7 +182,7 @@ export default function CartPage() {
                     href="/match-result"
                     className="inline-block font-headline text-xs uppercase tracking-widest text-tertiary hover:text-primary font-bold"
                   >
-                    Abo konfigurieren · -15% sparen →
+                    Abo konfigurieren · -10% sparen →
                   </Link>
                 </div>
               </div>

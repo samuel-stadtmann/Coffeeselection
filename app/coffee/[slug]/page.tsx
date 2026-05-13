@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCoffeeBySlug, getCoffeeSlugsForStatic } from "@/lib/db/coffees";
 import { coffeeCategories, categoryBySlug, getCoffeesForCategory } from "@/lib/coffee-categories";
-import { AddToCartButton } from "./AddToCartButton";
+import { CoffeePurchaseOptions } from "./CoffeePurchaseOptions";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -295,7 +295,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                   <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block">Preis · {coffee.weight_g}g</span>
                   <span className="font-headline font-bold text-3xl md:text-4xl text-tertiary">{priceLabel}</span>
                 </div>
-                <AddToCartButton
+                <CoffeePurchaseOptions
                   coffee_id={coffee.id}
                   coffee_name={coffee.name}
                   coffee_slug={coffee.slug}
@@ -305,9 +305,9 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                 />
                 <Link
                   href="/match-result"
-                  className="block w-full text-center border-2 border-tertiary text-tertiary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
+                  className="block w-full text-center border-2 border-on-primary/30 text-on-primary py-3 mt-3 font-headline text-[11px] uppercase tracking-widest hover:border-tertiary hover:text-tertiary transition-all"
                 >
-                  Abo konfigurieren · -15% Sparen
+                  Lass mich überraschen · KI-Pick →
                 </Link>
                 <p className="text-xs text-on-primary/60 text-center mt-4">
                   Versand ab CHF 100 kostenlos · röstfrisch in 2–4 Werktagen

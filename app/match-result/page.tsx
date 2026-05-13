@@ -386,7 +386,7 @@ export default function MatchResultPage() {
                     }`}
                   >
                     <span className="absolute -top-3 left-3 bg-tertiary text-white px-2 py-0.5 font-headline text-[9px] uppercase tracking-widest font-bold">
-                      -15% Sparen
+                      -10% Sparen
                     </span>
                     <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Abo</h4>
                     <p className="text-xs text-on-surface-variant">Regelmäßig liefern, jederzeit pausieren</p>
