@@ -374,7 +374,12 @@ async function activateSubscription(
   )) as unknown as {
     id: string;
     current_period_end: number | null;
-    items: { data: Array<{ price: { id: string; recurring: unknown } }> };
+    items: {
+      data: Array<{
+        price: { id: string; recurring: unknown };
+        current_period_end?: number | null;
+      }>;
+    };
   };
 
   // Erstes recurring price → das ist der Abo-Coffee. Versand-line_item ist
@@ -384,8 +389,16 @@ async function activateSubscription(
   // ausgeschlossen, aber im Pricing-Snapshot der Subscription wollen wir
   // den Coffee-Price, nicht den Versand-Price).
   const stripePriceId = sub.items?.data?.[0]?.price?.id ?? null;
-  const periodEnd = sub.current_period_end
-    ? new Date(sub.current_period_end * 1000).toISOString()
+
+  // current_period_end: ab Stripe-API-Version 2024-09-30 ist das Feld auf
+  // der Top-Level Subscription deprecated und liegt auf den Items. Wir
+  // probieren beide Stellen, top-level zuerst (alte SDKs), dann Item-Level.
+  const periodEndUnix =
+    sub.current_period_end ??
+    sub.items?.data?.[0]?.current_period_end ??
+    null;
+  const periodEnd = periodEndUnix
+    ? new Date(periodEndUnix * 1000).toISOString()
     : null;
 
   const { data: ourSub, error: fetchErr } = await svc
@@ -560,7 +573,10 @@ type InvoiceEventPayload = {
 type SubscriptionEventPayload = {
   id: string; // stripe sub id (sub_xxx)
   status: string; // 'active' | 'past_due' | 'canceled' | ...
-  current_period_end: number | null; // unix sec
+  current_period_end: number | null; // unix sec — deprecated ab API 2024-09-30
+  items?: {
+    data: Array<{ current_period_end?: number | null }>;
+  };
   cancel_at_period_end: boolean;
   canceled_at: number | null;
 };
@@ -832,8 +848,14 @@ async function handleSubscriptionUpdated(
       ourStatus = null;
   }
 
-  const periodEnd = sub.current_period_end
-    ? new Date(sub.current_period_end * 1000).toISOString()
+  // current_period_end: top-level zuerst (alte API), dann Item-Level
+  // (ab Stripe-API 2024-09-30 dort).
+  const periodEndUnix =
+    sub.current_period_end ??
+    sub.items?.data?.[0]?.current_period_end ??
+    null;
+  const periodEnd = periodEndUnix
+    ? new Date(periodEndUnix * 1000).toISOString()
     : null;
 
   const updates: Record<string, unknown> = {};
