@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
     coffee_id: content.coffee_id,
     order_id: content.order_id,
     rating: stars,
-    source: "mail",
+    source: "email",
     is_public: false,
   });
 
