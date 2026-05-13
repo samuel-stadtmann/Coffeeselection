@@ -376,7 +376,7 @@ export const articles: Article[] = [
         "Frische? Erst nach Bestellung geröstet, geliefert in 2–4 Tagen.",
         "Algorithmus? Wenn er aus deinem Quiz lernt, passen die Empfehlungen besser über Zeit.",
       ]},
-      { type: "callout", title: "Coffee Selection Discovery Abo", text: "Ab CHF 24 pro Lieferung, 15% Rabatt gegenüber Einzelbestellung, jederzeit pausierbar. Quiz machen → Geschmackstyp finden → Abo starten." },
+      { type: "callout", title: "Coffee Selection Discovery Abo", text: "Ab CHF 25 pro Lieferung, 10% Rabatt gegenüber Einzelbestellung, jederzeit pausierbar. Quiz machen → Geschmackstyp finden → Abo starten." },
     ],
     related: ["how-to-choose-coffee", "what-is-specialty-coffee", "best-coffee-switzerland"],
   },

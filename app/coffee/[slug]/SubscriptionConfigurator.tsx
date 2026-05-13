@@ -1,0 +1,221 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { CartWeight } from "@/lib/cart";
+import {
+  SUBSCRIPTION_INTERVAL_WEEKS,
+  SUBSCRIPTION_DISCOUNT_PERCENT,
+  SUBSCRIPTION_DISCOUNT_MULTIPLIER,
+  INTERVAL_LABELS,
+  type SubscriptionIntervalWeeks,
+} from "@/lib/subscription-constants";
+
+/**
+ * P1B-3b: Abo-Configurator auf der Coffee-Detail-Page.
+ *
+ * Schwester-Component von AddToCartButton, fuer "Fix-Abo" (immer dieser eine
+ * Coffee). Trennung zur Discovery-Abo-Seite: dort waehlt der Algorithmus,
+ * hier waehlt der User direkt.
+ *
+ * Verhalten in P1B-3 (DIESE PR):
+ *   - Vollstaendige UI mit Live-Preisberechnung + Validierung
+ *   - Submit-Button ist disabled mit Hinweis "Cart-Integration folgt"
+ *     (kommt in P1B-4, kann hier nicht ohne Hook-Refactor)
+ *
+ * Geplant P1B-4:
+ *   - Submit ruft useCart().addSubscription({...}) → speichert Abo-Item
+ *     im Cart, Redirect /checkout/cart
+ *
+ * Geplant P1B-5:
+ *   - Cart-Checkout erzeugt Stripe-Subscription statt One-Off-Payment
+ */
+
+type Props = {
+  coffee_id: string;
+  coffee_name: string;
+  coffee_slug: string;
+  image_url: string | null;
+  roaster_name: string;
+  unit_price_chf_250g: number;
+};
+
+const WEIGHTS: { id: CartWeight; label: string }[] = [
+  { id: 250, label: "250 g" },
+  { id: 500, label: "500 g" },
+  { id: 1000, label: "1 kg" },
+];
+
+// Min-Date = morgen, Max-Date = heute + 28 Tage
+function dateBoundsISO(): { min: string; max: string; default: string } {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + 28);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { min: fmt(tomorrow), max: fmt(maxDate), default: fmt(tomorrow) };
+}
+
+export function SubscriptionConfigurator(props: Props) {
+  const [weight, setWeight] = useState<CartWeight>(250);
+  const [qty, setQty] = useState(1);
+  const [intervalWeeks, setIntervalWeeks] =
+    useState<SubscriptionIntervalWeeks>(4);
+  const bounds = useMemo(dateBoundsISO, []);
+  const [startDate, setStartDate] = useState<string>(bounds.default);
+
+  // Preise: Basis linear nach Gewicht skaliert (wie AddToCartButton),
+  // dann Abo-Rabatt drauf.
+  const basePerDelivery = props.unit_price_chf_250g * (weight / 250) * qty;
+  const discountedPerDelivery =
+    basePerDelivery * SUBSCRIPTION_DISCOUNT_MULTIPLIER;
+  const savingsPerDelivery = basePerDelivery - discountedPerDelivery;
+
+  const handleSubmit = () => {
+    // P1B-4 wird hier useCart().addSubscription({...}) aufrufen mit:
+    //   coffee_id, coffee_name, coffee_slug, image_url, roaster_name,
+    //   unit_price_chf_250g, weight_g, quantity, interval_weeks,
+    //   start_date, discount_percent
+    // und dann nach /checkout/cart navigieren.
+    alert(
+      "Abo-Konfiguration vorgemerkt. Cart-Integration folgt im naechsten " +
+        "Update (P1B-4)."
+    );
+  };
+
+  return (
+    <div>
+      {/* Gewichts-Auswahl */}
+      <div className="mb-4">
+        <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block mb-2">
+          Gewicht pro Lieferung
+        </span>
+        <div className="grid grid-cols-3 gap-2">
+          {WEIGHTS.map((w) => (
+            <button
+              key={w.id}
+              type="button"
+              onClick={() => setWeight(w.id)}
+              className={`py-2 font-headline text-xs uppercase tracking-widest border-2 transition-all ${
+                weight === w.id
+                  ? "border-tertiary bg-tertiary text-primary font-bold"
+                  : "border-on-primary/30 text-on-primary hover:border-tertiary"
+              }`}
+            >
+              {w.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mengen-Stepper (mehrere Beutel je Lieferung) */}
+      <div className="mb-4 flex items-center justify-between">
+        <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60">
+          Menge pro Lieferung
+        </span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setQty((q) => Math.max(1, q - 1))}
+            className="w-8 h-8 border border-on-primary/30 hover:border-tertiary text-on-primary text-lg leading-none"
+            aria-label="Menge verringern"
+          >
+            −
+          </button>
+          <span className="font-headline font-bold text-lg w-6 text-center">
+            {qty}
+          </span>
+          <button
+            type="button"
+            onClick={() => setQty((q) => Math.min(20, q + 1))}
+            className="w-8 h-8 border border-on-primary/30 hover:border-tertiary text-on-primary text-lg leading-none"
+            aria-label="Menge erhöhen"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* Lieferintervall */}
+      <div className="mb-4">
+        <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block mb-2">
+          Lieferintervall
+        </span>
+        <div className="grid grid-cols-2 gap-2">
+          {SUBSCRIPTION_INTERVAL_WEEKS.map((w) => (
+            <button
+              key={w}
+              type="button"
+              onClick={() => setIntervalWeeks(w)}
+              className={`py-2 font-headline text-[11px] uppercase tracking-widest border-2 transition-all ${
+                intervalWeeks === w
+                  ? "border-tertiary bg-tertiary text-primary font-bold"
+                  : "border-on-primary/30 text-on-primary hover:border-tertiary"
+              }`}
+            >
+              {INTERVAL_LABELS[w].short}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Startdatum */}
+      <div className="mb-6">
+        <label
+          htmlFor="sub-start-date"
+          className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block mb-2"
+        >
+          Erste Lieferung am
+        </label>
+        <input
+          id="sub-start-date"
+          type="date"
+          value={startDate}
+          min={bounds.min}
+          max={bounds.max}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="w-full py-2 px-3 bg-primary border-2 border-on-primary/30 text-on-primary font-headline text-sm focus:border-tertiary focus:outline-none"
+        />
+        <p className="text-[10px] text-on-primary/50 mt-1">
+          Frühestens morgen, spätestens in 4 Wochen
+        </p>
+      </div>
+
+      {/* Live-Preis-Vergleich */}
+      <div className="mb-6 bg-on-primary/5 p-4 border-l-2 border-tertiary">
+        <div className="flex justify-between items-baseline mb-1">
+          <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60">
+            Pro Lieferung
+          </span>
+          <span className="font-headline text-xs text-on-primary/50 line-through">
+            CHF {basePerDelivery.toFixed(2)}
+          </span>
+        </div>
+        <div className="flex justify-between items-baseline">
+          <span className="font-headline font-bold text-tertiary text-[10px] uppercase tracking-widest">
+            Abo-Preis ({SUBSCRIPTION_DISCOUNT_PERCENT}% Rabatt)
+          </span>
+          <span className="font-headline font-bold text-2xl text-tertiary">
+            CHF {discountedPerDelivery.toFixed(2)}
+          </span>
+        </div>
+        <p className="text-[10px] text-on-primary/60 mt-2">
+          Du sparst CHF {savingsPerDelivery.toFixed(2)} pro Lieferung ·{" "}
+          {INTERVAL_LABELS[intervalWeeks].long}
+        </p>
+      </div>
+
+      {/* CTA */}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+      >
+        Abo starten · −{SUBSCRIPTION_DISCOUNT_PERCENT}%
+      </button>
+      <p className="text-[10px] text-on-primary/50 text-center">
+        Jederzeit pausieren, Intervall ändern oder kündigen — keine Mindestlaufzeit
+      </p>
+    </div>
+  );
+}

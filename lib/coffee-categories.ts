@@ -197,10 +197,10 @@ export const coffeeCategories: CoffeeCategory[] = [
     title: "Discovery Box — kuratierte Specialty-Reise",
     shortLabel: "Discovery Box",
     tagline: "Jeden Monat 2 neue Kaffees, perfekt zu deinem Geschmackstyp",
-    intro: "Die Discovery Box ist nicht eine Bestellung — es ist eine kuratierte Reise. Jeden Monat erhältst du 2 verschiedene Specialty Coffees, perfekt auf deinen Geschmackstyp abgestimmt. 15% Rabatt gegenüber Einzelbestellung.",
+    intro: "Die Discovery Box ist nicht eine Bestellung — es ist eine kuratierte Reise. Jeden Monat erhältst du 2 verschiedene Specialty Coffees, perfekt auf deinen Geschmackstyp abgestimmt. 10% Rabatt gegenüber Einzelbestellung.",
     filterTypes: ["der-fruchtfreund", "der-florale", "der-entdecker", "der-suesse"],
     seoTitle: "Discovery Box — Coffee Subscription Schweiz | Coffee Selection",
-    seoDescription: "Die Discovery Box: Kuratiertes Specialty-Coffee-Abo. 2 Kaffees pro Lieferung, 15% Rabatt, jederzeit pausierbar. Ab CHF 24.",
+    seoDescription: "Die Discovery Box: Kuratiertes Specialty-Coffee-Abo. 2 Kaffees pro Lieferung, 10% Rabatt, jederzeit pausierbar. Ab CHF 25.",
     keywords: ["discovery box", "coffee box schweiz", "kaffee abo box", "specialty coffee subscription"],
     educational: [
       { heading: "Was ist drin?", text: "2 verschiedene Specialty Coffees (250g oder 500g je), Karte mit Brüh-Tipps, Aromen-Beschreibung. Ab CHF 24 pro Lieferung." },

@@ -157,7 +157,7 @@ export default function Page() {
           <div className="bg-white p-8 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-xl mb-4">Abo wirklich kündigen?</h3>
             <p className="text-on-surface-variant mb-6">
-              Du verlierst deinen Abo-Rabatt von 15% und alle exklusiven Vorteile. Du kannst stattdessen auch pausieren.
+              Du verlierst deinen Abo-Rabatt von 10% und alle exklusiven Vorteile. Du kannst stattdessen auch pausieren.
             </p>
             <div className="grid grid-cols-2 gap-3">
               <button onClick={() => setConfirmCancel(false)} className="border-2 border-primary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest">
