@@ -303,12 +303,6 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                   roaster_name={coffee.roaster_name}
                   unit_price_chf_250g={Number(coffee.price_chf)}
                 />
-                <Link
-                  href="/match-result"
-                  className="block w-full text-center border-2 border-on-primary/30 text-on-primary py-3 mt-3 font-headline text-[11px] uppercase tracking-widest hover:border-tertiary hover:text-tertiary transition-all"
-                >
-                  Lass mich überraschen · KI-Pick →
-                </Link>
                 <p className="text-xs text-on-primary/60 text-center mt-4">
                   Versand ab CHF 100 kostenlos · röstfrisch in 2–4 Werktagen
                 </p>

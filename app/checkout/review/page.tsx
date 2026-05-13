@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useCart } from "@/lib/cart";
+import { useCart, lineTotal } from "@/lib/cart";
 import { useCheckout, type CheckoutAddress } from "@/lib/checkout";
+import { INTERVAL_LABELS } from "@/lib/subscription-constants";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -76,6 +77,9 @@ export default function ReviewPage() {
             quantity: it.quantity,
             weight_g: it.weight_g,
             grind_preference: it.grind_preference ?? null,
+            is_subscription: it.is_subscription ?? false,
+            interval_weeks: it.interval_weeks,
+            discount_percent: it.discount_percent,
           })),
           customer: {
             email: data.customer.email,
@@ -198,13 +202,14 @@ export default function ReviewPage() {
           <Section title="Bestellung" editHref="/checkout/cart">
             <div className="space-y-4">
               {items.map((item) => {
-                const priceForWeight =
-                  item.unit_price_chf_250g * (item.weight_g / 250);
-                const lineTotal = priceForWeight * item.quantity;
+                const isSub = item.is_subscription === true;
+                const total = lineTotal(item);
                 return (
                   <div
                     key={item.id}
-                    className="flex gap-4 items-start pb-4 last:pb-0 border-b last:border-b-0 border-surface-container"
+                    className={`flex gap-4 items-start pb-4 last:pb-0 border-b last:border-b-0 border-surface-container ${
+                      isSub ? "pl-2 border-l-2 border-l-tertiary" : ""
+                    }`}
                   >
                     <div className="w-16 h-16 bg-surface-container-low overflow-hidden shrink-0">
                       <img
@@ -214,15 +219,26 @@ export default function ReviewPage() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
+                      {isSub && (
+                        <span className="inline-block bg-tertiary text-primary font-headline font-bold text-[9px] uppercase tracking-widest px-1.5 py-0.5 mb-1">
+                          Abo · −{item.discount_percent ?? 0}%
+                        </span>
+                      )}
                       <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">
                         {item.coffee_name}
                       </h3>
                       <p className="text-xs text-on-surface-variant">
                         {item.roaster_name} · {item.weight_g}g · {item.quantity}×
                       </p>
+                      {isSub && item.interval_weeks && (
+                        <p className="text-[11px] text-tertiary mt-1">
+                          {INTERVAL_LABELS[item.interval_weeks].long} ·
+                          röstfrisch bei nächster Röstung
+                        </p>
+                      )}
                     </div>
                     <span className="font-headline font-bold text-sm">
-                      CHF {lineTotal.toFixed(2)}
+                      CHF {total.toFixed(2)}
                     </span>
                   </div>
                 );

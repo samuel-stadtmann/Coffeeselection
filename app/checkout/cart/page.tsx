@@ -187,18 +187,10 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => router.push("/checkout/shipping")}
-                    disabled={hasSubscriptions}
-                    className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
                   >
                     Weiter zu Versand
                   </button>
-                  {hasSubscriptions && (
-                    <p className="text-[11px] text-on-primary/70 mb-3 leading-snug">
-                      Abo-Checkout wird gerade fertiggestellt (P1B-5). Bis
-                      dahin musst du Abo-Items aus dem Warenkorb entfernen,
-                      um Einmalkäufe abzuschliessen.
-                    </p>
-                  )}
                   <Link
                     href="/coffee"
                     className="block w-full text-center border-2 border-tertiary/40 text-on-primary/80 py-3 font-headline font-bold text-[11px] uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
@@ -226,10 +218,9 @@ export default function CartPage() {
           <button
             type="button"
             onClick={() => router.push("/checkout/shipping")}
-            disabled={hasSubscriptions}
-            className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+            className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest"
           >
-            {hasSubscriptions ? "Abo-Checkout folgt (P1B-5)" : "Weiter zu Versand"}
+            Weiter zu Versand
           </button>
         </div>
       )}

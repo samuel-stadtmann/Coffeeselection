@@ -4,17 +4,28 @@ import { getStripe } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /**
- * C-4: POST /api/checkout/session
+ * C-4 + P1B-5: POST /api/checkout/session
  *
  * Erzeugt eine Stripe Checkout Session fuer eine existierende pending-Order.
- * Frontend ruft erst /api/orders/create (C-3) → bekommt order_id → ruft dann
+ * Frontend ruft erst /api/orders/create → bekommt order_id → ruft dann
  * diese Route → bekommt checkout_url → redirected dorthin. Karten-Eingabe
  * passiert auf Stripe-Hosted-Page (PCI-Compliance, kein eigenes Card-Form).
+ *
+ * Modi (entschieden anhand der Order):
+ *   - Reiner Einmal-Cart (keine subscriptions.first_order_id=order.id) →
+ *     mode='payment', line_items mit non-recurring price_data
+ *   - Cart mit 1 Abo-Item (Mixed oder rein) →
+ *     mode='subscription', line_items mit MIX aus:
+ *       - recurring price_data fuer das Abo-Item
+ *       - non-recurring price_data fuer Einmal-Items (werden als
+ *         one-off line_items auf der initialen Subscription-Invoice
+ *         berechnet)
  *
  * Nach Bezahlung:
  *   - Erfolg: Stripe redirected zu /checkout/success?session_id={...}
  *   - Abbruch: Stripe redirected zu /checkout/cart
- *   - Webhook /api/webhooks/stripe (C-5) setzt order.status='paid'
+ *   - Webhook /api/webhooks/stripe (P1B-6) setzt order.status='paid' und
+ *     subscription.status='active' (falls vorhanden)
  *
  * Tax-Handling:
  *   Phase 1A: automatic_tax DEAKTIVIERT — Stripe Tax verlangt CH-VAT-
@@ -31,6 +42,8 @@ import { createServiceClient } from "@/lib/supabase/service";
  * Shipping:
  *   shipping_options als Stripe-Shipping-Rate. Wir berechnen den Betrag
  *   server-seitig (nicht Stripe — vermeidet 2 Quellen der Wahrheit).
+ *   Bei mode='subscription' wird Stripe den Shipping-Betrag der INITIAL
+ *   Invoice hinzufuegen. Renewals haben separate Versand-Logik (Webhook).
  */
 
 const BodySchema = z.object({
@@ -139,11 +152,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "customer_not_found" }, { status: 500 });
   }
 
-  // ---- 3) Order-Items laden -------------------------------------------------
+  // ---- 3) Order-Items + assoziierte Subscription(s) laden -------------------
   const { data: items, error: iErr } = await svc
     .from("order_items")
     .select(
-      "coffee_id, coffee_name_snapshot, roaster_name_snapshot, quantity, weight_g, unit_price_chf"
+      "coffee_id, coffee_name_snapshot, roaster_name_snapshot, quantity, weight_g, unit_price_chf, is_subscription_item"
     )
     .eq("order_id", order.id);
 
@@ -155,6 +168,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Hat diese Order eine zugehoerige Subscription? Stripe-Limit garantiert
+  // 1 Subscription pro Cart (max). NULL → reiner Einmal-Cart.
+  const { data: sub, error: subErr } = await svc
+    .from("subscriptions")
+    .select("id, interval_weeks, status")
+    .eq("first_order_id", order.id)
+    .maybeSingle();
+
+  if (subErr) {
+    console.error("[api/checkout/session] subscription lookup failed", subErr);
+    return NextResponse.json(
+      { error: "subscription_lookup_failed", details: subErr.message },
+      { status: 500 }
+    );
+  }
+
+  const isSubscriptionMode = sub !== null;
   const stripe = getStripe();
 
   // ---- 4) Stripe Customer ermitteln/erzeugen --------------------------------
@@ -216,8 +246,15 @@ export async function POST(req: NextRequest) {
   // ---- 5) Line-Items fuer Stripe-Session bauen ------------------------------
   // Wir nutzen price_data (inline), keine vorab-konfigurierten Stripe-Products.
   // Strategie + Begruendung: siehe docs/STRIPE_PRODUCTS_STRATEGY.md
-  const lineItems = items.map(
-    (it) => ({
+  //
+  // Bei mode=subscription:
+  //   - Abo-Item: price_data mit recurring={interval:'week', interval_count:N}
+  //   - Einmal-Items: price_data ohne recurring → Stripe behandelt sie als
+  //     one-off auf der initial Invoice
+  // Bei mode=payment: alle ohne recurring.
+  const lineItems = items.map((it) => {
+    const isAbo = it.is_subscription_item === true;
+    return {
       quantity: it.quantity,
       price_data: {
         currency: "chf",
@@ -229,11 +266,20 @@ export async function POST(req: NextRequest) {
           metadata: {
             coffee_id: it.coffee_id,
             weight_g: String(it.weight_g),
+            is_subscription_item: isAbo ? "true" : "false",
           },
         },
+        ...(isAbo && sub
+          ? {
+              recurring: {
+                interval: "week" as const,
+                interval_count: sub.interval_weeks,
+              },
+            }
+          : {}),
       },
-    })
-  );
+    };
+  });
 
   // ---- 6) Shipping-Option ---------------------------------------------------
   // Wir berechnen den Versand server-seitig. Stripe bekommt eine fix-rate.
@@ -274,43 +320,69 @@ export async function POST(req: NextRequest) {
     "https://staging.coffeeselection.ch";
 
   // ---- 9) Session erzeugen --------------------------------------------------
+  // Common-Felder fuer beide Modi:
+  const commonMetadata = {
+    order_id: order.id,
+    order_number: order.order_number,
+    cs_customer_id: customer.id,
+    ...(sub ? { subscription_id: sub.id } : {}),
+  };
+
   let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>;
   try {
-    session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer: stripeCustomerId,
-      // Wir haben Stripe-Customer mit address erstellt → Stripe Tax kann
-      // berechnen. Adresse muessen wir nicht erneut sammeln.
-      customer_update: { address: "auto", shipping: "auto", name: "auto" },
-      line_items: lineItems,
-      shipping_options: [shippingOption],
-      // automatic_tax: { enabled: true },  // erst wenn UID + Stripe-Tax-Reg da
-      payment_method_types: ["card"],
-      // Phase 1A: nur Card. Spaeter werden hier weitere PMs auftauchen
-      // (Apple/Google Pay sind automatisch in 'card' enthalten).
-      locale: stripeLocale,
-      expires_at:
-        Math.floor(Date.now() / 1000) + SESSION_EXPIRES_AFTER_SEC,
-      success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/checkout/cart`,
-      // Metadata wird vom Webhook (C-5) gelesen um Order zu finden
-      metadata: {
-        order_id: order.id,
-        order_number: order.order_number,
-        cs_customer_id: customer.id,
-      },
-      payment_intent_data: {
-        // Beschreibung auf Karten-Rechnung (statement descriptor liegt im
-        // Stripe-Dashboard fix, hier nur Order-Referenz)
-        description: `Coffee Selection ${order.order_number}`,
-        metadata: {
-          order_id: order.id,
-          order_number: order.order_number,
+    if (isSubscriptionMode && sub) {
+      // mode=subscription: Stripe erzeugt nach Bezahlung 1 Subscription mit
+      // den recurring line_items. Einmal-Items in line_items (ohne recurring)
+      // werden zur initialen Invoice hinzugefuegt.
+      // payment_intent_data ist hier NICHT erlaubt — Stripe nutzt
+      // subscription_data stattdessen.
+      // expires_at ist hier auch nicht zulaessig (subscriptions sind
+      // langlebig).
+      session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: stripeCustomerId,
+        customer_update: { address: "auto", shipping: "auto", name: "auto" },
+        line_items: lineItems,
+        shipping_options: [shippingOption],
+        payment_method_types: ["card"],
+        locale: stripeLocale,
+        success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${siteUrl}/checkout/cart`,
+        metadata: commonMetadata,
+        subscription_data: {
+          description: `Coffee Selection Abo ${order.order_number}`,
+          metadata: {
+            subscription_id: sub.id,
+            first_order_id: order.id,
+            first_order_number: order.order_number,
+            cs_customer_id: customer.id,
+          },
         },
-      },
-      // Lokale Rechnung an Customer geht spaeter via unseren Mail-Versand,
-      // nicht via Stripe-Receipt. Falls doch gewuenscht: `receipt_email`.
-    });
+      });
+    } else {
+      // mode=payment: bisheriger Flow fuer reine Einmalkauf-Carts.
+      session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        customer: stripeCustomerId,
+        customer_update: { address: "auto", shipping: "auto", name: "auto" },
+        line_items: lineItems,
+        shipping_options: [shippingOption],
+        payment_method_types: ["card"],
+        locale: stripeLocale,
+        expires_at:
+          Math.floor(Date.now() / 1000) + SESSION_EXPIRES_AFTER_SEC,
+        success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${siteUrl}/checkout/cart`,
+        metadata: commonMetadata,
+        payment_intent_data: {
+          description: `Coffee Selection ${order.order_number}`,
+          metadata: {
+            order_id: order.id,
+            order_number: order.order_number,
+          },
+        },
+      });
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[api/checkout/session] stripe.checkout.sessions.create failed", err);
