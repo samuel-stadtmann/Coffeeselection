@@ -108,10 +108,10 @@ export async function POST(
         await stripe.subscriptions.update(sub.stripe_subscription_id, {
           pause_collection: { behavior: "void" },
         });
-        await svc
-          .from("subscriptions")
-          .update({ status: "paused", paused_at: new Date().toISOString() })
-          .eq("id", sub.id);
+        // Wir setzen den DB-Status NICHT optimistisch — der Webhook
+        // customer.subscription.updated synct innerhalb von Sekunden.
+        // Sonst sieht der Webhook prevStatus=ourStatus und sendet
+        // keine Pause-Mail.
         return NextResponse.json({ ok: true, status: "paused" });
       }
 
@@ -125,10 +125,7 @@ export async function POST(
         await stripe.subscriptions.update(sub.stripe_subscription_id, {
           pause_collection: "",
         });
-        await svc
-          .from("subscriptions")
-          .update({ status: "active", paused_at: null })
-          .eq("id", sub.id);
+        // Kein optimistisches DB-Update — siehe Pause-Begruendung.
         return NextResponse.json({ ok: true, status: "active" });
       }
 
