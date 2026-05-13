@@ -34,6 +34,7 @@ import { createRatingToken } from "@/lib/rating-token";
 const PAID_MIN_AGE_DAYS = 5;
 const PAID_MAX_AGE_DAYS = 14;
 const MAX_ORDERS_PER_RUN = 50; // damit ein Cron-Run nicht ewig dauert
+const PER_COFFEE_COOLDOWN_DAYS = 90; // pro (customer,coffee) max alle 90d
 
 function getSiteUrl(): string {
   return (
@@ -121,9 +122,29 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
-    // Coffees deduplizieren — bei Quantity>1 nur einmal pro coffee_id.
-    // Pro Coffee einen Magic-Link-Token generieren (HMAC-signed mit
-    // customer_id + order_id + coffee_id).
+    // Coffees deduplizieren (bei Quantity>1) UND per-Coffee-Cooldown anwenden
+    // (skip wenn Customer in den letzten 90 Tagen schon eine Mail dafuer
+    // bekommen hat — siehe rating_reminder_log). Pro durchgereichten Coffee
+    // einen Magic-Link-Token generieren (HMAC-signed mit customer+order+coffee).
+    const cooldownCutoff = new Date(
+      Date.now() - PER_COFFEE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    // Eindeutige coffee_ids in dieser Order
+    const uniqueCoffeeIds = Array.from(
+      new Set(items.filter((i) => i.coffee?.slug).map((i) => i.coffee_id))
+    );
+
+    // Welche dieser coffee_ids haben in den letzten 90d schon eine Mail
+    // bekommen? Diese filtern wir raus.
+    const { data: recentLogs } = await svc
+      .from("rating_reminder_log")
+      .select("coffee_id")
+      .eq("customer_id", order.customer_id)
+      .in("coffee_id", uniqueCoffeeIds)
+      .gte("sent_at", cooldownCutoff);
+    const onCooldown = new Set((recentLogs ?? []).map((r) => r.coffee_id));
+
     const seen = new Set<string>();
     const coffees: Array<{
       coffeeSlug: string;
@@ -131,9 +152,15 @@ export async function GET(req: NextRequest) {
       roasterName: string;
       imageUrl: string | null;
       token: string;
+      coffeeId: string; // intern fuer rating_reminder_log-Insert nach Send
     }> = [];
     for (const it of items) {
       if (seen.has(it.coffee_id) || !it.coffee?.slug) continue;
+      if (onCooldown.has(it.coffee_id)) {
+        // Customer hat in den letzten 90d schon eine Mail fuer diesen
+        // Coffee bekommen — skip im Mail-Inhalt.
+        continue;
+      }
       seen.add(it.coffee_id);
       const token = createRatingToken({
         customer_id: order.customer_id,
@@ -146,10 +173,18 @@ export async function GET(req: NextRequest) {
         roasterName: it.roaster_name_snapshot,
         imageUrl: it.coffee.image_url ?? null,
         token,
+        coffeeId: it.coffee_id,
       });
     }
 
     if (coffees.length === 0) {
+      // Alle Coffees in dieser Order sind im 90d-Cooldown → keine Mail
+      // senden, aber rating_reminder_sent_at trotzdem setzen damit die
+      // Order nicht im naechsten Cron-Run wieder gepickt wird.
+      await svc
+        .from("orders")
+        .update({ rating_reminder_sent_at: new Date().toISOString() })
+        .eq("id", order.id);
       skipped++;
       continue;
     }
@@ -202,6 +237,28 @@ export async function GET(req: NextRequest) {
       );
       errors.push(`${order.order_number}: flag update failed`);
       continue;
+    }
+
+    // rating_reminder_log: pro versendeten Coffee einen Eintrag → blockiert
+    // weitere Mails fuer (customer, coffee) fuer die naechsten 90 Tage.
+    const logRows = coffees.map((c) => ({
+      customer_id: order.customer_id,
+      coffee_id: c.coffeeId,
+      order_id: order.id,
+      // sent_at = now() default
+    }));
+    if (logRows.length > 0) {
+      const { error: logErr } = await svc
+        .from("rating_reminder_log")
+        .insert(logRows);
+      if (logErr) {
+        console.error(
+          `[cron/rating-reminders] log insert failed for ${order.id}:`,
+          logErr
+        );
+        // Nicht fatal — Mail ist raus, naechste Cron-Pruefung greift
+        // dann allerdings nicht und Customer kann nochmal Mail kriegen.
+      }
     }
 
     sent++;
