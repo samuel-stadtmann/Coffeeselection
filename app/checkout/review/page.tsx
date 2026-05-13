@@ -29,8 +29,8 @@ const STANDARD_SHIPPING_CHF = 6.9;
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { items, subtotal } = useCart();
-  const { data, shippingValid, billingValid } = useCheckout();
+  const { items, subtotal, loaded: cartLoaded } = useCart();
+  const { data, loaded: checkoutLoaded, shippingValid, billingValid } = useCheckout();
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +41,9 @@ export default function ReviewPage() {
       : STANDARD_SHIPPING_CHF;
   const total = subtotal + shipping;
 
-  // Guards (nach Mount)
+  // Guards (erst nach Hydration — siehe useCart-Kommentar zum loaded-Flag).
   useEffect(() => {
+    if (!cartLoaded || !checkoutLoaded) return;
     if (items.length === 0) {
       router.replace("/checkout/cart");
       return;
@@ -50,7 +51,14 @@ export default function ReviewPage() {
     if (!shippingValid || !billingValid) {
       router.replace("/checkout/shipping");
     }
-  }, [items.length, shippingValid, billingValid, router]);
+  }, [
+    cartLoaded,
+    checkoutLoaded,
+    items.length,
+    shippingValid,
+    billingValid,
+    router,
+  ]);
 
   const handlePay = async () => {
     if (submitting) return;
@@ -143,8 +151,9 @@ export default function ReviewPage() {
     }
   };
 
-  if (items.length === 0) {
-    return null; // Guard redirected schon
+  // Render-Guard: erst nach Hydration anwenden, sonst Flash-of-blank-page
+  if (cartLoaded && items.length === 0) {
+    return null;
   }
 
   return (

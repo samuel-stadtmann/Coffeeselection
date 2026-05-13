@@ -80,10 +80,16 @@ function saveToStorage(cart: Cart) {
 
 export function useCart() {
   const [cart, setCart] = useState<Cart>(emptyCart);
+  // 'loaded' wird true nachdem useEffect den initialen Storage-Read gemacht hat.
+  // WICHTIG: ohne dieses Flag wuerden Pages die auf items.length===0 redirecten
+  // (z.B. /checkout/shipping → /checkout/cart) waehrend des Hydration-Moments
+  // false-positiv ausloesen, weil der initiale useState noch leer ist.
+  const [loaded, setLoaded] = useState(false);
 
   // Initial-Load aus Storage (nur clientseitig, vermeidet SSR-Hydration-Mismatch)
   useEffect(() => {
     setCart(loadFromStorage());
+    setLoaded(true);
   }, []);
 
   // Cross-Hook-Sync (gleicher Tab) und Cross-Tab-Sync
@@ -195,6 +201,7 @@ export function useCart() {
     items: cart.items,
     count,
     subtotal: Number(subtotal.toFixed(2)),
+    loaded,
     add,
     remove,
     updateQty,
