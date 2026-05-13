@@ -928,22 +928,29 @@ async function handleSubscriptionUpdated(
   }
 
   console.log(
-    `[webhooks/stripe] event ${eventId} → subscription (stripe:${sub.id}) synced (${Object.keys(updates).join(",")})`
+    `[webhooks/stripe] event ${eventId} → subscription (stripe:${sub.id}) synced (${Object.keys(updates).join(",")}); stripe_status=${sub.status} pause_collection=${JSON.stringify(sub.pause_collection)} → ourStatus=${ourStatus} prevStatus=${prevStatus}`
   );
 
   // Mail-Trigger bei Status-Transitions. Nur senden wenn sich der Status
   // tatsaechlich geaendert hat (sonst spammen wir bei jedem update-Event).
   if (ourStatus && prevStatus && prevStatus !== ourStatus) {
     if (ourStatus === "paused" && prevStatus !== "paused") {
+      console.log(`[webhooks/stripe] → triggering paused-mail`);
       await sendSubscriptionPausedMail(svc, sub.id);
-    } else if (
-      ourStatus === "active" &&
-      prevStatus === "paused"
-    ) {
+    } else if (ourStatus === "active" && prevStatus === "paused") {
+      console.log(`[webhooks/stripe] → triggering resumed-mail`);
       await sendSubscriptionResumedMail(svc, sub.id);
+    } else {
+      console.log(
+        `[webhooks/stripe] transition ${prevStatus} → ${ourStatus}, no mail`
+      );
     }
     // Cancelled-Mail kommt separat von customer.subscription.deleted,
     // hier nicht doppelt senden.
+  } else {
+    console.log(
+      `[webhooks/stripe] no transition: prevStatus=${prevStatus} ourStatus=${ourStatus} → no mail`
+    );
   }
 }
 
