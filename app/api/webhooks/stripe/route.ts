@@ -6,6 +6,8 @@ import { orderConfirmationEmail } from "@/lib/email/templates/order-confirmation
 import { subscriptionConfirmationEmail } from "@/lib/email/templates/subscription-confirmation";
 import { subscriptionRenewalEmail } from "@/lib/email/templates/subscription-renewal";
 import { subscriptionCancelledEmail } from "@/lib/email/templates/subscription-cancelled";
+import { subscriptionPausedEmail } from "@/lib/email/templates/subscription-paused";
+import { subscriptionResumedEmail } from "@/lib/email/templates/subscription-resumed";
 import type { SubscriptionIntervalWeeks } from "@/lib/subscription-constants";
 
 function getSiteUrl(): string {
@@ -598,6 +600,11 @@ type SubscriptionEventPayload = {
   };
   cancel_at_period_end: boolean;
   canceled_at: number | null;
+  // Wenn gesetzt: Subscription ist pausiert (auch wenn status='active')
+  pause_collection?: {
+    behavior: "void" | "keep_as_draft" | "mark_uncollectible";
+    resumes_at?: number | null;
+  } | null;
 };
 
 // ===========================================================================
@@ -839,7 +846,7 @@ async function handleInvoiceFailed(
 }
 
 // ===========================================================================
-// Handler: customer.subscription.updated — Lifecycle-Sync
+// Handler: customer.subscription.updated — Lifecycle-Sync + Mail-Trigger
 // ===========================================================================
 async function handleSubscriptionUpdated(
   svc: ReturnType<typeof createServiceClient>,
@@ -850,10 +857,17 @@ async function handleSubscriptionUpdated(
   // Stripe: active, past_due, unpaid, canceled, incomplete, incomplete_expired,
   //         trialing, paused
   // Wir:    pending, active, paused, cancelled, completed, past_due
+  //
+  // Wichtig: bei Stripe-Status='active' kann pause_collection trotzdem
+  // gesetzt sein (= eigentlich pausiert, Stripe haelt den Status aber als
+  // 'active'). Wir leiten 'paused' deshalb aus pause_collection ab.
   let ourStatus: string | null = null;
+  const isPaused =
+    sub.pause_collection != null &&
+    typeof sub.pause_collection === "object";
   switch (sub.status) {
     case "active":
-      ourStatus = "active";
+      ourStatus = isPaused ? "paused" : "active";
       break;
     case "past_due":
     case "unpaid":
@@ -869,6 +883,16 @@ async function handleSubscriptionUpdated(
       // incomplete/trialing/etc — nicht relevant fuer uns, kein DB-Update
       ourStatus = null;
   }
+
+  // Alten Status laden — wir wollen Mails nur bei tatsaechlicher
+  // Status-Transition senden, nicht bei jedem update-Event (Stripe sendet
+  // auch fuer Period-End-Wechsel etc. ein customer.subscription.updated).
+  const { data: prev } = await svc
+    .from("subscriptions")
+    .select("id, status")
+    .eq("stripe_subscription_id", sub.id)
+    .maybeSingle();
+  const prevStatus = prev?.status ?? null;
 
   // current_period_end: top-level zuerst (alte API), dann Item-Level
   // (ab Stripe-API 2024-09-30 dort).
@@ -906,6 +930,21 @@ async function handleSubscriptionUpdated(
   console.log(
     `[webhooks/stripe] event ${eventId} → subscription (stripe:${sub.id}) synced (${Object.keys(updates).join(",")})`
   );
+
+  // Mail-Trigger bei Status-Transitions. Nur senden wenn sich der Status
+  // tatsaechlich geaendert hat (sonst spammen wir bei jedem update-Event).
+  if (ourStatus && prevStatus && prevStatus !== ourStatus) {
+    if (ourStatus === "paused" && prevStatus !== "paused") {
+      await sendSubscriptionPausedMail(svc, sub.id);
+    } else if (
+      ourStatus === "active" &&
+      prevStatus === "paused"
+    ) {
+      await sendSubscriptionResumedMail(svc, sub.id);
+    }
+    // Cancelled-Mail kommt separat von customer.subscription.deleted,
+    // hier nicht doppelt senden.
+  }
 }
 
 // ===========================================================================
@@ -1242,6 +1281,101 @@ async function sendSubscriptionCancelledMail(
     html,
     tags: [
       { name: "type", value: "subscription_cancelled" },
+      { name: "subscription_id", value: sub.id },
+    ],
+  });
+}
+
+async function sendSubscriptionPausedMail(
+  svc: ReturnType<typeof createServiceClient>,
+  stripeSubscriptionId: string
+) {
+  const { data: sub, error } = await svc
+    .from("subscriptions")
+    .select(`
+      id,
+      customer:customers(email, first_name, last_name),
+      items:subscription_items(coffee:coffees(name))
+    `)
+    .eq("stripe_subscription_id", stripeSubscriptionId)
+    .maybeSingle();
+  if (error || !sub) {
+    console.error("[email/paused] subscription lookup failed:", error);
+    return;
+  }
+  const customer = sub.customer as unknown as {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+  const items = sub.items as unknown as Array<{
+    coffee: { name: string } | null;
+  }>;
+  if (!customer?.email) return;
+
+  const coffeeName = items[0]?.coffee?.name ?? "Coffee";
+  const recipientName =
+    [customer.first_name, customer.last_name].filter(Boolean).join(" ") || "";
+
+  const { subject, html } = subscriptionPausedEmail({
+    recipientName,
+    coffeeName,
+    siteUrl: getSiteUrl(),
+  });
+  await sendMail({
+    to: customer.email,
+    subject,
+    html,
+    tags: [
+      { name: "type", value: "subscription_paused" },
+      { name: "subscription_id", value: sub.id },
+    ],
+  });
+}
+
+async function sendSubscriptionResumedMail(
+  svc: ReturnType<typeof createServiceClient>,
+  stripeSubscriptionId: string
+) {
+  const { data: sub, error } = await svc
+    .from("subscriptions")
+    .select(`
+      id, stripe_current_period_end,
+      customer:customers(email, first_name, last_name),
+      items:subscription_items(coffee:coffees(name))
+    `)
+    .eq("stripe_subscription_id", stripeSubscriptionId)
+    .maybeSingle();
+  if (error || !sub) {
+    console.error("[email/resumed] subscription lookup failed:", error);
+    return;
+  }
+  const customer = sub.customer as unknown as {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+  const items = sub.items as unknown as Array<{
+    coffee: { name: string } | null;
+  }>;
+  if (!customer?.email) return;
+
+  const coffeeName = items[0]?.coffee?.name ?? "Coffee";
+  const recipientName =
+    [customer.first_name, customer.last_name].filter(Boolean).join(" ") || "";
+
+  const { subject, html } = subscriptionResumedEmail({
+    recipientName,
+    coffeeName,
+    nextChargeDate: sub.stripe_current_period_end ?? null,
+    siteUrl: getSiteUrl(),
+  });
+  await sendMail({
+    to: customer.email,
+    subject,
+    html,
+    tags: [
+      { name: "type", value: "subscription_resumed" },
       { name: "subscription_id", value: sub.id },
     ],
   });

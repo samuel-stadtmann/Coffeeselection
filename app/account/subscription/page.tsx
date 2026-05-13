@@ -119,6 +119,10 @@ export default function Page() {
         const detail = res.details ? ` (${res.details})` : "";
         throw new Error(`${res.error ?? "Aktion fehlgeschlagen"}${detail}`);
       }
+      // Kurzer Wait damit der Stripe-Webhook (customer.subscription.updated /
+      // .deleted) Zeit hat unsere DB zu syncen. Sonst zeigt load() noch
+      // den alten Status. 2s reicht in der Praxis fuer Webhook-Roundtrip.
+      await new Promise((r) => setTimeout(r, 2000));
       await load();
       if (action === "cancel") setConfirmCancel(null);
     } catch (e) {
