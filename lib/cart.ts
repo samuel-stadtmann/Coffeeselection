@@ -188,9 +188,13 @@ export function useCart() {
   /**
    * Convenience-Wrapper fuer Abo-Items. Setzt is_subscription=true +
    * discount_percent=SUBSCRIPTION_DISCOUNT_PERCENT als Snapshot.
-   * Identische Abos (gleicher Coffee + Gewicht + Intervall + Startdatum)
-   * werden nicht gemergt — User soll bewusst Mengen via updateQty
-   * aendern, nicht durch erneutes Hinzufuegen.
+   * Identische Abos (gleicher Coffee + Gewicht + Intervall) werden nicht
+   * gemergt — User soll bewusst Mengen via updateQty aendern, nicht durch
+   * erneutes Hinzufuegen.
+   *
+   * Kein start_date: Roester steuert Timing, erste Lieferung erfolgt mit
+   * der naechsten Roestung. Stripe wird in P1B-5 sofort beim Abo-Anlegen
+   * gechargt; das Datum der ersten Order ist dann der Cart-Checkout-Tag.
    */
   const addSubscription = useCallback(
     (item: {
@@ -203,8 +207,6 @@ export function useCart() {
       weight_g: CartWeight;
       quantity: number;
       interval_weeks: SubscriptionIntervalWeeks;
-      start_date: string;
-      grind_preference?: string | null;
     }) => {
       add({
         ...item,

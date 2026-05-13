@@ -26,13 +26,6 @@ const WEIGHTS: { id: CartWeight; label: string }[] = [
   { id: 1000, label: "1 kg" },
 ];
 
-function formatDeliveryDate(iso: string): string {
-  // YYYY-MM-DD → DD.MM.YYYY (CH-Format, kurz). Wenn invalid, raw zurueck.
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (!m) return iso;
-  return `${m[3]}.${m[2]}.${m[1]}`;
-}
-
 export default function CartPage() {
   const router = useRouter();
   const {
@@ -386,13 +379,12 @@ function CartItemCard({
             <p className="text-xs text-on-surface-variant mt-1">
               {item.roaster_name}
             </p>
-            {isSub && item.interval_weeks && item.start_date && (
+            {isSub && item.interval_weeks && (
               <p className="text-xs text-on-surface-variant mt-2">
                 <span className="font-bold">
                   {INTERVAL_LABELS[item.interval_weeks].long}
                 </span>
-                {" · Erste Lieferung am "}
-                {formatDeliveryDate(item.start_date)}
+                {" · Röstfrisch bei nächster Röstung"}
               </p>
             )}
           </div>
