@@ -36,20 +36,26 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Mail-Deep-Link-Params (PA-Loop3 Bewertungs-Email):
-  //   ?stars=N       Pre-fill der Stern-Auswahl + Auto-Submit nach Login/Load
-  //   ?order=uuid    setzt order_id im coffee_ratings-Insert (fuer Idempotenz
-  //                  + Verknuepfung mit Bestellung)
+  // Mail-Deep-Link-Params (heute):
+  //   ?stars=N       Pre-fill der Stern-Auswahl (z.B. von der Thanks-Page
+  //                  nach Magic-Link-Klick weitergeleitet — User kann nun
+  //                  Tags + Comment ergaenzen)
+  //   ?order=uuid    setzt order_id im coffee_ratings-Insert (Verknuepfung
+  //                  mit Bestellung)
+  //
+  // Auto-Submit gibt es NICHT mehr — Magic-Link in der Bewertungs-Email
+  // geht direkt auf /api/rate/via-token, ohne den Umweg ueber diese Page.
   const initialStars = Number(searchParams.get("stars") ?? 0);
   const orderIdParam = searchParams.get("order");
-  const autoSubmit = initialStars >= 1 && initialStars <= 5;
 
   const [coffee, setCoffee] = useState<CoffeeForRating | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  const [stars, setStars] = useState(autoSubmit ? initialStars : 0);
+  const [stars, setStars] = useState(
+    initialStars >= 1 && initialStars <= 5 ? initialStars : 0
+  );
   const [hoverStars, setHoverStars] = useState(0);
   const [positiveTags, setPositiveTags] = useState<string[]>([]);
   const [negativeTags, setNegativeTags] = useState<string[]>([]);
@@ -122,24 +128,6 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
     setNegativeTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
     setPositiveTags((prev) => prev.filter((t) => t !== tag));
   };
-
-  // Auto-Submit nach Coffee-Load wenn URL-Param ?stars=N gesetzt war.
-  // Klick aus Bewertungs-Email → User landet hier → 1 Klick = fertig.
-  // Triggert nur einmal: nach submit oder error wird's nicht nochmal versucht.
-  const [autoSubmitTriggered, setAutoSubmitTriggered] = useState(false);
-  useEffect(() => {
-    if (
-      autoSubmit &&
-      !autoSubmitTriggered &&
-      coffee &&
-      customerId &&
-      !submitting &&
-      !submitted
-    ) {
-      setAutoSubmitTriggered(true);
-      void submitRating();
-    }
-  }, [autoSubmit, autoSubmitTriggered, coffee, customerId, submitting, submitted]);
 
   async function submitRating() {
     setSubmitError(null);

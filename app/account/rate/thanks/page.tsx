@@ -97,7 +97,7 @@ function SuccessMessage({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Link
-          href={`/account/rate/${encodeURIComponent(coffeeSlug)}`}
+          href={`/account/rate/${encodeURIComponent(coffeeSlug)}?stars=${stars}`}
           className="inline-block border-2 border-primary text-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
         >
           Detailliert bewerten
