@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart, type CartWeight } from "@/lib/cart";
 import {
@@ -37,17 +37,6 @@ const WEIGHTS: { id: CartWeight; label: string }[] = [
   { id: 1000, label: "1 kg" },
 ];
 
-// Min-Date = morgen, Max-Date = heute + 28 Tage
-function dateBoundsISO(): { min: string; max: string; default: string } {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const maxDate = new Date(today);
-  maxDate.setDate(today.getDate() + 28);
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
-  return { min: fmt(tomorrow), max: fmt(maxDate), default: fmt(tomorrow) };
-}
-
 export function SubscriptionConfigurator(props: Props) {
   const router = useRouter();
   const { addSubscription } = useCart();
@@ -55,8 +44,6 @@ export function SubscriptionConfigurator(props: Props) {
   const [qty, setQty] = useState(1);
   const [intervalWeeks, setIntervalWeeks] =
     useState<SubscriptionIntervalWeeks>(2);
-  const bounds = useMemo(dateBoundsISO, []);
-  const [startDate, setStartDate] = useState<string>(bounds.default);
   const [adding, setAdding] = useState(false);
 
   // Preise: Basis linear nach Gewicht skaliert (wie AddToCartButton),
@@ -79,7 +66,6 @@ export function SubscriptionConfigurator(props: Props) {
       weight_g: weight,
       quantity: qty,
       interval_weeks: intervalWeeks,
-      start_date: startDate,
     });
     setTimeout(() => router.push("/checkout/cart"), 250);
   };
@@ -163,25 +149,15 @@ export function SubscriptionConfigurator(props: Props) {
         </select>
       </div>
 
-      {/* Startdatum */}
-      <div className="mb-6">
-        <label
-          htmlFor="sub-start-date"
-          className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block mb-2"
-        >
-          Erste Lieferung am
-        </label>
-        <input
-          id="sub-start-date"
-          type="date"
-          value={startDate}
-          min={bounds.min}
-          max={bounds.max}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="w-full py-2 px-3 bg-primary border-2 border-on-primary/30 text-on-primary font-headline text-sm focus:border-tertiary focus:outline-none"
-        />
-        <p className="text-[10px] text-on-primary/50 mt-1">
-          Frühestens morgen, spätestens in 4 Wochen
+      {/* Liefer-Hinweis (kein User-w&auml;hlbares Startdatum: R&ouml;ster
+          steuert Timing, R&ouml;stung erfolgt fris&ouml;st) */}
+      <div className="mb-6 flex items-start gap-2 bg-on-primary/5 p-3 border-l-2 border-on-primary/20">
+        <span className="material-symbols-outlined text-tertiary text-base mt-0.5 shrink-0">
+          local_shipping
+        </span>
+        <p className="text-[11px] text-on-primary/80 leading-snug">
+          Wird bei der nächsten Röstung röstfrisch an dich geliefert. Folgelieferungen
+          dann automatisch im gewählten Intervall.
         </p>
       </div>
 
