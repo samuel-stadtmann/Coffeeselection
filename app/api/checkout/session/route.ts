@@ -281,9 +281,42 @@ export async function POST(req: NextRequest) {
     };
   });
 
-  // ---- 6) Shipping-Option ---------------------------------------------------
+  // ---- 6) Shipping ----------------------------------------------------------
   // Wir berechnen den Versand server-seitig. Stripe bekommt eine fix-rate.
+  //
+  // Wichtige Stripe-Limitation: shipping_options funktioniert nur in
+  // mode=payment. In mode=subscription muessen wir Versand als zusaetzliches
+  // line_item adden — mit gleichem recurring-Intervall wie das Abo, damit
+  // jede Renewal-Invoice automatisch wieder einen Versand-Eintrag bekommt.
   const shippingChf = Number(order.shipping_chf);
+
+  // Subscription-Mode: Versand als zusaetzliches recurring line_item
+  // (skip wenn Gratis-Versand, sonst leeres Item mit Wert 0).
+  if (isSubscriptionMode && sub && shippingChf > 0) {
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "chf",
+        unit_amount: Math.round(shippingChf * 100),
+        product_data: {
+          name: "Standardversand Schweiz",
+          description: "Pro Lieferung, schweizweit · röstfrisch",
+          metadata: {
+            coffee_id: "",
+            weight_g: "0",
+            is_subscription_item: "true",
+          },
+        },
+        recurring: {
+          interval: "week" as const,
+          interval_count: sub.interval_weeks,
+        },
+      },
+    });
+  }
+
+  // Payment-Mode: klassisches shipping_options (wird unten in der
+  // Session-Create-Call uebergeben, nur in payment-Mode).
   const shippingOption = {
     shipping_rate_data: {
       type: "fixed_amount" as const,
@@ -338,12 +371,13 @@ export async function POST(req: NextRequest) {
       // subscription_data stattdessen.
       // expires_at ist hier auch nicht zulaessig (subscriptions sind
       // langlebig).
+      // subscription-mode: KEIN shipping_options — Stripe-Limit.
+      // Versand wurde oben als zusaetzliches recurring line_item gepusht.
       session = await stripe.checkout.sessions.create({
         mode: "subscription",
         customer: stripeCustomerId,
         customer_update: { address: "auto", shipping: "auto", name: "auto" },
         line_items: lineItems,
-        shipping_options: [shippingOption],
         payment_method_types: ["card"],
         locale: stripeLocale,
         success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
