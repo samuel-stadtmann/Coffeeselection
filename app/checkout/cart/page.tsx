@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCart, type CartWeight } from "@/lib/cart";
 
 const LOGO = "/logo.png";
-const COFFEE_FALLBACK_IMG = "/coffee-fallback.jpg";
+// Gleicher Fallback wie auf der Coffee-Detail-Page — vermeidet 404 wenn
+// Coffee kein eigenes image_url hat. Wenn das je entfernt wird, hier auch.
+const COFFEE_FALLBACK_IMG =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 const FREE_SHIPPING_THRESHOLD_CHF = 100;
 const STANDARD_SHIPPING_CHF = 6.9;
 
