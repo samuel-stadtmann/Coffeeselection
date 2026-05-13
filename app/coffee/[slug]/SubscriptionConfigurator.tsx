@@ -54,7 +54,7 @@ export function SubscriptionConfigurator(props: Props) {
   const [weight, setWeight] = useState<CartWeight>(250);
   const [qty, setQty] = useState(1);
   const [intervalWeeks, setIntervalWeeks] =
-    useState<SubscriptionIntervalWeeks>(4);
+    useState<SubscriptionIntervalWeeks>(2);
   const bounds = useMemo(dateBoundsISO, []);
   const [startDate, setStartDate] = useState<string>(bounds.default);
   const [adding, setAdding] = useState(false);
@@ -139,25 +139,28 @@ export function SubscriptionConfigurator(props: Props) {
 
       {/* Lieferintervall */}
       <div className="mb-4">
-        <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block mb-2">
+        <label
+          htmlFor="sub-interval-weeks"
+          className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block mb-2"
+        >
           Lieferintervall
-        </span>
-        <div className="grid grid-cols-2 gap-2">
+        </label>
+        <select
+          id="sub-interval-weeks"
+          value={intervalWeeks}
+          onChange={(e) =>
+            setIntervalWeeks(
+              Number(e.target.value) as SubscriptionIntervalWeeks
+            )
+          }
+          className="w-full py-2 px-3 bg-primary border-2 border-on-primary/30 text-on-primary font-headline text-sm focus:border-tertiary focus:outline-none appearance-none cursor-pointer"
+        >
           {SUBSCRIPTION_INTERVAL_WEEKS.map((w) => (
-            <button
-              key={w}
-              type="button"
-              onClick={() => setIntervalWeeks(w)}
-              className={`py-2 font-headline text-[11px] uppercase tracking-widest border-2 transition-all ${
-                intervalWeeks === w
-                  ? "border-tertiary bg-tertiary text-primary font-bold"
-                  : "border-on-primary/30 text-on-primary hover:border-tertiary"
-              }`}
-            >
-              {INTERVAL_LABELS[w].short}
-            </button>
+            <option key={w} value={w} className="bg-primary text-on-primary">
+              {INTERVAL_LABELS[w].long}
+            </option>
           ))}
-        </div>
+        </select>
       </div>
 
       {/* Startdatum */}
