@@ -1,6 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  SUBSCRIPTION_DISCOUNT_MULTIPLIER,
+  SUBSCRIPTION_DISCOUNT_PERCENT,
+  type SubscriptionIntervalWeeks,
+} from "@/lib/subscription-constants";
 
 /**
  * useCart — Hook fuer den Warenkorb-Zustand.
@@ -17,8 +22,12 @@ import { useCallback, useEffect, useState } from "react";
  * Storage liest. Auf dem Server liefert er leeren Cart, beim Hydrate
  * korrigiert sich's.
  *
+ * Item-Typen (P1B-4):
+ *   - Einmalkauf: is_subscription=false (oder absent in alten Eintraegen)
+ *   - Abo:        is_subscription=true + interval_weeks + start_date +
+ *                 discount_percent (snapshot)
+ *
  * NICHT geeignet fuer:
- *   - Subscriptions (Abo-Konfiguration ist eigener State, kommt in Phase 1B)
  *   - Multi-Step-Checkout-Daten ausser Items (z.B. Adresse → useCheckout)
  *   - Server-seitige Cart-Recovery (kein Login = kein Recover; sollten wir
  *     in Phase 2 fuer Auth-User koennen)
@@ -30,7 +39,8 @@ export type CartWeight = 250 | 500 | 1000;
 
 export type CartItem = {
   // Eindeutige ID fuer DIESEN Cart-Eintrag (nicht coffee_id) — erlaubt
-  // gleichen Kaffee zweimal mit verschiedenen Mahlgraden / Mengen.
+  // gleichen Kaffee zweimal mit verschiedenen Mahlgraden / Mengen /
+  // Abo-Konfigurationen.
   id: string;
   coffee_id: string;
   coffee_name: string;
@@ -43,6 +53,13 @@ export type CartItem = {
   quantity: number;
   grind_preference?: string | null;
   added_at: string; // ISO-Date
+
+  // Abo-Felder (nur gesetzt wenn is_subscription=true). Fehlende Werte in
+  // alten Cart-Eintraegen werden als Einmalkauf behandelt.
+  is_subscription?: boolean;
+  interval_weeks?: SubscriptionIntervalWeeks;
+  start_date?: string; // YYYY-MM-DD, fruehestens morgen
+  discount_percent?: number; // Snapshot zum Anlage-Zeitpunkt, z.B. 10
 };
 
 export type Cart = {
@@ -76,6 +93,27 @@ function saveToStorage(cart: Cart) {
   } catch {
     // Storage voll / privat-modus / etc — wir lassen den State im Memory.
   }
+}
+
+/** Linear nach Gewicht skalierter Preis pro Beutel (kein Rabatt). */
+export function unitPriceForWeight(item: CartItem): number {
+  return item.unit_price_chf_250g * (item.weight_g / 250);
+}
+
+/**
+ * Preis pro Beutel inkl. Abo-Rabatt-Snapshot (falls Abo-Item).
+ * Bei Einmalkauf-Items: gleicher Wert wie unitPriceForWeight.
+ */
+export function effectiveUnitPrice(item: CartItem): number {
+  const base = unitPriceForWeight(item);
+  if (!item.is_subscription) return base;
+  const discount = item.discount_percent ?? SUBSCRIPTION_DISCOUNT_PERCENT;
+  return base * (1 - discount / 100);
+}
+
+/** Linientotal (Preis × Menge), Abo-Rabatt beruecksichtigt. */
+export function lineTotal(item: CartItem): number {
+  return effectiveUnitPrice(item) * item.quantity;
 }
 
 export function useCart() {
@@ -114,20 +152,26 @@ export function useCart() {
   const add = useCallback(
     (item: Omit<CartItem, "id" | "added_at">) => {
       update((c) => {
-        // Wenn coffee_id + weight_g + grind schon im Cart: nur Menge erhoehen
-        const existingIdx = c.items.findIndex(
-          (i) =>
-            i.coffee_id === item.coffee_id &&
-            i.weight_g === item.weight_g &&
-            (i.grind_preference ?? null) === (item.grind_preference ?? null)
-        );
-        if (existingIdx >= 0) {
-          const updated = [...c.items];
-          updated[existingIdx] = {
-            ...updated[existingIdx],
-            quantity: updated[existingIdx].quantity + item.quantity,
-          };
-          return { ...c, items: updated };
+        // Wenn coffee_id + weight_g + grind schon im Cart UND beides
+        // Einmalkauf-Items sind: nur Menge erhoehen.
+        // Abo-Items werden nie gemergt (jede Konfiguration ist eigene Position).
+        const isSub = item.is_subscription === true;
+        if (!isSub) {
+          const existingIdx = c.items.findIndex(
+            (i) =>
+              !i.is_subscription &&
+              i.coffee_id === item.coffee_id &&
+              i.weight_g === item.weight_g &&
+              (i.grind_preference ?? null) === (item.grind_preference ?? null)
+          );
+          if (existingIdx >= 0) {
+            const updated = [...c.items];
+            updated[existingIdx] = {
+              ...updated[existingIdx],
+              quantity: updated[existingIdx].quantity + item.quantity,
+            };
+            return { ...c, items: updated };
+          }
         }
         // Sonst: neues CartItem mit frischer ID
         const newItem: CartItem = {
@@ -139,6 +183,36 @@ export function useCart() {
       });
     },
     [update]
+  );
+
+  /**
+   * Convenience-Wrapper fuer Abo-Items. Setzt is_subscription=true +
+   * discount_percent=SUBSCRIPTION_DISCOUNT_PERCENT als Snapshot.
+   * Identische Abos (gleicher Coffee + Gewicht + Intervall + Startdatum)
+   * werden nicht gemergt — User soll bewusst Mengen via updateQty
+   * aendern, nicht durch erneutes Hinzufuegen.
+   */
+  const addSubscription = useCallback(
+    (item: {
+      coffee_id: string;
+      coffee_name: string;
+      coffee_slug: string;
+      image_url: string | null;
+      roaster_name: string;
+      unit_price_chf_250g: number;
+      weight_g: CartWeight;
+      quantity: number;
+      interval_weeks: SubscriptionIntervalWeeks;
+      start_date: string;
+      grind_preference?: string | null;
+    }) => {
+      add({
+        ...item,
+        is_subscription: true,
+        discount_percent: SUBSCRIPTION_DISCOUNT_PERCENT,
+      });
+    },
+    [add]
   );
 
   const remove = useCallback(
@@ -192,17 +266,31 @@ export function useCart() {
 
   // Berechnete Werte
   const count = cart.items.reduce((s, i) => s + i.quantity, 0);
-  const subtotal = cart.items.reduce((s, i) => {
-    const weightFactor = i.weight_g / 250;
-    return s + i.unit_price_chf_250g * weightFactor * i.quantity;
-  }, 0);
+  const oneTimeItems = cart.items.filter((i) => !i.is_subscription);
+  const subscriptionItems = cart.items.filter((i) => i.is_subscription);
+
+  // Subtotals: jeweils inkl. Abo-Rabatt. "subtotal" ist der Wert der ERSTEN
+  // Stripe-Charge (Einmalkauf + Abo-Initial-Charge zusammen), genau das
+  // gleiche Konzept wie bisher fuer reine Einmalkauf-Carts.
+  const oneTimeSubtotal = oneTimeItems.reduce((s, i) => s + lineTotal(i), 0);
+  const subscriptionSubtotal = subscriptionItems.reduce(
+    (s, i) => s + lineTotal(i),
+    0
+  );
+  const subtotal = oneTimeSubtotal + subscriptionSubtotal;
 
   return {
     items: cart.items,
+    oneTimeItems,
+    subscriptionItems,
     count,
     subtotal: Number(subtotal.toFixed(2)),
+    oneTimeSubtotal: Number(oneTimeSubtotal.toFixed(2)),
+    subscriptionSubtotal: Number(subscriptionSubtotal.toFixed(2)),
+    hasSubscriptions: subscriptionItems.length > 0,
     loaded,
     add,
+    addSubscription,
     remove,
     updateQty,
     updateWeight,

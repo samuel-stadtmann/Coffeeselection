@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CartWeight } from "@/lib/cart";
+import { useRouter } from "next/navigation";
+import { useCart, type CartWeight } from "@/lib/cart";
 import {
   SUBSCRIPTION_INTERVAL_WEEKS,
   SUBSCRIPTION_DISCOUNT_PERCENT,
@@ -11,23 +12,14 @@ import {
 } from "@/lib/subscription-constants";
 
 /**
- * P1B-3b: Abo-Configurator auf der Coffee-Detail-Page.
+ * Abo-Configurator auf der Coffee-Detail-Page (P1B-3 UI, P1B-4 Cart).
  *
  * Schwester-Component von AddToCartButton, fuer "Fix-Abo" (immer dieser eine
  * Coffee). Trennung zur Discovery-Abo-Seite: dort waehlt der Algorithmus,
  * hier waehlt der User direkt.
  *
- * Verhalten in P1B-3 (DIESE PR):
- *   - Vollstaendige UI mit Live-Preisberechnung + Validierung
- *   - Submit-Button ist disabled mit Hinweis "Cart-Integration folgt"
- *     (kommt in P1B-4, kann hier nicht ohne Hook-Refactor)
- *
- * Geplant P1B-4:
- *   - Submit ruft useCart().addSubscription({...}) → speichert Abo-Item
- *     im Cart, Redirect /checkout/cart
- *
- * Geplant P1B-5:
- *   - Cart-Checkout erzeugt Stripe-Subscription statt One-Off-Payment
+ * Submit ruft useCart().addSubscription({...}) und navigiert zu /checkout/cart.
+ * Stripe-Subscription-Create passiert spaeter im Cart-Checkout (P1B-5).
  */
 
 type Props = {
@@ -57,12 +49,15 @@ function dateBoundsISO(): { min: string; max: string; default: string } {
 }
 
 export function SubscriptionConfigurator(props: Props) {
+  const router = useRouter();
+  const { addSubscription } = useCart();
   const [weight, setWeight] = useState<CartWeight>(250);
   const [qty, setQty] = useState(1);
   const [intervalWeeks, setIntervalWeeks] =
     useState<SubscriptionIntervalWeeks>(4);
   const bounds = useMemo(dateBoundsISO, []);
   const [startDate, setStartDate] = useState<string>(bounds.default);
+  const [adding, setAdding] = useState(false);
 
   // Preise: Basis linear nach Gewicht skaliert (wie AddToCartButton),
   // dann Abo-Rabatt drauf.
@@ -72,15 +67,21 @@ export function SubscriptionConfigurator(props: Props) {
   const savingsPerDelivery = basePerDelivery - discountedPerDelivery;
 
   const handleSubmit = () => {
-    // P1B-4 wird hier useCart().addSubscription({...}) aufrufen mit:
-    //   coffee_id, coffee_name, coffee_slug, image_url, roaster_name,
-    //   unit_price_chf_250g, weight_g, quantity, interval_weeks,
-    //   start_date, discount_percent
-    // und dann nach /checkout/cart navigieren.
-    alert(
-      "Abo-Konfiguration vorgemerkt. Cart-Integration folgt im naechsten " +
-        "Update (P1B-4)."
-    );
+    if (adding) return;
+    setAdding(true);
+    addSubscription({
+      coffee_id: props.coffee_id,
+      coffee_name: props.coffee_name,
+      coffee_slug: props.coffee_slug,
+      image_url: props.image_url,
+      roaster_name: props.roaster_name,
+      unit_price_chf_250g: props.unit_price_chf_250g,
+      weight_g: weight,
+      quantity: qty,
+      interval_weeks: intervalWeeks,
+      start_date: startDate,
+    });
+    setTimeout(() => router.push("/checkout/cart"), 250);
   };
 
   return (
@@ -209,9 +210,10 @@ export function SubscriptionConfigurator(props: Props) {
       <button
         type="button"
         onClick={handleSubmit}
-        className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+        disabled={adding}
+        className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50"
       >
-        Abo starten · −{SUBSCRIPTION_DISCOUNT_PERCENT}%
+        {adding ? "Wird hinzugefügt…" : `Abo in den Warenkorb · −${SUBSCRIPTION_DISCOUNT_PERCENT}%`}
       </button>
       <p className="text-[10px] text-on-primary/50 text-center">
         Jederzeit pausieren, Intervall ändern oder kündigen — keine Mindestlaufzeit
