@@ -108,9 +108,13 @@ function saveToStorage(data: CheckoutData) {
 
 export function useCheckout() {
   const [data, setData] = useState<CheckoutData>(EMPTY_DATA);
+  // 'loaded' Flag — verhindert false-positive redirects waehrend Hydration.
+  // Siehe useCart fuer Erklaerung des Patterns.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     setData(loadFromStorage());
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -194,6 +198,7 @@ export function useCheckout() {
 
   return {
     data,
+    loaded,
     setCustomer,
     setShippingAddress,
     setBillingAddress,

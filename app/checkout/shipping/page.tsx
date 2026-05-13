@@ -10,7 +10,7 @@ const LOGO = "/logo.png";
 
 export default function ShippingPage() {
   const router = useRouter();
-  const { items, subtotal } = useCart();
+  const { items, subtotal, loaded: cartLoaded } = useCart();
   const {
     data,
     setCustomer,
@@ -23,11 +23,14 @@ export default function ShippingPage() {
   } = useCheckout();
 
   // Cart leer → zurueck zum Cart, sonst kauft Kunde "Luft" ueber die naechsten Steps.
+  // WICHTIG: erst nach cartLoaded checken — sonst feuert der Guard waehrend
+  // Hydration bei initial-leerem State und schickt den User zurueck obwohl
+  // SessionStorage Items enthaelt.
   useEffect(() => {
-    if (items.length === 0) {
+    if (cartLoaded && items.length === 0) {
       router.replace("/checkout/cart");
     }
-  }, [items.length, router]);
+  }, [cartLoaded, items.length, router]);
 
   const canContinue = shippingValid && billingValid;
 
