@@ -122,10 +122,14 @@ export default function ReviewPage() {
       }).then((r) => r.json());
 
       if (!orderRes.success || !orderRes.order_id) {
+        const detail =
+          typeof orderRes.details === "string"
+            ? ` (${orderRes.details})`
+            : "";
         throw new Error(
           `Bestellung konnte nicht angelegt werden: ${
             orderRes.error ?? "Unbekannter Fehler"
-          }`
+          }${detail}`
         );
       }
 
@@ -137,10 +141,12 @@ export default function ReviewPage() {
       }).then((r) => r.json());
 
       if (!sessRes.checkout_url) {
+        const detail =
+          typeof sessRes.details === "string" ? ` (${sessRes.details})` : "";
         throw new Error(
           `Zahlungs-Sitzung konnte nicht erstellt werden: ${
             sessRes.error ?? "Unbekannter Fehler"
-          }`
+          }${detail}`
         );
       }
 
