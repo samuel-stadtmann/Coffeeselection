@@ -31,9 +31,8 @@ const nextConfig: NextConfig = {
       { source: "/reviews", destination: "/insights", permanent: false },
       { source: "/partner-with-us", destination: "/contact", permanent: false },
       { source: "/privacy", destination: "/", permanent: false },
-      // Checkout: shipping ist redundant, alles im Payment-Step → siehe GO-LIVE.md
-      { source: "/checkout/shipping", destination: "/checkout/payment", permanent: false },
-      { source: "/checkout/review", destination: "/checkout/payment", permanent: false },
+      // /checkout/shipping + /review werden NICHT mehr nach /payment umgeleitet —
+      // mit C-6 (Customer-facing Checkout) sind sie eigenstaendige Steps.
     ];
   },
 };

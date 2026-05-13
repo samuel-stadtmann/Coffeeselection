@@ -7,7 +7,8 @@ import { useCart } from "@/lib/cart";
 import { useCheckout, type CheckoutAddress } from "@/lib/checkout";
 
 const LOGO = "/logo.png";
-const COFFEE_FALLBACK_IMG = "/coffee-fallback.jpg";
+const COFFEE_FALLBACK_IMG =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 const FREE_SHIPPING_THRESHOLD_CHF = 100;
 const STANDARD_SHIPPING_CHF = 6.9;
 
