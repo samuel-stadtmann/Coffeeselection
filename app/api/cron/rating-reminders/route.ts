@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendMail } from "@/lib/email/send";
 import { ratingReminderEmail } from "@/lib/email/templates/rating-reminder";
+import { createRatingToken } from "@/lib/rating-token";
 
 /**
  * PA-Loop3: GET /api/cron/rating-reminders
@@ -66,11 +67,12 @@ export async function GET(req: NextRequest) {
     Date.now() - PAID_MIN_AGE_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  // Orders mit faelligem Rating-Reminder finden
+  // Orders mit faelligem Rating-Reminder finden — wir brauchen die
+  // customer.id zusaetzlich zur Mail (fuer Magic-Link-Token-Generierung).
   const { data: orders, error } = await svc
     .from("orders")
     .select(`
-      id, order_number, paid_at,
+      id, order_number, paid_at, customer_id,
       customer:customers(email, first_name, last_name),
       items:order_items(coffee_id, coffee_name_snapshot, roaster_name_snapshot, coffee:coffees(slug, image_url))
     `)
@@ -119,22 +121,31 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
-    // Coffees deduplizieren — bei Quantity>1 nur einmal pro coffee_id
+    // Coffees deduplizieren — bei Quantity>1 nur einmal pro coffee_id.
+    // Pro Coffee einen Magic-Link-Token generieren (HMAC-signed mit
+    // customer_id + order_id + coffee_id).
     const seen = new Set<string>();
     const coffees: Array<{
       coffeeSlug: string;
       coffeeName: string;
       roasterName: string;
       imageUrl: string | null;
+      token: string;
     }> = [];
     for (const it of items) {
       if (seen.has(it.coffee_id) || !it.coffee?.slug) continue;
       seen.add(it.coffee_id);
+      const token = createRatingToken({
+        customer_id: order.customer_id,
+        order_id: order.id,
+        coffee_id: it.coffee_id,
+      });
       coffees.push({
         coffeeSlug: it.coffee.slug,
         coffeeName: it.coffee_name_snapshot,
         roasterName: it.roaster_name_snapshot,
         imageUrl: it.coffee.image_url ?? null,
+        token,
       });
     }
 
