@@ -215,8 +215,7 @@ export async function POST(req: NextRequest) {
 
   // ---- 5) Line-Items fuer Stripe-Session bauen ------------------------------
   // Wir nutzen price_data (inline), keine vorab-konfigurierten Stripe-Products.
-  // Vorteil: jeder neue Kaffee ist sofort verkaufbar, ohne Stripe-Dashboard-
-  // Konfiguration. Nachteil: keine Stripe-Product-Reports — fuer Phase 1A ok.
+  // Strategie + Begruendung: siehe docs/STRIPE_PRODUCTS_STRATEGY.md
   const lineItems = items.map(
     (it) => ({
       quantity: it.quantity,
