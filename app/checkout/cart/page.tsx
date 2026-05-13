@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCart, type CartWeight } from "@/lib/cart";
+import {
+  useCart,
+  unitPriceForWeight,
+  effectiveUnitPrice,
+  lineTotal,
+  type CartItem,
+  type CartWeight,
+} from "@/lib/cart";
+import { INTERVAL_LABELS } from "@/lib/subscription-constants";
 
 const LOGO = "/logo.png";
 // Gleicher Fallback wie auf der Coffee-Detail-Page — vermeidet 404 wenn
@@ -18,9 +26,26 @@ const WEIGHTS: { id: CartWeight; label: string }[] = [
   { id: 1000, label: "1 kg" },
 ];
 
+function formatDeliveryDate(iso: string): string {
+  // YYYY-MM-DD → DD.MM.YYYY (CH-Format, kurz). Wenn invalid, raw zurueck.
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
 export default function CartPage() {
   const router = useRouter();
-  const { items, count, subtotal, remove, updateQty, updateWeight } = useCart();
+  const {
+    oneTimeItems,
+    subscriptionItems,
+    count,
+    subtotal,
+    subscriptionSubtotal,
+    hasSubscriptions,
+    remove,
+    updateQty,
+    updateWeight,
+  } = useCart();
 
   const shipping =
     subtotal >= FREE_SHIPPING_THRESHOLD_CHF || subtotal === 0
@@ -29,7 +54,7 @@ export default function CartPage() {
   const total = subtotal + shipping;
   const amountToFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD_CHF - subtotal);
 
-  const isEmpty = items.length === 0;
+  const isEmpty = oneTimeItems.length === 0 && subscriptionItems.length === 0;
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
@@ -75,116 +100,61 @@ export default function CartPage() {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Items column */}
-              <div className="lg:col-span-2 space-y-4">
-                {items.map((item) => {
-                  const priceForWeight =
-                    item.unit_price_chf_250g * (item.weight_g / 250);
-                  const lineTotal = priceForWeight * item.quantity;
-                  return (
-                    <div
-                      key={item.id}
-                      className="bg-white p-6 md:p-8 shadow-sm flex gap-4 md:gap-6"
-                    >
-                      <Link
-                        href={`/coffee/${item.coffee_slug}`}
-                        className="w-24 h-24 md:w-32 md:h-32 bg-surface-container-low overflow-hidden shrink-0"
-                      >
-                        <img
-                          src={item.image_url || COFFEE_FALLBACK_IMG}
-                          alt={item.coffee_name}
-                          className="w-full h-full object-cover"
+              <div className="lg:col-span-2 space-y-6">
+                {oneTimeItems.length > 0 && (
+                  <section>
+                    {hasSubscriptions && (
+                      <h2 className="font-headline font-bold text-xs uppercase tracking-widest text-on-surface-variant mb-3">
+                        Einmalkauf
+                      </h2>
+                    )}
+                    <div className="space-y-4">
+                      {oneTimeItems.map((item) => (
+                        <CartItemCard
+                          key={item.id}
+                          item={item}
+                          onRemove={() => remove(item.id)}
+                          onQty={(q) => updateQty(item.id, q)}
+                          onWeight={(w) => updateWeight(item.id, w)}
                         />
-                      </Link>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <Link
-                              href={`/coffee/${item.coffee_slug}`}
-                              className="font-headline font-bold text-primary uppercase tracking-tight text-lg md:text-xl hover:text-tertiary transition-colors"
-                            >
-                              {item.coffee_name}
-                            </Link>
-                            <p className="text-xs text-on-surface-variant mt-1">
-                              {item.roaster_name}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => remove(item.id)}
-                            className="text-on-surface-variant hover:text-red-600 text-xs uppercase tracking-widest font-headline font-bold"
-                            aria-label="Entfernen"
-                          >
-                            Entfernen
-                          </button>
-                        </div>
-
-                        {/* Gewicht-Selector */}
-                        <div className="mt-4">
-                          <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold block mb-2">
-                            Gewicht
-                          </span>
-                          <div className="flex gap-2">
-                            {WEIGHTS.map((w) => (
-                              <button
-                                key={w.id}
-                                type="button"
-                                onClick={() => updateWeight(item.id, w.id)}
-                                className={`px-3 py-1.5 text-xs font-headline uppercase tracking-widest border-2 transition-all ${
-                                  item.weight_g === w.id
-                                    ? "border-tertiary bg-tertiary text-on-primary font-bold"
-                                    : "border-surface-container text-on-surface-variant hover:border-tertiary"
-                                }`}
-                              >
-                                {w.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Menge + Linienpreis */}
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() => updateQty(item.id, item.quantity - 1)}
-                              className="w-7 h-7 border border-surface-container hover:border-tertiary text-primary text-base leading-none"
-                              aria-label="Menge verringern"
-                            >
-                              −
-                            </button>
-                            <span className="font-headline font-bold text-base w-6 text-center">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => updateQty(item.id, item.quantity + 1)}
-                              className="w-7 h-7 border border-surface-container hover:border-tertiary text-primary text-base leading-none"
-                              aria-label="Menge erhöhen"
-                            >
-                              +
-                            </button>
-                          </div>
-                          <span className="font-headline font-bold text-primary text-lg">
-                            CHF {lineTotal.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  </section>
+                )}
 
-                {/* Abo-CTA als Hinweis */}
-                <div className="bg-tertiary/5 border-2 border-dashed border-tertiary/30 p-6 text-center">
-                  <p className="text-sm text-on-surface-variant mb-2">
-                    Möchtest du regelmäßig beliefert werden?
-                  </p>
-                  <Link
-                    href="/match-result"
-                    className="inline-block font-headline text-xs uppercase tracking-widest text-tertiary hover:text-primary font-bold"
-                  >
-                    Abo konfigurieren · -10% sparen →
-                  </Link>
-                </div>
+                {subscriptionItems.length > 0 && (
+                  <section>
+                    <h2 className="font-headline font-bold text-xs uppercase tracking-widest text-tertiary mb-3 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base">autorenew</span>
+                      Im Abo · wiederkehrend
+                    </h2>
+                    <div className="space-y-4">
+                      {subscriptionItems.map((item) => (
+                        <CartItemCard
+                          key={item.id}
+                          item={item}
+                          onRemove={() => remove(item.id)}
+                          onQty={(q) => updateQty(item.id, q)}
+                          onWeight={(w) => updateWeight(item.id, w)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {!hasSubscriptions && (
+                  <div className="bg-tertiary/5 border-2 border-dashed border-tertiary/30 p-6 text-center">
+                    <p className="text-sm text-on-surface-variant mb-2">
+                      Möchtest du regelmäßig beliefert werden?
+                    </p>
+                    <Link
+                      href="/match-result"
+                      className="inline-block font-headline text-xs uppercase tracking-widest text-tertiary hover:text-primary font-bold"
+                    >
+                      Abo konfigurieren · -10% sparen →
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* Summary column */}
@@ -209,18 +179,33 @@ export default function CartPage() {
                   </div>
                   <div className="border-t border-on-primary/20 pt-4 mb-6">
                     <SummaryRow
-                      label="Total"
+                      label="Heute zu zahlen"
                       value={`CHF ${total.toFixed(2)}`}
                       bold
                     />
+                    {hasSubscriptions && (
+                      <p className="text-[11px] text-on-primary/70 mt-2 leading-snug">
+                        Davon CHF {subscriptionSubtotal.toFixed(2)} im Abo —
+                        wiederholt sich automatisch zum gewählten Intervall,
+                        jederzeit kündbar.
+                      </p>
+                    )}
                   </div>
                   <button
                     type="button"
                     onClick={() => router.push("/checkout/shipping")}
-                    className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+                    disabled={hasSubscriptions}
+                    className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Weiter zu Versand
                   </button>
+                  {hasSubscriptions && (
+                    <p className="text-[11px] text-on-primary/70 mb-3 leading-snug">
+                      Abo-Checkout wird gerade fertiggestellt (P1B-5). Bis
+                      dahin musst du Abo-Items aus dem Warenkorb entfernen,
+                      um Einmalkäufe abzuschliessen.
+                    </p>
+                  )}
                   <Link
                     href="/coffee"
                     className="block w-full text-center border-2 border-tertiary/40 text-on-primary/80 py-3 font-headline font-bold text-[11px] uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
@@ -248,9 +233,10 @@ export default function CartPage() {
           <button
             type="button"
             onClick={() => router.push("/checkout/shipping")}
-            className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest"
+            disabled={hasSubscriptions}
+            className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Weiter zu Versand
+            {hasSubscriptions ? "Abo-Checkout folgt (P1B-5)" : "Weiter zu Versand"}
           </button>
         </div>
       )}
@@ -346,6 +332,143 @@ function SummaryRow({
     >
       <span className={bold ? "" : "text-on-primary/80"}>{label}</span>
       <span>{value}</span>
+    </div>
+  );
+}
+
+function CartItemCard({
+  item,
+  onRemove,
+  onQty,
+  onWeight,
+}: {
+  item: CartItem;
+  onRemove: () => void;
+  onQty: (q: number) => void;
+  onWeight: (w: CartWeight) => void;
+}) {
+  const isSub = item.is_subscription === true;
+  const baseUnit = unitPriceForWeight(item);
+  const effUnit = effectiveUnitPrice(item);
+  const total = lineTotal(item);
+  const discountPct = item.discount_percent ?? 0;
+
+  return (
+    <div
+      className={`bg-white p-6 md:p-8 shadow-sm flex gap-4 md:gap-6 ${
+        isSub ? "border-l-4 border-tertiary" : ""
+      }`}
+    >
+      <Link
+        href={`/coffee/${item.coffee_slug}`}
+        className="w-24 h-24 md:w-32 md:h-32 bg-surface-container-low overflow-hidden shrink-0"
+      >
+        <img
+          src={item.image_url || COFFEE_FALLBACK_IMG}
+          alt={item.coffee_name}
+          className="w-full h-full object-cover"
+        />
+      </Link>
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start gap-2">
+          <div>
+            {isSub && (
+              <span className="inline-block bg-tertiary text-primary font-headline font-bold text-[9px] uppercase tracking-widest px-2 py-0.5 mb-1">
+                Abo · −{discountPct}%
+              </span>
+            )}
+            <Link
+              href={`/coffee/${item.coffee_slug}`}
+              className="block font-headline font-bold text-primary uppercase tracking-tight text-lg md:text-xl hover:text-tertiary transition-colors"
+            >
+              {item.coffee_name}
+            </Link>
+            <p className="text-xs text-on-surface-variant mt-1">
+              {item.roaster_name}
+            </p>
+            {isSub && item.interval_weeks && item.start_date && (
+              <p className="text-xs text-on-surface-variant mt-2">
+                <span className="font-bold">
+                  {INTERVAL_LABELS[item.interval_weeks].long}
+                </span>
+                {" · Erste Lieferung am "}
+                {formatDeliveryDate(item.start_date)}
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-on-surface-variant hover:text-red-600 text-xs uppercase tracking-widest font-headline font-bold"
+            aria-label="Entfernen"
+          >
+            Entfernen
+          </button>
+        </div>
+
+        {/* Gewicht-Selector */}
+        <div className="mt-4">
+          <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold block mb-2">
+            Gewicht
+          </span>
+          <div className="flex gap-2">
+            {WEIGHTS.map((w) => (
+              <button
+                key={w.id}
+                type="button"
+                onClick={() => onWeight(w.id)}
+                className={`px-3 py-1.5 text-xs font-headline uppercase tracking-widest border-2 transition-all ${
+                  item.weight_g === w.id
+                    ? "border-tertiary bg-tertiary text-on-primary font-bold"
+                    : "border-surface-container text-on-surface-variant hover:border-tertiary"
+                }`}
+              >
+                {w.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Menge + Linienpreis */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onQty(item.quantity - 1)}
+              className="w-7 h-7 border border-surface-container hover:border-tertiary text-primary text-base leading-none"
+              aria-label="Menge verringern"
+            >
+              −
+            </button>
+            <span className="font-headline font-bold text-base w-6 text-center">
+              {item.quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => onQty(item.quantity + 1)}
+              className="w-7 h-7 border border-surface-container hover:border-tertiary text-primary text-base leading-none"
+              aria-label="Menge erhöhen"
+            >
+              +
+            </button>
+          </div>
+          <div className="text-right">
+            {isSub && baseUnit !== effUnit && (
+              <span className="font-headline text-xs text-on-surface-variant line-through block leading-none">
+                CHF {(baseUnit * item.quantity).toFixed(2)}
+              </span>
+            )}
+            <span className="font-headline font-bold text-primary text-lg">
+              CHF {total.toFixed(2)}
+            </span>
+            {isSub && (
+              <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant block">
+                pro Lieferung
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
