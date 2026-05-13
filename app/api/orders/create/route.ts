@@ -2,13 +2,20 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { SUBSCRIPTION_INTERVAL_WEEKS } from "@/lib/subscription-constants";
 
 /**
- * C-3: POST /api/orders/create
+ * C-3 + P1B-5: POST /api/orders/create
  *
  * Persistiert eine "pending"-Order aus dem Cart. Der eigentliche Zahlungs-
- * Flow folgt in C-4 (Stripe Checkout Session) — diese Route legt nur den
+ * Flow folgt in /api/checkout/session — diese Route legt nur den
  * Datenbank-Datensatz an und gibt order_id + order_number zurueck.
+ *
+ * Cart-Modi:
+ *   - Reiner Einmal-Cart    → order + order_items, keine subscriptions
+ *   - Cart mit Abo-Item      → zusaetzlich subscriptions + subscription_items
+ *                              mit status='pending' (Webhook hebt auf 'active')
+ *   - Maximal 1 Abo-Item pro Cart (Stripe-Limit: 1 Subscription pro Session)
  *
  * Auth-Verhalten (Hybrid-Modell, siehe Phase-1A-Plan):
  *   - Auth-User in Session   → benutze existierenden customer-Datensatz
@@ -20,42 +27,67 @@ import { createServiceClient } from "@/lib/supabase/service";
  *       erstellen" kommt in der Confirmation-Mail.
  *
  * Preis-Berechnung (NIE Client vertrauen):
- *   - unit_price_chf  = coffee.price_chf * (weight_g / 250)   (lineare Skalierung)
+ *   - basis_unit_chf  = coffee.price_chf * (weight_g / 250)   (lineare Skalierung)
+ *   - bei Abo-Item:   unit_price_chf = basis_unit_chf * (1 - discount_percent/100)
  *   - line_total_chf  = unit_price_chf * quantity
- *   - subtotal_chf    = sum(line_total_chf)
+ *   - subtotal_chf    = sum(line_total_chf)  (inkl. Abo-Rabatt)
  *   - shipping_chf    = subtotal < 100 ? 6.90 : 0
  *   - tax_chf         = 0  (Stripe Tax berechnet bei Checkout, Webhook updated)
- *   - total_chf       = subtotal + shipping  (provisional)
+ *   - total_chf       = subtotal + shipping
  *
- * Status: 'pending'. Wird durch /api/webhooks/stripe (C-5) auf 'paid' gesetzt.
+ * Status: order.status='pending', subscription.status='pending'. Wird durch
+ * /api/webhooks/stripe auf 'paid' bzw. 'active' gesetzt.
  */
 
 const DEFAULT_WEIGHT_G = 250;
 const FREE_SHIPPING_THRESHOLD_CHF = 100;
 const STANDARD_SHIPPING_CHF = 6.9;
 
-const ItemSchema = z.object({
-  coffee_id: z.uuid(),
-  quantity: z.number().int().min(1).max(20),
-  weight_g: z
-    .number()
-    .int()
-    .refine((v) => [250, 500, 1000].includes(v), {
-      message: "weight_g muss 250, 500 oder 1000 sein",
-    }),
-  grind_preference: z
-    .enum([
-      "whole_bean",
-      "espresso",
-      "filter",
-      "french_press",
-      "aeropress",
-      "moka",
-      "other",
-    ])
-    .optional()
-    .nullable(),
-});
+const ItemSchema = z
+  .object({
+    coffee_id: z.uuid(),
+    quantity: z.number().int().min(1).max(20),
+    weight_g: z
+      .number()
+      .int()
+      .refine((v) => [250, 500, 1000].includes(v), {
+        message: "weight_g muss 250, 500 oder 1000 sein",
+      }),
+    grind_preference: z
+      .enum([
+        "whole_bean",
+        "espresso",
+        "filter",
+        "french_press",
+        "aeropress",
+        "moka",
+        "other",
+      ])
+      .optional()
+      .nullable(),
+    // Abo-Felder (P1B-5). Wenn is_subscription=true, sind interval_weeks
+    // und discount_percent Pflicht.
+    is_subscription: z.boolean().optional().default(false),
+    interval_weeks: z
+      .number()
+      .int()
+      .refine(
+        (v): v is (typeof SUBSCRIPTION_INTERVAL_WEEKS)[number] =>
+          (SUBSCRIPTION_INTERVAL_WEEKS as readonly number[]).includes(v),
+        { message: "interval_weeks muss 1, 2, 4, 6 oder 8 sein" }
+      )
+      .optional(),
+    discount_percent: z.number().min(0).max(100).optional(),
+  })
+  .refine(
+    (it) =>
+      !it.is_subscription ||
+      (it.interval_weeks !== undefined && it.discount_percent !== undefined),
+    {
+      message:
+        "interval_weeks und discount_percent sind Pflicht bei is_subscription=true",
+    }
+  );
 
 const AddressSchema = z.object({
   recipient_name: z.string().min(1).max(120),
@@ -94,6 +126,13 @@ const BodySchema = z
   .refine(
     (b) => b.billing_address_same_as_shipping || b.billing_address,
     { message: "billing_address ist Pflicht wenn billing_address_same_as_shipping=false" }
+  )
+  .refine(
+    (b) => b.items.filter((i) => i.is_subscription).length <= 1,
+    {
+      message:
+        "Max 1 Abo-Item pro Order (Stripe-Limit: 1 Subscription pro Session)",
+    }
   );
 
 type Body = z.infer<typeof BodySchema>;
@@ -278,12 +317,19 @@ export async function POST(req: NextRequest) {
   }
 
   // ---- 4) Preise berechnen --------------------------------------------------
+  // Bei Abo-Items: discount_percent vom Body wird auf die LINEAR-skalierten
+  // Preise angewendet. So zahlt der Customer in der Initial-Order schon den
+  // Abo-Preis (gleichbleibend fuer alle Folge-Renewals via subscriptions.
+  // price_chf_per_delivery).
   const lineItems = body.items.map((item) => {
     const c = coffeeMap.get(item.coffee_id)!;
     // Lineare Skalierung: 500g = 2x Preis, 1000g = 4x Preis von 250g.
-    // Simplifikation fuer Phase 1A — Mengenrabatte spaeter.
     const weightFactor = item.weight_g / DEFAULT_WEIGHT_G;
-    const unitPrice = Number((Number(c.price_chf) * weightFactor).toFixed(2));
+    const basisUnit = Number(c.price_chf) * weightFactor;
+    const discountMul = item.is_subscription
+      ? 1 - (item.discount_percent ?? 0) / 100
+      : 1;
+    const unitPrice = Number((basisUnit * discountMul).toFixed(2));
     const lineTotal = Number((unitPrice * item.quantity).toFixed(2));
     return {
       coffee_id: item.coffee_id,
@@ -295,6 +341,10 @@ export async function POST(req: NextRequest) {
       unit_price_chf: unitPrice,
       line_total_chf: lineTotal,
       grind_preference: item.grind_preference ?? null,
+      // Wird nach order-insert genutzt um subscriptions anzulegen
+      is_subscription: item.is_subscription ?? false,
+      interval_weeks: item.interval_weeks,
+      discount_percent: item.discount_percent,
     };
   });
 
@@ -398,12 +448,26 @@ export async function POST(req: NextRequest) {
   }
 
   // ---- 8) order_items anlegen -----------------------------------------------
-  const { error: itemsErr } = await svc.from("order_items").insert(
-    lineItems.map((li) => ({
+  // interval_weeks + discount_percent waren interne Marker fuer Step 9
+  // (Subscription-Anlage) — order_items hat dafuer keine Spalten.
+  // is_subscription wird zu is_subscription_item (DB-Spalte) gemappt.
+  const orderItemsToInsert = lineItems.map((li) => {
+    const {
+      is_subscription,
+      interval_weeks: _iw,
+      discount_percent: _dp,
+      ...rest
+    } = li;
+    return {
       order_id: order.id,
-      ...li,
-    }))
-  );
+      is_subscription_item: is_subscription,
+      ...rest,
+    };
+  });
+
+  const { error: itemsErr } = await svc
+    .from("order_items")
+    .insert(orderItemsToInsert);
 
   if (itemsErr) {
     console.error("[api/orders/create] order_items insert failed", itemsErr);
@@ -416,7 +480,78 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ---- 9) Erfolgs-Response --------------------------------------------------
+  // ---- 9) Subscription anlegen (falls Abo-Item im Cart) ---------------------
+  // Max 1 Abo-Item pro Order (validiert via BodySchema). Wenn keins:
+  // nichts zu tun, weiter mit Response.
+  const subItem = lineItems.find((li) => li.is_subscription);
+  let subscriptionId: string | null = null;
+  if (subItem) {
+    const pricePerDelivery = subItem.line_total_chf; // discounted, incl. menge
+    // Versand-Snapshot: bei Renewal wuerde wieder die gleiche Logik greifen
+    // (>=100 CHF gratis). Wir snapshoten den fuer DIESE Abo-Konfiguration
+    // geltenden Wert — Customer weiss was die Folge-Lieferungen kosten.
+    const subShippingChf =
+      pricePerDelivery >= FREE_SHIPPING_THRESHOLD_CHF
+        ? 0
+        : STANDARD_SHIPPING_CHF;
+
+    const { data: sub, error: subErr } = await svc
+      .from("subscriptions")
+      .insert({
+        customer_id: customerId,
+        subscription_type: "fix",
+        interval_weeks: subItem.interval_weeks!,
+        quantity_g_per_delivery: subItem.weight_g * subItem.quantity,
+        shipping_address_id: shipAddr.id,
+        billing_address_id: billAddrId,
+        price_chf_per_delivery: pricePerDelivery,
+        shipping_chf: subShippingChf,
+        discount_percent: subItem.discount_percent ?? 0,
+        status: "pending", // Webhook hebt auf 'active' bei Stripe-Bestaetigung
+        first_order_id: order.id,
+      })
+      .select("id")
+      .single();
+
+    if (subErr || !sub) {
+      console.error("[api/orders/create] subscription insert failed", subErr);
+      // Cleanup: order + order_items wieder loeschen (CASCADE), damit kein
+      // halbfertiger Mixed-State zurueckbleibt.
+      await svc.from("orders").delete().eq("id", order.id);
+      return NextResponse.json(
+        { error: "subscription_insert_failed", details: subErr?.message ?? "unknown" },
+        { status: 500 }
+      );
+    }
+    subscriptionId = sub.id;
+
+    const { error: siErr } = await svc.from("subscription_items").insert({
+      subscription_id: sub.id,
+      coffee_id: subItem.coffee_id,
+      quantity: subItem.quantity,
+      weight_g: subItem.weight_g,
+      sort_order: 0,
+    });
+
+    if (siErr) {
+      console.error(
+        "[api/orders/create] subscription_items insert failed",
+        siErr
+      );
+      // Cleanup analog
+      await svc.from("subscriptions").delete().eq("id", sub.id);
+      await svc.from("orders").delete().eq("id", order.id);
+      return NextResponse.json(
+        {
+          error: "subscription_items_insert_failed",
+          details: siErr.message,
+        },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ---- 10) Erfolgs-Response -------------------------------------------------
   return NextResponse.json({
     success: true,
     order_id: order.id,
@@ -427,5 +562,6 @@ export async function POST(req: NextRequest) {
     shipping_chf: Number(order.shipping_chf),
     total_chf: Number(order.total_chf),
     currency: "chf",
+    subscription_id: subscriptionId,
   });
 }

@@ -186,15 +186,17 @@ export function useCart() {
   );
 
   /**
-   * Convenience-Wrapper fuer Abo-Items. Setzt is_subscription=true +
-   * discount_percent=SUBSCRIPTION_DISCOUNT_PERCENT als Snapshot.
-   * Identische Abos (gleicher Coffee + Gewicht + Intervall) werden nicht
-   * gemergt — User soll bewusst Mengen via updateQty aendern, nicht durch
-   * erneutes Hinzufuegen.
+   * Convenience-Wrapper fuer Abo-Items.
    *
-   * Kein start_date: Roester steuert Timing, erste Lieferung erfolgt mit
-   * der naechsten Roestung. Stripe wird in P1B-5 sofort beim Abo-Anlegen
-   * gechargt; das Datum der ersten Order ist dann der Cart-Checkout-Tag.
+   * Wichtige Einschraenkung (Stripe-Limit): max 1 Abo pro Cart, weil eine
+   * Stripe Checkout Session in mode=subscription nur EINE Subscription
+   * erzeugen kann (alle line_items teilen sich Customer + erste Invoice).
+   * Wenn der User ein zweites Abo addiert, ersetzen wir das bisherige —
+   * der Configurator zeigt den State, der zaehlt. Multi-Abo kommt
+   * Post-Go-Live via Setup-Intent-Flow.
+   *
+   * Setzt is_subscription=true + discount_percent=SUBSCRIPTION_DISCOUNT_PERCENT
+   * als Snapshot.
    */
   const addSubscription = useCallback(
     (item: {
@@ -208,13 +210,20 @@ export function useCart() {
       quantity: number;
       interval_weeks: SubscriptionIntervalWeeks;
     }) => {
-      add({
-        ...item,
-        is_subscription: true,
-        discount_percent: SUBSCRIPTION_DISCOUNT_PERCENT,
+      update((c) => {
+        // Bisherige Abo-Items entfernen (max 1-Limit)
+        const withoutOldSub = c.items.filter((i) => !i.is_subscription);
+        const newItem: CartItem = {
+          ...item,
+          is_subscription: true,
+          discount_percent: SUBSCRIPTION_DISCOUNT_PERCENT,
+          id: cryptoRandomId(),
+          added_at: new Date().toISOString(),
+        };
+        return { ...c, items: [...withoutOldSub, newItem] };
       });
     },
-    [add]
+    [update]
   );
 
   const remove = useCallback(
