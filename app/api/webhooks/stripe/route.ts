@@ -1,6 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
+import { sendMail } from "@/lib/email/send";
+import { orderConfirmationEmail } from "@/lib/email/templates/order-confirmation";
+import { subscriptionConfirmationEmail } from "@/lib/email/templates/subscription-confirmation";
+import { subscriptionRenewalEmail } from "@/lib/email/templates/subscription-renewal";
+import { subscriptionCancelledEmail } from "@/lib/email/templates/subscription-cancelled";
+import type { SubscriptionIntervalWeeks } from "@/lib/subscription-constants";
+
+function getSiteUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://staging.coffeeselection.ch"
+  );
+}
 
 /**
  * C-5 + P1B-6: POST /api/webhooks/stripe
@@ -355,6 +368,12 @@ async function handlePaymentSucceeded(
       return;
     }
     await activateSubscription(svc, subscriptionUuid, session.subscription);
+    // Subscription-Confirmation-Mail (separat von Einmal-Confirmation).
+    // sendMail wirft nie — Mail-Fehler blockiert den Webhook nicht.
+    await sendSubscriptionConfirmationMail(svc, subscriptionUuid, order.id);
+  } else {
+    // mode=payment: klassische Einmal-Confirmation-Mail.
+    await sendOrderConfirmationMail(svc, order.id);
   }
 }
 
@@ -780,6 +799,9 @@ async function handleInvoicePaid(
   console.log(
     `[webhooks/stripe] ✓ renewal order ${order.order_number} angelegt fuer subscription ${ourSub.id} (CHF ${totalChf})`
   );
+
+  // Renewal-Mail an Customer
+  await sendSubscriptionRenewalMail(svc, ourSub.id, order.id);
 }
 
 // ===========================================================================
@@ -910,4 +932,317 @@ async function handleSubscriptionDeleted(
   console.log(
     `[webhooks/stripe] event ${eventId} → subscription (stripe:${sub.id}) cancelled`
   );
+
+  // Cancel-Confirmation-Mail
+  await sendSubscriptionCancelledMail(svc, sub.id);
+}
+
+// ===========================================================================
+// Mail-Sender — non-blocking. Errors werden geloggt, blockieren Webhook nicht.
+// ===========================================================================
+
+async function sendOrderConfirmationMail(
+  svc: ReturnType<typeof createServiceClient>,
+  orderId: string
+) {
+  const { data: order, error } = await svc
+    .from("orders")
+    .select(`
+      id, order_number, subtotal_chf, shipping_chf, tax_chf, total_chf,
+      shipping_address_snapshot,
+      customer:customers(email, first_name, last_name),
+      items:order_items(coffee_name_snapshot, roaster_name_snapshot, weight_g, quantity, line_total_chf)
+    `)
+    .eq("id", orderId)
+    .maybeSingle();
+  if (error || !order) {
+    console.error("[email/order-confirmation] order lookup failed:", error);
+    return;
+  }
+
+  const customer = order.customer as unknown as {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+  if (!customer?.email) {
+    console.error(`[email/order-confirmation] no customer email for order ${orderId}`);
+    return;
+  }
+
+  const addr = order.shipping_address_snapshot as {
+    recipient_name: string;
+    street: string;
+    street_additional?: string | null;
+    postal_code: string;
+    city: string;
+    country: string;
+  } | null;
+  if (!addr) {
+    console.error(`[email/order-confirmation] no shipping_address_snapshot for order ${orderId}`);
+    return;
+  }
+
+  const items = order.items as unknown as Array<{
+    coffee_name_snapshot: string;
+    roaster_name_snapshot: string;
+    weight_g: number;
+    quantity: number;
+    line_total_chf: number;
+  }>;
+
+  const recipientName =
+    [customer.first_name, customer.last_name].filter(Boolean).join(" ") ||
+    addr.recipient_name;
+
+  const { subject, html } = orderConfirmationEmail({
+    recipientName,
+    orderNumber: order.order_number,
+    items: items.map((it) => ({
+      coffeeName: it.coffee_name_snapshot,
+      roasterName: it.roaster_name_snapshot,
+      weightG: it.weight_g,
+      quantity: it.quantity,
+      lineTotalChf: Number(it.line_total_chf),
+    })),
+    subtotalChf: Number(order.subtotal_chf),
+    shippingChf: Number(order.shipping_chf),
+    taxChf: order.tax_chf ? Number(order.tax_chf) : undefined,
+    totalChf: Number(order.total_chf),
+    shippingAddress: {
+      recipientName: addr.recipient_name,
+      street: addr.street,
+      streetAdditional: addr.street_additional ?? null,
+      postalCode: addr.postal_code,
+      city: addr.city,
+      country: addr.country,
+    },
+    siteUrl: getSiteUrl(),
+  });
+
+  await sendMail({
+    to: customer.email,
+    subject,
+    html,
+    tags: [
+      { name: "type", value: "order_confirmation" },
+      { name: "order_number", value: order.order_number },
+    ],
+  });
+}
+
+async function sendSubscriptionConfirmationMail(
+  svc: ReturnType<typeof createServiceClient>,
+  subscriptionId: string,
+  initialOrderId: string
+) {
+  const { data: sub, error } = await svc
+    .from("subscriptions")
+    .select(`
+      id, interval_weeks, discount_percent, price_chf_per_delivery, shipping_chf,
+      stripe_current_period_end,
+      customer:customers(email, first_name, last_name),
+      shipping_addr:customer_addresses!subscriptions_shipping_address_id_fkey(recipient_name, street, street_additional, postal_code, city, country),
+      items:subscription_items(quantity, weight_g, coffee:coffees(name, roaster:roasters(name)))
+    `)
+    .eq("id", subscriptionId)
+    .maybeSingle();
+  if (error || !sub) {
+    console.error("[email/sub-confirmation] subscription lookup failed:", error);
+    return;
+  }
+
+  const customer = sub.customer as unknown as {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+  const addr = sub.shipping_addr as unknown as {
+    recipient_name: string;
+    street: string;
+    street_additional: string | null;
+    postal_code: string;
+    city: string;
+    country: string;
+  } | null;
+  const items = sub.items as unknown as Array<{
+    quantity: number;
+    weight_g: number;
+    coffee: { name: string; roaster: { name: string } | null } | null;
+  }>;
+  if (!customer?.email || !addr || items.length === 0) {
+    console.error(`[email/sub-confirmation] missing data for subscription ${subscriptionId}`);
+    return;
+  }
+
+  const first = items[0]; // 1 Subscription = 1 Coffee in Phase 1B
+  const recipientName =
+    [customer.first_name, customer.last_name].filter(Boolean).join(" ") ||
+    addr.recipient_name;
+
+  // Order-Number aus initial order
+  const { data: order } = await svc
+    .from("orders")
+    .select("order_number")
+    .eq("id", initialOrderId)
+    .maybeSingle();
+
+  const priceChf = Number(sub.price_chf_per_delivery);
+  const shippingChf = Number(sub.shipping_chf);
+  const { subject, html } = subscriptionConfirmationEmail({
+    recipientName,
+    orderNumber: order?.order_number ?? "",
+    coffeeName: first.coffee?.name ?? "Coffee",
+    roasterName: first.coffee?.roaster?.name ?? "",
+    weightG: first.weight_g,
+    quantity: first.quantity,
+    intervalWeeks: sub.interval_weeks as SubscriptionIntervalWeeks,
+    discountPercent: Number(sub.discount_percent),
+    pricePerDeliveryChf: priceChf,
+    shippingPerDeliveryChf: shippingChf,
+    totalPerDeliveryChf: priceChf + shippingChf,
+    nextChargeDate: sub.stripe_current_period_end ?? null,
+    shippingAddress: {
+      recipientName: addr.recipient_name,
+      street: addr.street,
+      streetAdditional: addr.street_additional,
+      postalCode: addr.postal_code,
+      city: addr.city,
+      country: addr.country,
+    },
+    siteUrl: getSiteUrl(),
+  });
+
+  await sendMail({
+    to: customer.email,
+    subject,
+    html,
+    tags: [
+      { name: "type", value: "subscription_confirmation" },
+      { name: "subscription_id", value: subscriptionId },
+    ],
+  });
+}
+
+async function sendSubscriptionRenewalMail(
+  svc: ReturnType<typeof createServiceClient>,
+  subscriptionId: string,
+  renewalOrderId: string
+) {
+  const { data: order, error } = await svc
+    .from("orders")
+    .select(`
+      id, order_number, total_chf,
+      customer:customers(email, first_name, last_name),
+      items:order_items(coffee_name_snapshot, roaster_name_snapshot, weight_g, quantity)
+    `)
+    .eq("id", renewalOrderId)
+    .maybeSingle();
+  if (error || !order) {
+    console.error("[email/renewal] order lookup failed:", error);
+    return;
+  }
+
+  const customer = order.customer as unknown as {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+  const items = order.items as unknown as Array<{
+    coffee_name_snapshot: string;
+    roaster_name_snapshot: string;
+    weight_g: number;
+    quantity: number;
+  }>;
+  if (!customer?.email || items.length === 0) {
+    console.error(`[email/renewal] missing data for order ${renewalOrderId}`);
+    return;
+  }
+
+  // Naechste Abbuchung aus subscription holen
+  const { data: sub } = await svc
+    .from("subscriptions")
+    .select("stripe_current_period_end")
+    .eq("id", subscriptionId)
+    .maybeSingle();
+
+  const first = items[0];
+  const recipientName =
+    [customer.first_name, customer.last_name].filter(Boolean).join(" ") ||
+    "";
+
+  const { subject, html } = subscriptionRenewalEmail({
+    recipientName,
+    orderNumber: order.order_number,
+    coffeeName: first.coffee_name_snapshot,
+    roasterName: first.roaster_name_snapshot,
+    weightG: first.weight_g,
+    quantity: first.quantity,
+    totalChf: Number(order.total_chf),
+    nextChargeDate: sub?.stripe_current_period_end ?? null,
+    siteUrl: getSiteUrl(),
+  });
+
+  await sendMail({
+    to: customer.email,
+    subject,
+    html,
+    tags: [
+      { name: "type", value: "subscription_renewal" },
+      { name: "order_number", value: order.order_number },
+    ],
+  });
+}
+
+async function sendSubscriptionCancelledMail(
+  svc: ReturnType<typeof createServiceClient>,
+  stripeSubscriptionId: string
+) {
+  const { data: sub, error } = await svc
+    .from("subscriptions")
+    .select(`
+      id,
+      customer:customers(email, first_name, last_name),
+      items:subscription_items(coffee:coffees(name))
+    `)
+    .eq("stripe_subscription_id", stripeSubscriptionId)
+    .maybeSingle();
+  if (error || !sub) {
+    console.error("[email/cancelled] subscription lookup failed:", error);
+    return;
+  }
+
+  const customer = sub.customer as unknown as {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+  const items = sub.items as unknown as Array<{
+    coffee: { name: string } | null;
+  }>;
+  if (!customer?.email) {
+    console.error(`[email/cancelled] no customer email for subscription`);
+    return;
+  }
+
+  const coffeeName = items[0]?.coffee?.name ?? "Coffee";
+  const recipientName =
+    [customer.first_name, customer.last_name].filter(Boolean).join(" ") ||
+    "";
+
+  const { subject, html } = subscriptionCancelledEmail({
+    recipientName,
+    coffeeName,
+    siteUrl: getSiteUrl(),
+  });
+
+  await sendMail({
+    to: customer.email,
+    subject,
+    html,
+    tags: [
+      { name: "type", value: "subscription_cancelled" },
+      { name: "subscription_id", value: sub.id },
+    ],
+  });
 }
