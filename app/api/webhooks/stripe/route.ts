@@ -3,13 +3,13 @@ import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /**
- * C-5: POST /api/webhooks/stripe
+ * C-5 + P1B-6: POST /api/webhooks/stripe
  *
  * Letzter Baustein in Phase 1A. Hier wird der Kreis geschlossen:
  *   Stripe sendet bei Bezahl-Events einen HTTP-POST an diese Route.
  *   Wir verifizieren die Signatur, finden die Order, setzen status='paid'.
  *
- * Wichtigste Events fuer Phase 1A:
+ * Wichtigste Events fuer Phase 1A (Einmalkauf):
  *   - checkout.session.completed
  *       Standard-Happy-Path bei Karten-Zahlung. session.payment_status='paid'
  *       wenn Geld da, 'unpaid' bei async-Methoden (TWINT etc — Phase 2).
@@ -20,6 +20,24 @@ import { createServiceClient } from "@/lib/supabase/service";
  *       Kunde kann Order erneut versuchen. Wir loggen nur.
  *   - charge.refunded
  *       Komplette Rueckerstattung. Setzt status='refunded'.
+ *
+ * Zusaetzliche Events fuer Phase 1B (Abos):
+ *   - checkout.session.completed (mode=subscription)
+ *       Stripe hat Subscription erzeugt. Wir setzen subscription.status='active',
+ *       speichern stripe_subscription_id + stripe_price_id +
+ *       stripe_current_period_end. (Order-Update wie bisher.)
+ *   - invoice.payment_succeeded
+ *       Bei billing_reason='subscription_cycle' (Renewal): wir legen eine
+ *       neue Order an, kopieren subscription_items als order_items.
+ *       Bei billing_reason='subscription_create' (Initial): skippen wir
+ *       — das hat checkout.session.completed schon gemacht.
+ *   - customer.subscription.updated
+ *       Status-Sync (Stripe-Status → unser Status), current_period_end-Update.
+ *   - customer.subscription.deleted
+ *       Customer hat im Stripe-Portal gekuendigt. Wir setzen 'cancelled'.
+ *   - invoice.payment_failed
+ *       Karte abgelehnt. Stripe macht Retries autonom; wir loggen + setzen
+ *       subscription.status='past_due' fuer Anzeige im Self-Service.
  *
  * Andere Events: 200 OK + log + skip (sonst retryt Stripe ewig).
  *
@@ -74,7 +92,9 @@ export async function POST(req: NextRequest) {
       case "checkout.session.async_payment_succeeded": {
         const session = event.data.object as {
           id: string;
+          mode: "payment" | "subscription" | "setup";
           payment_intent: string | null;
+          subscription: string | null;
           payment_status: string;
           amount_total: number | null;
           currency: string | null;
@@ -132,6 +152,42 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true, action: "marked_refunded" });
       }
 
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as unknown as InvoiceEventPayload;
+        await handleInvoicePaid(svc, event.id, invoice);
+        return NextResponse.json({
+          received: true,
+          action: "invoice_processed",
+        });
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as unknown as InvoiceEventPayload;
+        await handleInvoiceFailed(svc, event.id, invoice);
+        return NextResponse.json({
+          received: true,
+          action: "invoice_marked_failed",
+        });
+      }
+
+      case "customer.subscription.updated": {
+        const sub = event.data.object as unknown as SubscriptionEventPayload;
+        await handleSubscriptionUpdated(svc, event.id, sub);
+        return NextResponse.json({
+          received: true,
+          action: "subscription_synced",
+        });
+      }
+
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as unknown as SubscriptionEventPayload;
+        await handleSubscriptionDeleted(svc, event.id, sub);
+        return NextResponse.json({
+          received: true,
+          action: "subscription_cancelled",
+        });
+      }
+
       default: {
         // Andere Event-Types ignorieren wir bewusst — aber 200 OK damit
         // Stripe nicht retryt.
@@ -159,7 +215,9 @@ async function handlePaymentSucceeded(
   eventId: string,
   session: {
     id: string;
+    mode: "payment" | "subscription" | "setup";
     payment_intent: string | null;
+    subscription: string | null;
     amount_total: number | null;
     currency: string | null;
     customer: string | null;
@@ -284,6 +342,94 @@ async function handlePaymentSucceeded(
   console.log(
     `[webhooks/stripe] ✓ event ${eventId} → order ${order.id} marked paid (CHF ${amountTotalChf})`
   );
+
+  // ---- Subscription-Activation (nur bei mode=subscription) ----------------
+  // Wenn die Session ein Abo erzeugt hat, holen wir die Stripe-Subscription
+  // ab und aktivieren unseren DB-Record.
+  if (session.mode === "subscription" && session.subscription) {
+    const subscriptionUuid = session.metadata?.subscription_id;
+    if (!subscriptionUuid) {
+      console.error(
+        `[webhooks/stripe] session ${session.id} mode=subscription but no metadata.subscription_id — skipping subscription activation`
+      );
+      return;
+    }
+    await activateSubscription(svc, subscriptionUuid, session.subscription);
+  }
+}
+
+// ===========================================================================
+// Helper: Stripe-Subscription abrufen, unsere DB-Subscription aktivieren
+// ===========================================================================
+async function activateSubscription(
+  svc: ReturnType<typeof createServiceClient>,
+  ourSubscriptionUuid: string,
+  stripeSubscriptionId: string
+) {
+  // Stripe-Subscription holen — daraus brauchen wir current_period_end und
+  // die Price-ID (vom ersten recurring Item, das das Abo definiert).
+  const stripe = getStripe();
+  const sub = (await stripe.subscriptions.retrieve(
+    stripeSubscriptionId
+  )) as unknown as {
+    id: string;
+    current_period_end: number | null;
+    items: { data: Array<{ price: { id: string; recurring: unknown } }> };
+  };
+
+  // Erstes recurring price → das ist der Abo-Coffee. Versand-line_item ist
+  // auch recurring, kommt aber als zweites. Wir nehmen das erste mit
+  // Coffee-Bezug (price_data.product_data.metadata.is_subscription_item=true).
+  // Vereinfachung fuer jetzt: ersten Item nehmen (Versand wuerde sonst
+  // ausgeschlossen, aber im Pricing-Snapshot der Subscription wollen wir
+  // den Coffee-Price, nicht den Versand-Price).
+  const stripePriceId = sub.items?.data?.[0]?.price?.id ?? null;
+  const periodEnd = sub.current_period_end
+    ? new Date(sub.current_period_end * 1000).toISOString()
+    : null;
+
+  const { data: ourSub, error: fetchErr } = await svc
+    .from("subscriptions")
+    .select("id, status")
+    .eq("id", ourSubscriptionUuid)
+    .maybeSingle();
+
+  if (fetchErr) {
+    throw new Error(`subscription lookup failed: ${fetchErr.message}`);
+  }
+  if (!ourSub) {
+    console.error(
+      `[webhooks/stripe] subscription ${ourSubscriptionUuid} not found — cannot activate`
+    );
+    return;
+  }
+
+  // Nur aktivieren wenn noch 'pending' — verhindert Zurueckdrehen von
+  // bereits paused/cancelled Subscriptions wenn altes Event nachkommt.
+  if (ourSub.status !== "pending") {
+    console.log(
+      `[webhooks/stripe] subscription ${ourSubscriptionUuid} status='${ourSub.status}' — kein activate`
+    );
+    return;
+  }
+
+  const { error: updErr } = await svc
+    .from("subscriptions")
+    .update({
+      status: "active",
+      stripe_subscription_id: stripeSubscriptionId,
+      stripe_price_id: stripePriceId,
+      stripe_current_period_end: periodEnd,
+    })
+    .eq("id", ourSubscriptionUuid);
+
+  if (updErr) {
+    throw new Error(`subscription activate failed: ${updErr.message}`);
+  }
+
+  console.log(
+    `[webhooks/stripe] ✓ subscription ${ourSubscriptionUuid} → active (stripe:${stripeSubscriptionId})`
+  );
 }
 
 // ===========================================================================
@@ -372,4 +518,374 @@ async function handleRefund(
       `[webhooks/stripe] event ${eventId} → order ${order.id} partial refund (${charge.amount_refunded}/${charge.amount}) — kein Status-Change`
     );
   }
+}
+
+// ===========================================================================
+// Type-Helper fuer Stripe-Event-Payloads (nur die Felder die wir nutzen)
+// ===========================================================================
+type InvoiceEventPayload = {
+  id: string;
+  subscription: string | null;
+  billing_reason:
+    | "subscription_create"
+    | "subscription_cycle"
+    | "subscription_update"
+    | "subscription_threshold"
+    | "manual"
+    | "upcoming"
+    | string
+    | null;
+  amount_paid: number | null;
+  amount_due: number | null;
+  currency: string | null;
+  customer: string | null;
+  payment_intent: string | null;
+  hosted_invoice_url: string | null;
+  created: number; // unix sec
+  lines: {
+    data: Array<{
+      amount: number;
+      quantity: number | null;
+      description: string | null;
+      price: {
+        id: string;
+        unit_amount: number | null;
+        recurring: { interval: string; interval_count: number } | null;
+        product: string | null;
+      } | null;
+    }>;
+  };
+};
+
+type SubscriptionEventPayload = {
+  id: string; // stripe sub id (sub_xxx)
+  status: string; // 'active' | 'past_due' | 'canceled' | ...
+  current_period_end: number | null; // unix sec
+  cancel_at_period_end: boolean;
+  canceled_at: number | null;
+};
+
+// ===========================================================================
+// Handler: invoice.payment_succeeded — Renewal-Orders anlegen
+// ===========================================================================
+async function handleInvoicePaid(
+  svc: ReturnType<typeof createServiceClient>,
+  eventId: string,
+  invoice: InvoiceEventPayload
+) {
+  // Bei Initial-Subscription kommt das Event ein zweites Mal nach
+  // checkout.session.completed. Wir wollen NICHT eine zweite Order anlegen.
+  if (invoice.billing_reason === "subscription_create") {
+    console.log(
+      `[webhooks/stripe] invoice ${invoice.id} billing_reason=subscription_create — skip (initial handled by checkout.session.completed)`
+    );
+    return;
+  }
+  // Nur Renewal-Charges machen Action — andere billing_reasons (manual,
+  // upcoming, threshold) ignorieren wir vorerst.
+  if (invoice.billing_reason !== "subscription_cycle") {
+    console.log(
+      `[webhooks/stripe] invoice ${invoice.id} billing_reason=${invoice.billing_reason} — ignored`
+    );
+    return;
+  }
+  if (!invoice.subscription) {
+    console.log(
+      `[webhooks/stripe] invoice ${invoice.id} ohne subscription — skip`
+    );
+    return;
+  }
+
+  // Idempotenz-Check: gibt es schon einen payments-Record fuer diesen Event?
+  const { data: existingPayment } = await svc
+    .from("payments")
+    .select("id")
+    .eq("stripe_event_id", eventId)
+    .maybeSingle();
+  if (existingPayment) {
+    console.log(
+      `[webhooks/stripe] event ${eventId} already processed — skipping`
+    );
+    return;
+  }
+
+  // Unsere Subscription via stripe_subscription_id finden
+  const { data: ourSub, error: subErr } = await svc
+    .from("subscriptions")
+    .select("id, customer_id, shipping_address_id, billing_address_id, price_chf_per_delivery, shipping_chf, interval_weeks, status, discount_percent")
+    .eq("stripe_subscription_id", invoice.subscription)
+    .maybeSingle();
+
+  if (subErr) {
+    throw new Error(`subscription lookup failed: ${subErr.message}`);
+  }
+  if (!ourSub) {
+    console.error(
+      `[webhooks/stripe] no subscription for stripe_subscription_id=${invoice.subscription} — abort renewal`
+    );
+    return;
+  }
+
+  // Subscription-Items laden (welche Coffees in welchen Mengen)
+  const { data: subItems, error: siErr } = await svc
+    .from("subscription_items")
+    .select("coffee_id, quantity, weight_g, coffee:coffees(name, roast_level, roaster:roasters(name))")
+    .eq("subscription_id", ourSub.id);
+
+  if (siErr || !subItems || subItems.length === 0) {
+    throw new Error(
+      `subscription_items load failed: ${siErr?.message ?? "empty"}`
+    );
+  }
+
+  // Shipping-Adresse aus subscription (vom Initial-Snapshot)
+  const { data: shipAddr } = await svc
+    .from("customer_addresses")
+    .select("recipient_name, company, street, street_additional, postal_code, city, region, country, delivery_instructions")
+    .eq("id", ourSub.shipping_address_id)
+    .maybeSingle();
+  const { data: billAddr } = await svc
+    .from("customer_addresses")
+    .select("recipient_name, company, street, street_additional, postal_code, city, region, country, delivery_instructions")
+    .eq("id", ourSub.billing_address_id)
+    .maybeSingle();
+
+  const totalChf = invoice.amount_paid
+    ? Number((invoice.amount_paid / 100).toFixed(2))
+    : Number(ourSub.price_chf_per_delivery) + Number(ourSub.shipping_chf);
+  const subtotalChf = Number(ourSub.price_chf_per_delivery);
+  const shippingChf = Number(ourSub.shipping_chf);
+
+  // Renewal-Order anlegen mit subscription_id gesetzt (dieser FK
+  // unterscheidet Renewal-Orders von Initial-Orders)
+  const { data: order, error: oErr } = await svc
+    .from("orders")
+    .insert({
+      customer_id: ourSub.customer_id,
+      subscription_id: ourSub.id,
+      status: "paid", // Stripe hat Geld erfolgreich eingezogen
+      paid_at: new Date(invoice.created * 1000).toISOString(),
+      shipping_address_id: ourSub.shipping_address_id,
+      billing_address_id: ourSub.billing_address_id,
+      shipping_address_snapshot: shipAddr,
+      billing_address_snapshot: billAddr,
+      subtotal_chf: subtotalChf,
+      shipping_chf: shippingChf,
+      discount_chf: 0,
+      tax_chf: 0,
+      total_chf: totalChf,
+      language: "de-CH", // Renewal: kein Customer-Sprachen-Update, default
+      stripe_payment_intent_id: invoice.payment_intent,
+    })
+    .select("id, order_number")
+    .single();
+
+  if (oErr || !order) {
+    throw new Error(`renewal order insert failed: ${oErr?.message ?? "unknown"}`);
+  }
+
+  // order_items aus subscription_items kopieren. Discounted-Preis vom
+  // Subscription-Snapshot — falls Items.quantity > 1 verteilen wir
+  // price_chf_per_delivery anteilig nach Gewicht.
+  const totalWeightG = subItems.reduce(
+    (s, si) => s + si.weight_g * si.quantity,
+    0
+  );
+  const orderItemsToInsert = subItems.map((si) => {
+    const itemWeightG = si.weight_g * si.quantity;
+    const itemSubtotal =
+      totalWeightG > 0
+        ? Number(
+            (
+              Number(ourSub.price_chf_per_delivery) *
+              (itemWeightG / totalWeightG)
+            ).toFixed(2)
+          )
+        : Number(ourSub.price_chf_per_delivery);
+    const unitPrice = Number((itemSubtotal / si.quantity).toFixed(2));
+    const coffeeRel = si.coffee as unknown as {
+      name: string;
+      roast_level: string | null;
+      roaster: { name: string } | null;
+    } | null;
+    return {
+      order_id: order.id,
+      coffee_id: si.coffee_id,
+      coffee_name_snapshot: coffeeRel?.name ?? "Coffee",
+      roaster_name_snapshot: coffeeRel?.roaster?.name ?? "",
+      roast_level_snapshot: coffeeRel?.roast_level ?? null,
+      quantity: si.quantity,
+      weight_g: si.weight_g,
+      unit_price_chf: unitPrice,
+      line_total_chf: Number((unitPrice * si.quantity).toFixed(2)),
+      grind_preference: null,
+      is_subscription_item: true,
+    };
+  });
+
+  const { error: itemsErr } = await svc
+    .from("order_items")
+    .insert(orderItemsToInsert);
+
+  if (itemsErr) {
+    // Cleanup: Order ohne items waere schmutzig
+    await svc.from("orders").delete().eq("id", order.id);
+    throw new Error(
+      `renewal order_items insert failed: ${itemsErr.message}`
+    );
+  }
+
+  // payments-Record fuer Idempotenz + Audit
+  const { error: pErr } = await svc.from("payments").insert({
+    customer_id: ourSub.customer_id,
+    order_id: order.id,
+    stripe_event_id: eventId,
+    provider: "stripe",
+    provider_payment_id: invoice.payment_intent,
+    provider_customer_id: invoice.customer,
+    payment_method: "card",
+    amount_chf: totalChf,
+    currency: "CHF",
+    status: "succeeded",
+    succeeded_at: new Date(invoice.created * 1000).toISOString(),
+    provider_payload: {
+      invoice_id: invoice.id,
+      subscription_id: invoice.subscription,
+      billing_reason: invoice.billing_reason,
+      amount_paid: invoice.amount_paid,
+      hosted_invoice_url: invoice.hosted_invoice_url,
+    },
+  });
+
+  if (pErr && pErr.code !== "23505") {
+    throw new Error(`renewal payments insert failed: ${pErr.message}`);
+  }
+
+  console.log(
+    `[webhooks/stripe] ✓ renewal order ${order.order_number} angelegt fuer subscription ${ourSub.id} (CHF ${totalChf})`
+  );
+}
+
+// ===========================================================================
+// Handler: invoice.payment_failed — Karte abgelehnt bei Renewal
+// ===========================================================================
+async function handleInvoiceFailed(
+  svc: ReturnType<typeof createServiceClient>,
+  eventId: string,
+  invoice: InvoiceEventPayload
+) {
+  if (!invoice.subscription) {
+    console.log(
+      `[webhooks/stripe] invoice ${invoice.id} failed but no subscription — ignored`
+    );
+    return;
+  }
+
+  // Stripe macht Retries autonom (default: 3x ueber 3 Wochen). Wir setzen
+  // unseren Status auf 'past_due' fuer Sichtbarkeit im Self-Service (P1B-7).
+  // Wenn Stripe finally aufgibt, kommt customer.subscription.deleted und
+  // wir setzen 'cancelled'.
+  const { error } = await svc
+    .from("subscriptions")
+    .update({ status: "past_due" })
+    .eq("stripe_subscription_id", invoice.subscription)
+    .eq("status", "active"); // nur von active auf past_due, nicht von cancelled etc.
+
+  if (error) {
+    throw new Error(`subscription past_due update failed: ${error.message}`);
+  }
+
+  console.log(
+    `[webhooks/stripe] event ${eventId} → subscription (stripe:${invoice.subscription}) marked past_due`
+  );
+}
+
+// ===========================================================================
+// Handler: customer.subscription.updated — Lifecycle-Sync
+// ===========================================================================
+async function handleSubscriptionUpdated(
+  svc: ReturnType<typeof createServiceClient>,
+  eventId: string,
+  sub: SubscriptionEventPayload
+) {
+  // Stripe-Status → unser Status mappen.
+  // Stripe: active, past_due, unpaid, canceled, incomplete, incomplete_expired,
+  //         trialing, paused
+  // Wir:    pending, active, paused, cancelled, completed, past_due
+  let ourStatus: string | null = null;
+  switch (sub.status) {
+    case "active":
+      ourStatus = "active";
+      break;
+    case "past_due":
+    case "unpaid":
+      ourStatus = "past_due";
+      break;
+    case "canceled":
+      ourStatus = "cancelled";
+      break;
+    case "paused":
+      ourStatus = "paused";
+      break;
+    default:
+      // incomplete/trialing/etc — nicht relevant fuer uns, kein DB-Update
+      ourStatus = null;
+  }
+
+  const periodEnd = sub.current_period_end
+    ? new Date(sub.current_period_end * 1000).toISOString()
+    : null;
+
+  const updates: Record<string, unknown> = {};
+  if (ourStatus) updates.status = ourStatus;
+  if (periodEnd) updates.stripe_current_period_end = periodEnd;
+  if (sub.canceled_at) {
+    updates.cancelled_at = new Date(sub.canceled_at * 1000).toISOString();
+  }
+
+  if (Object.keys(updates).length === 0) {
+    console.log(
+      `[webhooks/stripe] event ${eventId} subscription updated, no relevant fields`
+    );
+    return;
+  }
+
+  const { error } = await svc
+    .from("subscriptions")
+    .update(updates)
+    .eq("stripe_subscription_id", sub.id);
+
+  if (error) {
+    throw new Error(`subscription update failed: ${error.message}`);
+  }
+
+  console.log(
+    `[webhooks/stripe] event ${eventId} → subscription (stripe:${sub.id}) synced (${Object.keys(updates).join(",")})`
+  );
+}
+
+// ===========================================================================
+// Handler: customer.subscription.deleted — Final-Kuendigung
+// ===========================================================================
+async function handleSubscriptionDeleted(
+  svc: ReturnType<typeof createServiceClient>,
+  eventId: string,
+  sub: SubscriptionEventPayload
+) {
+  const { error } = await svc
+    .from("subscriptions")
+    .update({
+      status: "cancelled",
+      cancelled_at: new Date().toISOString(),
+    })
+    .eq("stripe_subscription_id", sub.id)
+    .neq("status", "cancelled"); // idempotent
+
+  if (error) {
+    throw new Error(`subscription delete-sync failed: ${error.message}`);
+  }
+
+  console.log(
+    `[webhooks/stripe] event ${eventId} → subscription (stripe:${sub.id}) cancelled`
+  );
 }
