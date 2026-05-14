@@ -40,6 +40,12 @@
        minmax(0, ...) erlaubt der Spalte auf 0 zu schrumpfen. */
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
+  /* Grid-ITEMS (col-span-*) haben selbst min-width:auto und blaehen
+     sich am Inhalt auf — minmax am Grid allein reicht nicht. min-width:0
+     erlaubt jedem Grid-Item zu schrumpfen statt den Grid zu sprengen. */
+  .editorial-grid > * {
+    min-width: 0;
+  }
   .glass-nav {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);

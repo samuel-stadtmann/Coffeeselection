@@ -91,7 +91,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection"
-              className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left"
+              className="h-12 sm:h-16 md:h-28 lg:h-40 w-auto object-contain object-left"
               src={LOGO}
             />
           </Link>
