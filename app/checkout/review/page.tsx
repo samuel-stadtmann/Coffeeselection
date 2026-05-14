@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useCart, lineTotal } from "@/lib/cart";
 import { useCheckout, type CheckoutAddress } from "@/lib/checkout";
 import { INTERVAL_LABELS } from "@/lib/subscription-constants";
+import CheckoutStepper from "@/components/CheckoutStepper";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -173,7 +174,7 @@ export default function ReviewPage() {
           <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection"
-              className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left"
+              className="h-12 sm:h-16 md:h-28 lg:h-40 w-auto object-contain object-left"
               src={LOGO}
             />
           </Link>
@@ -189,7 +190,7 @@ export default function ReviewPage() {
       </header>
 
       <main className="pt-20 md:pt-24">
-        <Stepper active={2} />
+        <CheckoutStepper active={2} />
 
         <div className="max-w-3xl mx-auto px-6 md:px-8">
           <div className="mb-8">
@@ -436,48 +437,3 @@ function SummaryRow({
   );
 }
 
-function Stepper({ active }: { active: number }) {
-  const steps = [
-    { label: "Warenkorb" },
-    { label: "Adresse" },
-    { label: "Zahlung" },
-    { label: "Bestätigung" },
-  ];
-  return (
-    <div className="max-w-3xl mx-auto px-6 md:px-8 mb-10">
-      <div className="flex items-center gap-2">
-        {steps.map((s, i, arr) => (
-          <div key={s.label} className="flex items-center flex-1 last:flex-none">
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 flex items-center justify-center font-headline font-bold text-xs ${
-                  i === active
-                    ? "bg-primary text-on-primary"
-                    : i < active
-                    ? "bg-tertiary text-on-primary"
-                    : "bg-surface-container text-on-surface-variant"
-                }`}
-              >
-                {i + 1}
-              </div>
-              <span
-                className={`mt-2 font-headline text-[10px] uppercase tracking-widest font-bold ${
-                  i === active
-                    ? "text-primary"
-                    : i < active
-                    ? "text-tertiary"
-                    : "text-on-surface-variant"
-                }`}
-              >
-                {s.label}
-              </span>
-            </div>
-            {i < arr.length - 1 && (
-              <div className="flex-1 h-px mx-2 bg-surface-container" />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}

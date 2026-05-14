@@ -40,6 +40,25 @@
        minmax(0, ...) erlaubt der Spalte auf 0 zu schrumpfen. */
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
+  /* Grid-ITEMS (col-span-*) haben selbst min-width:auto und blaehen
+     sich am Inhalt auf — minmax am Grid allein reicht nicht. min-width:0
+     erlaubt jedem Grid-Item zu schrumpfen statt den Grid zu sprengen. */
+  .editorial-grid > * {
+    min-width: 0;
+  }
+  /* Unter lg ist das 12-Spalten-Modell fatal: die Kinder sind dort
+     col-span-12 (volle Breite, gestapelt), aber das Grid legt trotzdem
+     11 Spalten-Gaps an. Bei gap-10 (40px) sind das 440px Gap allein —
+     mehr als der Viewport breit ist → horizontaler Overflow.
+     Loesung: unter lg ein einspaltiges Stack, col-span-* wird ignoriert. */
+  @media (max-width: 1023.98px) {
+    .editorial-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .editorial-grid > * {
+      grid-column: 1 / -1 !important;
+    }
+  }
   .glass-nav {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
