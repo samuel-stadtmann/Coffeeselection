@@ -11,6 +11,7 @@ import {
   type CartWeight,
 } from "@/lib/cart";
 import { INTERVAL_LABELS } from "@/lib/subscription-constants";
+import CheckoutStepper from "@/components/CheckoutStepper";
 
 const LOGO = "/logo.png";
 // Gleicher Fallback wie auf der Coffee-Detail-Page — vermeidet 404 wenn
@@ -71,7 +72,7 @@ export default function CartPage() {
       </header>
 
       <main className="pt-20 md:pt-24 pb-12">
-        <Stepper active={0} />
+        <CheckoutStepper active={0} />
 
         <div className="max-w-6xl mx-auto px-6 md:px-8">
           <div className="mb-8">
@@ -228,54 +229,6 @@ export default function CartPage() {
   );
 }
 
-function Stepper({ active }: { active: number }) {
-  const steps = [
-    { label: "Warenkorb" },
-    { label: "Adresse" },
-    { label: "Zahlung" },
-    { label: "Bestätigung" },
-  ];
-  return (
-    <div className="max-w-3xl mx-auto px-6 md:px-8 mb-10">
-      <div className="flex items-center gap-2">
-        {steps.map((s, i, arr) => (
-          <div
-            key={s.label}
-            className="flex items-center flex-1 last:flex-none"
-          >
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 flex items-center justify-center font-headline font-bold text-xs ${
-                  i === active
-                    ? "bg-primary text-on-primary"
-                    : i < active
-                    ? "bg-tertiary text-on-primary"
-                    : "bg-surface-container text-on-surface-variant"
-                }`}
-              >
-                {i + 1}
-              </div>
-              <span
-                className={`mt-2 font-headline text-[10px] uppercase tracking-widest font-bold ${
-                  i === active
-                    ? "text-primary"
-                    : i < active
-                    ? "text-tertiary"
-                    : "text-on-surface-variant"
-                }`}
-              >
-                {s.label}
-              </span>
-            </div>
-            {i < arr.length - 1 && (
-              <div className="flex-1 h-px mx-2 bg-surface-container" />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function EmptyCart() {
   return (
