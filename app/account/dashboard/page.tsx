@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import AccountSidebar from "@/components/AccountSidebar";
+import AccountMobileNav from "@/components/AccountMobileNav";
 import { createClient } from "@/lib/supabase/client";
 import { getTasteTypeById, type TasteType } from "@/lib/db/taste-types";
 import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
@@ -112,7 +113,7 @@ export default function AccountDashboardPage() {
     : "";
 
   return (
-    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
+    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 lg:pb-0">
       {/* Einheitlicher Header — feste Hoehe, overflow-hidden nur am Logo. */}
       <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
@@ -133,11 +134,11 @@ export default function AccountDashboardPage() {
         </nav>
       </header>
 
-      <main className="pt-20 md:pt-24 pb-20">
+      <main className="pt-20 md:pt-24 pb-20 lg:pb-12">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-            {/* Sidebar */}
-            <div className="lg:col-span-3">
+            {/* Sidebar — ab lg; darunter uebernimmt die Bottom-Tab-Bar */}
+            <div className="hidden lg:block lg:col-span-3">
               <AccountSidebar />
             </div>
 
@@ -403,13 +404,9 @@ export default function AccountDashboardPage() {
         </div>
       </main>
 
-      {/* Sticky Mobile CTA */}
-      <Link
-        href="/account/subscription"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
-      >
-        Abo verwalten
-      </Link>
+      {/* Mobile/Tablet: App-artige Bottom-Tab-Bar (ersetzt den frueheren
+          fixen "Abo verwalten"-CTA — "Abo" ist jetzt ein eigener Tab). */}
+      <AccountMobileNav />
     </div>
   );
 }

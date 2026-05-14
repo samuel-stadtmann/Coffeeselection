@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import AccountSidebar from "@/components/AccountSidebar";
+import AccountMobileNav from "@/components/AccountMobileNav";
 import { createClient } from "@/lib/supabase/client";
 
 const LOGO = "/logo.png";
@@ -184,7 +185,7 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
   }
 
   return (
-    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
+    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 lg:pb-0">
       {/* Einheitlicher Header — feste Hoehe, overflow-hidden nur am Logo. */}
       <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
@@ -200,10 +201,10 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
         </nav>
       </header>
 
-      <main className="pt-20 md:pt-24 pb-20">
+      <main className="pt-20 md:pt-24 pb-20 lg:pb-12">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-            <div className="lg:col-span-3">
+            <div className="hidden lg:block lg:col-span-3">
               <AccountSidebar />
             </div>
 
@@ -431,6 +432,9 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
           </div>
         </div>
       </main>
+
+      {/* Mobile/Tablet: App-artige Bottom-Tab-Bar */}
+      <AccountMobileNav />
     </div>
   );
 }
