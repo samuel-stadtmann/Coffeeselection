@@ -365,6 +365,7 @@ export default async function AdminMetricsPage() {
 
         {/* Bewertungen pro Typ */}
         <Section title="Bewertung pro Geschmackstyp · 90 Tage">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left font-headline text-[10px] uppercase tracking-widest text-tertiary border-b border-primary/10">
               <tr>
@@ -395,6 +396,7 @@ export default async function AdminMetricsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </Section>
 
         {/* Confidence-Verteilung */}
@@ -424,6 +426,7 @@ export default async function AdminMetricsPage() {
 
         {/* Top empfohlene Coffees */}
         <Section title="Top empfohlene Coffees · 90 Tage">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left font-headline text-[10px] uppercase tracking-widest text-tertiary border-b border-primary/10">
               <tr>
@@ -464,6 +467,7 @@ export default async function AdminMetricsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </Section>
 
       <p className="text-xs text-on-surface-variant mt-12 mb-4">
