@@ -1,10 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Coffee Selection — Digital Sommelier",
   description:
     "Finde deinen perfekten Specialty Coffee. Kuratierte Schweizer Röstereien, maßgeschneidert für deinen Gaumen.",
+};
+
+// Viewport-Meta — Pflicht fuer Responsive. Ohne das ignorieren Mobile-
+// Browser die Tailwind-Breakpoints und rendern die Desktop-Breite
+// heruntergezoomt statt das Mobile-Layout zu nutzen.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

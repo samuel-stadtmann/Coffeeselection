@@ -107,13 +107,14 @@ export default function HomePage() {
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface selection:bg-tertiary selection:text-white pb-20 md:pb-0">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
+      {/* Einheitlicher Header: feste Hoehe h-20 md:h-24, Logo via
+          overflow-hidden beschnitten. Konsistent mit AccountLayout + QuizShell. */}
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 overflow-hidden bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center shrink-0">
             <img
               alt="Coffee Selection Logo"
-              className="h-40 md:h-52 w-auto object-contain -my-6 md:-my-10 mr-4 lg:mr-6 shrink-0"
+              className="h-36 md:h-44 w-auto object-contain mr-4 lg:mr-6 shrink-0"
               src={LOGO}
             />
           </Link>
@@ -145,9 +146,8 @@ export default function HomePage() {
         </nav>
       </header>
 
-      {/* pt + Hero-pt reduziert: Sektion rutscht naeher an den Header,
-          damit der Hero im sichtbaren Bereich bleibt. Layout unveraendert. */}
-      <main className="pt-28 md:pt-32">
+      {/* pt = einheitliche Header-Hoehe (h-20 md:h-24). */}
+      <main className="pt-20 md:pt-24">
         {/* SECTION 1 — HERO */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 pt-6 md:pt-8 pb-16 md:pb-24">
           <div className="col-span-12 lg:col-span-5">
