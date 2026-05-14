@@ -145,7 +145,10 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40">
+      {/* pt = echte Header-Hoehe: Logo h-40/h-52 mit -my-6/-my-10 → effektiv
+          ~112px mobile / ~128px desktop. Vorher pt-36/pt-40 (144/160px) →
+          sichtbarer Gap unter dem Header. */}
+      <main className="pt-28 md:pt-32">
         {/* SECTION 1 — HERO */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 py-16 md:py-24">
           <div className="col-span-12 lg:col-span-5">
