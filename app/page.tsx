@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminFooterLink from "@/components/AdminFooterLink";
 import { createClient } from "@/lib/supabase/client";
+import { articles } from "@/lib/articles";
 
 type FeaturedRoaster = {
   slug: string;
@@ -16,12 +17,12 @@ type FeaturedRoaster = {
 const LOGO = "/logo.png";
 const HERO =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBvySg3Uf4lIr5-6yDourpO1iHmSl4aNwlTw2vUqWLLsXTR2owxYQPnvYY_fGQw_8MJ9gOoVJhPLdSiywoMPlVXb7ydqT4-EEd-jaiFKi-e6hih5dYFPY2wSZ2XMGoSz2v_4EtSVrvraFIhMMMZzbDxXU9oJz1R1q56fSmCRpqUcuecTpmR7u1k7iIxHHSsZG1oRzB_ABrePOMz1akMTgJjZDheHKafFnhGYLfXzk4J4-0t1M3WMYJhXqzL6gGeg_YgCV3AVKxNlw";
-const ROASTERY =
+// Fallback wenn ein Roaster (noch) kein hero_image_url + logo_url hat —
+// vermeidet leere/kaputte Bild-Box in der Roaster-Sektion.
+const ROASTER_FALLBACK_IMG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDsi0Cm5pc68_wHYzSlE9JU3hSFfItOBscVq7fRgSVQF2O2c1qq3Lur8RIyfH1J56Xmysu8_-LJxl3wpeTypHOshuMB_3c8-5Z-yuccHxOvjlh1rBBx9aJ_L6xn0ES5e12zVKtvjtl1pI1K-J8kdzYr-ifacUyJTZrRDt5L4C7tyBQLYyKcpkoNC0Go4fagorT6mBPJdkR5u6AGDLnIFfYxzAiKDRRtiCr6pss5eRNI3-kBz3TRwC3MXJQNVV9oH7rHgXvPfiZieg";
 const SUB_PACKAGE =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBXoR-PUcwRpX90ByFqkCWcjPpcEEETiXPBMbk9Ld5nFgt_nXaBFZfZTNyGSjhQkrjnDsBLTRQWeqt4VN0TQr1WBNwzsDTrU4qNgxTCRay6sxsmu84CDRLYUJZ8E9OXI202fZi_4TK2PkJih6zW9aWQEE3-_H2kLTo_k5vxlyFi0W2sByzZGpxt3nNJu3LCXtXefZc-swkmbe-4Qe58IpA_bHC2apoj08Zr5EoaGLS0GQmM9UsAWA_g4kfazuRjohGU84KSnT7UoQ";
-const AVATAR =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCJlUN1xK0KJwNNVENRQno7wc5FvaY7oL5iwXuVxIW_IdVsV4FIw9gYU3bt2mJUxvPhxZ0u8MfB6cqbUEJWCcBOMhkgiTTC6_Jorsm3TErptYJxI-yCHNIeJy_vYhY22JV3LDvXyKPMcm4iQdl_6pARd4kL7W5CdY-HUArpP57CQQUjuEtq1mpmyl-1gvLEtg7HTBuEtprPOPp-DkKEyJuSHz6qG94cU5jS64NZyjFk97kQZX-WkmpqFNeq4-3rCDRPvrBGQ6KuJA";
 
 const navLinks = [
   { href: "/coffee", label: "Coffees" },
@@ -42,45 +43,67 @@ const tasteTypes = [
   { slug: "der-suesse", name: "Der Süße", tagline: "Karamell, Honig, Schokolade", icon: "cake" },
 ];
 
-const reviews = [
-  { name: "Marc B.", city: "Genf", text: "Der Algorithmus hat meinen Geschmack besser getroffen als ich selbst. Die Schweizer Röstungen sind eine Klasse für sich." },
-  { name: "Sophie L.", city: "Zürich", text: "Endlich keine Fehlkäufe mehr. Jede Lieferung passt perfekt zu meinem Espresso-Workflow am Morgen." },
-  { name: "Andreas K.", city: "Bern", text: "Ich habe Röstereien entdeckt, die ich sonst nie gefunden hätte. Coffee Selection ist mein Sommelier." },
+// USP-Bullets statt erfundener Reviews/Publikationen. Alles verifizierbar,
+// nichts Fake. Wird spaeter durch echte Reviews ersetzt sobald welche da sind.
+const uspBullets = [
+  { icon: "handshake", text: "Direct Trade aus der Schweiz" },
+  { icon: "schedule", text: "Röstfrisch — geliefert in 48h nach Röstung" },
+  { icon: "tune", text: "8 Geschmackstypen, persönlich gematcht" },
+  { icon: "event_available", text: "Abo jederzeit kündbar — keine Verpflichtung" },
 ];
 
 const faqItems = [
-  { q: "Wie funktioniert das 12-Fragen-Quiz?", a: "Du beantwortest 12 kurze Fragen zu deinen Vorlieben — Brühmethode, Säure, Aromen, Routine. Unser Algorithmus klassifiziert dich in einen von 8 Geschmackstypen und matcht dich mit dem perfekten Kaffee." },
-  { q: "Welche Röstereien sind dabei?", a: "Wir arbeiten ausschließlich mit den führenden Schweizer Specialty-Röstern: Miro Coffee, Vertical Coffee, Stoll, La Cabra Schweiz und 12 weitere. Alle Direct Trade, viele Bio-zertifiziert." },
-  { q: "Kann ich mein Abo jederzeit pausieren?", a: "Ja. Du hast volle Kontrolle: Pausieren, Intervall ändern, Sorte wechseln oder kündigen — alles mit einem Klick im Dashboard. Keine Mindestlaufzeit." },
-  { q: "Wie frisch ist der Kaffee?", a: "Röstfrisch. Deine Bohnen werden erst nach Bestellung geröstet und innerhalb von 48 Stunden versendet. Lieferung schweizweit in 2–4 Werktagen." },
-  { q: "Was kostet das?", a: "Die Discovery-Box startet bei CHF 24.00 pro Lieferung (2x 250g) inkl. Versand. Klassische Abos ab CHF 22.00. Erste Bestellung 20% Rabatt mit Quiz-Code." },
+  { q: "Wie funktioniert das 12-Fragen-Quiz?", a: "Du beantwortest 12 kurze Fragen zu deinen Vorlieben — Brühmethode, Säure, Aromen, Routine. Unser Algorithmus klassifiziert dich in einen von 8 Geschmackstypen und matcht dich mit dem perfekten Kaffee. Das dauert rund 60 Sekunden und ist kostenlos, ohne Anmeldung." },
+  { q: "Welche Röstereien sind dabei?", a: "Wir arbeiten ausschliesslich mit Schweizer Specialty-Röstern zusammen — alle Direct Trade, viele Bio-zertifiziert. Jeder Kaffee in unserem Sortiment hat mindestens 84 Punkte im SCA-Cupping." },
+  { q: "Wie frisch ist der Kaffee?", a: "Röstfrisch. Deine Bohnen werden erst nach deiner Bestellung geröstet und innerhalb von 48 Stunden nach der Röstung geliefert. Schweizweiter Versand in 2–4 Werktagen." },
+  { q: "Liefert ihr in die ganze Schweiz?", a: "Ja, wir versenden schweizweit. Ab einem Bestellwert von CHF 100 ist der Versand kostenlos, darunter beträgt der Versand CHF 6.90. Lieferung in 2–4 Werktagen." },
+  { q: "Kann ich mein Abo jederzeit pausieren?", a: "Ja. Du hast volle Kontrolle: pausieren, Intervall ändern, Sorte wechseln oder kündigen — alles mit einem Klick in deinem Konto. Es gibt keine Mindestlaufzeit und keine Verpflichtung." },
+  { q: "Kann ich Kaffee auch einmalig ohne Abo bestellen?", a: "Ja. Jeden Kaffee aus unserem Sortiment kannst du als Einzelbestellung kaufen — ohne Abo, ohne Bindung. Im Abo sparst du allerdings 10% gegenüber der Einzelbestellung." },
+  { q: "Was ist Specialty Coffee?", a: "Specialty Coffee bezeichnet Kaffee, der im SCA-Cupping mindestens 80 von 100 Punkten erreicht. Unser Standard liegt bei mindestens 84 Punkten. Es geht um Rückverfolgbarkeit bis zur Farm, sortenreine Aufbereitung und handwerkliche Röstung — das Gegenteil von anonymem Industriekaffee." },
+  { q: "Was bedeutet Direct Trade?", a: "Direct Trade heisst, dass unsere Röster direkt mit den Kaffeeproduzenten handeln — ohne Zwischenhändler. Das bedeutet faire Preise für die Farmen, volle Transparenz über die Herkunft und meist deutlich höhere Qualität als bei konventionellem Handel." },
 ];
 
-const seoArticles = [
-  { href: "/learn/what-is-specialty-coffee", title: "Was ist Specialty Coffee?", read: "5 Min" },
-  { href: "/learn/light-vs-dark-roast", title: "Helle vs. dunkle Röstung — der Unterschied", read: "4 Min" },
-  { href: "/learn/coffee-acidity-explained", title: "Säure im Kaffee — verstehen, nicht fürchten", read: "6 Min" },
-  { href: "/learn/best-coffee-for-full-automatic", title: "Der beste Kaffee für deinen Vollautomaten", read: "5 Min" },
-];
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   // Random 3 roasters per page load — fetched from DB
   const [featured, setFeatured] = useState<FeaturedRoaster[]>([]);
+  // Echte Zahlen fuer die Metrik-Sektion — dynamisch aus der DB statt Fake.
+  const [roasterCount, setRoasterCount] = useState<number | null>(null);
+  const [coffeeCount, setCoffeeCount] = useState<number | null>(null);
+
   useEffect(() => {
     const supabase = createClient();
     (async () => {
+      // Aktive Roaster fuer Featured-Sektion + Gesamtzahl
       const { data } = await supabase
         .from("roasters")
         .select("slug, name, city, short_description, hero_image_url, logo_url")
         .eq("status", "active")
         .is("deleted_at", null);
-      const shuffled = (data ?? []).sort(() => Math.random() - 0.5);
-      setFeatured(shuffled.slice(0, 3) as FeaturedRoaster[]);
+      const list = (data ?? []) as FeaturedRoaster[];
+      setRoasterCount(list.length);
+      const shuffled = [...list].sort(() => Math.random() - 0.5);
+      setFeatured(shuffled.slice(0, 3));
+
+      // Aktive Coffees zaehlen (nur count, keine Daten noetig)
+      const { count } = await supabase
+        .from("coffees")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .is("deleted_at", null);
+      setCoffeeCount(count ?? null);
     })();
   }, []);
   const [hero, side1, side2] = featured;
+
+  // 4 zufaellige Artikel pro Page-Load — rotiert wie die Roaster-Sektion.
+  // useMemo mit leerem Dep-Array → einmal pro Mount gewuerfelt.
+  const rotatedArticles = useMemo(
+    () => [...articles].sort(() => Math.random() - 0.5).slice(0, 4),
+    []
+  );
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface selection:bg-tertiary selection:text-white pb-20 md:pb-0">
@@ -142,13 +165,13 @@ export default function HomePage() {
               >
                 Jetzt Geschmackstyp entdecken
               </Link>
-              <Link
-                href="/subscription/how-it-works"
+              <a
+                href="#wie-es-funktioniert"
                 className="flex items-center justify-center gap-3 font-headline font-bold text-primary px-6 py-5 hover:bg-surface-container-low transition-colors uppercase tracking-widest text-[11px]"
               >
                 <span className="material-symbols-outlined text-2xl">play_circle</span>
                 Wie es funktioniert
-              </Link>
+              </a>
             </div>
             <div className="flex items-center gap-3 mt-8 text-on-surface-variant text-sm">
               <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
@@ -167,28 +190,29 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* SECTION 2 — SOCIAL PROOF */}
-        <section className="bg-primary text-on-primary py-12 border-y border-tertiary/20">
-          <div className="max-w-7xl mx-auto px-6 md:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-4">
-              <div className="flex text-tertiary text-2xl">★★★★★</div>
-              <div>
-                <p className="font-headline font-bold text-2xl">4.9 / 5.0</p>
-                <p className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60">
-                  Basierend auf 2&apos;000+ Bewertungen
-                </p>
+        {/* SECTION 2 — USP-BULLETS */}
+        <section className="bg-primary text-on-primary py-10 md:py-12 border-y border-tertiary/20">
+          <div className="max-w-7xl mx-auto px-6 md:px-8 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-6">
+            {uspBullets.map((u) => (
+              <div key={u.text} className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-tertiary text-2xl shrink-0">
+                  {u.icon}
+                </span>
+                <span className="font-headline font-bold text-[11px] md:text-xs uppercase tracking-wider leading-tight">
+                  {u.text}
+                </span>
               </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-8 md:gap-12 opacity-50">
-              {["NZZ", "VOGUE", "MONOCLE", "ANNABELLE"].map((p) => (
-                <span key={p} className="font-headline font-bold text-lg tracking-tighter">{p}</span>
-              ))}
-            </div>
+            ))}
           </div>
         </section>
 
         {/* SECTION 3 — HOW IT WORKS */}
-        <section className="bg-surface-container-low py-20 md:py-24">
+        {/* scroll-mt-32: damit der fixed Header beim Anchor-Sprung nicht
+            den Sektions-Titel ueberdeckt */}
+        <section
+          id="wie-es-funktioniert"
+          className="bg-surface-container-low py-20 md:py-24 scroll-mt-32"
+        >
           <div className="max-w-7xl mx-auto px-6 md:px-8">
             <div className="text-center mb-16">
               <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
@@ -289,7 +313,7 @@ export default function HomePage() {
                   Unsere Meister-Röster
                 </h2>
                 <p className="text-lg text-on-surface-variant">
-                  Wir arbeiten nur mit den renommiertesten Micro-Roasteries der Schweiz zusammen.
+                  Wir arbeiten nur mit den renommiertesten Röstern der Schweiz zusammen.
                 </p>
               </div>
               <Link
@@ -304,10 +328,10 @@ export default function HomePage() {
                 {/* Featured large — random hero roaster */}
                 <Link
                   href={`/roasters/${hero.slug}`}
-                  className="col-span-12 md:col-span-7 bg-surface-container relative overflow-hidden group shadow-lg min-h-[500px]"
+                  className="col-span-12 md:col-span-7 bg-surface-container relative overflow-hidden group shadow-lg min-h-[360px] md:min-h-[500px]"
                 >
                   <img
-                    src={hero.hero_image_url || hero.logo_url || ""}
+                    src={hero.hero_image_url || hero.logo_url || ROASTER_FALLBACK_IMG}
                     alt={hero.name}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                   />
@@ -383,13 +407,13 @@ export default function HomePage() {
                 Discovery Box
               </span>
               <h2 className="text-3xl md:text-4xl text-primary mb-8 md:mb-12 uppercase tracking-tight font-headline font-bold">
-                Jeden Monat eine neue Welt
+                Mit jeder Lieferung eine neue Welt
               </h2>
               <ul className="space-y-8">
                 {[
-                  { icon: "auto_awesome", title: "Kuratierte Vielfalt", desc: "Jeden Monat 2 neue Röster, perfekt zu deinem Geschmackstyp passend." },
+                  { icon: "auto_awesome", title: "Kuratierte Vielfalt", desc: "Bei jeder Lieferung 2 neue Kaffees, perfekt zu deinem Geschmackstyp passend." },
                   { icon: "schedule", title: "Volle Flexibilität", desc: "Pausieren, anpassen oder kündigen — jederzeit, ohne Mindestlaufzeit." },
-                  { icon: "loyalty", title: "Exklusive Vorteile", desc: "Spezialpreise und Zugang zu limitierten &ldquo;Rare Batches&rdquo;." },
+                  { icon: "loyalty", title: "Exklusive Vorteile", desc: "Abonnenten-Preise und Zugang zu limitierten «Rare Batches» — kleinen Sondermengen aussergewöhnlicher Lots." },
                 ].map((b) => (
                   <li key={b.title} className="flex gap-6">
                     <div className="w-12 h-12 bg-primary flex items-center justify-center text-on-primary shrink-0">
@@ -406,14 +430,14 @@ export default function HomePage() {
             <div className="col-span-12 lg:col-span-6">
               <div className="bg-background p-8 md:p-10 border border-primary/5 shadow-2xl relative">
                 <div className="absolute -top-4 left-8 bg-tertiary text-white px-4 py-1.5 font-headline text-[10px] uppercase tracking-widest font-bold">
-                  Beliebteste Wahl
+                  Flexibel &amp; persönlich
                 </div>
                 <img src={SUB_PACKAGE} alt="Discovery Box" className="w-full aspect-[4/3] object-cover mb-8" />
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-headline font-bold text-primary tracking-widest uppercase text-xs">Discovery Abo</span>
-                  <span className="font-headline font-bold text-2xl text-primary">CHF 24.00</span>
+                  <span className="font-headline font-bold text-xl text-primary">Ab CHF 22 / Lieferung</span>
                 </div>
-                <p className="text-sm text-on-surface-variant mb-6">2x 250g monatlich, inkl. Versand</p>
+                <p className="text-sm text-on-surface-variant mb-6">Menge &amp; Intervall frei wählbar · inkl. Versand · jederzeit kündbar</p>
                 <Link
                   href="/quiz/question-1-brewing-method"
                   className="block text-center w-full bg-primary text-on-primary py-4 font-headline font-bold uppercase tracking-widest text-[10px] hover:bg-black transition-all"
@@ -425,50 +449,53 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* SECTION 7 — REVIEWS */}
+        {/* SECTION 7 — COFFEE SELECTION IN ZAHLEN */}
         <section className="bg-[#F9F5F0] py-20 md:py-24 border-t border-primary/5">
           <div className="max-w-7xl mx-auto px-6 md:px-8">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12 md:mb-16">
               <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
-                Was unsere Kunden sagen
+                Schweizer Specialty Coffee
               </span>
               <h2 className="text-3xl md:text-4xl text-primary mb-4 uppercase tracking-tight font-headline font-bold">
-                Vertraut von 2&apos;000+ Coffee Lovers
+                Coffee Selection in Zahlen
               </h2>
+              <p className="text-lg text-on-surface-variant max-w-2xl mx-auto">
+                Kein anonymer Industriekaffee — handwerkliche Röstung, Direct
+                Trade, persönlich auf deinen Geschmack gematcht.
+              </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {reviews.map((r, i) => (
-                <div key={i} className="bg-white p-8 shadow-sm relative">
-                  <div className="text-7xl text-tertiary/15 font-serif absolute top-2 left-4 leading-none pointer-events-none">&ldquo;</div>
-                  <div className="relative">
-                    <div className="flex text-tertiary mb-4">★★★★★</div>
-                    <p className="text-base italic text-primary leading-relaxed mb-6">{r.text}</p>
-                    <div className="flex items-center gap-3 pt-4 border-t border-primary/10">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container">
-                        <img src={AVATAR} alt={r.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div>
-                        <span className="block font-headline font-bold text-primary text-sm uppercase tracking-wide">{r.name}</span>
-                        <span className="block font-headline text-[9px] uppercase text-on-surface-variant tracking-widest">{r.city}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {[
-                { v: "2&apos;000+", l: "Coffee Lovers" },
-                { v: "16", l: "Schweizer Röster" },
-                { v: "4.9 / 5", l: "Google Reviews" },
-                { v: "97%", l: "Reorder Rate" },
+                {
+                  v: roasterCount != null ? String(roasterCount) : "—",
+                  l: "Schweizer Röster",
+                },
+                {
+                  v: coffeeCount != null ? String(coffeeCount) : "—",
+                  l: "Specialty Coffees",
+                  highlight: true,
+                },
+                { v: "8", l: "Geschmackstypen" },
+                { v: "48h", l: "Röstfrisch geliefert" },
               ].map((s, i) => (
-                <div key={i} className={`p-6 md:p-8 text-center ${i === 1 ? "bg-tertiary text-white" : "bg-white shadow-sm"}`}>
+                <div
+                  key={i}
+                  className={`p-6 md:p-8 text-center ${
+                    s.highlight ? "bg-tertiary text-white" : "bg-white shadow-sm"
+                  }`}
+                >
                   <span
-                    className={`font-headline font-bold text-3xl md:text-4xl mb-2 block ${i === 1 ? "text-white" : "text-primary"}`}
-                    dangerouslySetInnerHTML={{ __html: s.v }}
-                  />
-                  <span className={`font-headline text-[10px] font-bold uppercase tracking-widest ${i === 1 ? "text-white/90" : "text-on-surface-variant"}`}>
+                    className={`font-headline font-bold text-3xl md:text-4xl mb-2 block ${
+                      s.highlight ? "text-white" : "text-primary"
+                    }`}
+                  >
+                    {s.v}
+                  </span>
+                  <span
+                    className={`font-headline text-[10px] font-bold uppercase tracking-widest ${
+                      s.highlight ? "text-white/90" : "text-on-surface-variant"
+                    }`}
+                  >
                     {s.l}
                   </span>
                 </div>
@@ -493,25 +520,28 @@ export default function HomePage() {
                 </p>
               </div>
               <Link
-                href="/learn/best-coffee-switzerland"
+                href="/learn"
                 className="font-headline text-[11px] font-bold uppercase tracking-[0.3em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-2"
               >
                 Alle Artikel
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {seoArticles.map((a) => (
+              {rotatedArticles.map((a) => (
                 <Link
-                  key={a.href}
-                  href={a.href}
-                  className="group bg-white p-8 hover:shadow-xl transition-all border-b-2 border-transparent hover:border-tertiary"
+                  key={a.slug}
+                  href={`/learn/${a.slug}`}
+                  className="group bg-white p-8 hover:shadow-xl transition-all border-b-2 border-transparent hover:border-tertiary flex flex-col"
                 >
                   <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-3">
-                    {a.read} Lesezeit
+                    {a.readingTime} Lesezeit
                   </span>
-                  <h3 className="text-lg text-primary leading-snug mb-6 font-headline font-bold uppercase tracking-tight group-hover:text-tertiary transition-colors">
+                  <h3 className="text-lg text-primary leading-snug mb-3 font-headline font-bold uppercase tracking-tight group-hover:text-tertiary transition-colors">
                     {a.title}
                   </h3>
+                  <p className="text-sm text-on-surface-variant leading-relaxed mb-6 flex-1">
+                    {a.excerpt}
+                  </p>
                   <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-1 group-hover:text-tertiary group-hover:translate-x-1 transition-all">
                     Lesen <span className="material-symbols-outlined text-base">arrow_forward</span>
                   </span>

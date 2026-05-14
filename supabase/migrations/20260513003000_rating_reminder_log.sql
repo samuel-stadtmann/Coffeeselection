@@ -43,6 +43,8 @@ alter table public.rating_reminder_log enable row level security;
 -- Customer darf seine eigenen Eintraege LESEN (fuer evtl. Self-Service-
 -- Anzeige "Du hast schon eine Bewertungs-Erinnerung bekommen"). Insert
 -- ist nur fuer Service-Client erlaubt (default deny).
+-- Postgres hat kein CREATE POLICY IF NOT EXISTS → drop-first fuer Idempotenz.
+drop policy if exists "rating_reminder_log_self_select" on public.rating_reminder_log;
 create policy "rating_reminder_log_self_select"
   on public.rating_reminder_log for select
   to authenticated
