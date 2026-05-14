@@ -3,7 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  /* Sicherheitsnetz gegen horizontalen Overflow auf Mobile: einzelne
+     absolute-Elemente mit negativen Offsets oder zu breite Inhalte
+     sollen NIE den Viewport sprengen. 'clip' statt 'hidden' — clip
+     erzeugt keinen neuen Scroll-Container und bricht damit kein
+     position:sticky in Kind-Elementen. */
+  html {
+    overflow-x: clip;
+  }
   body {
+    overflow-x: clip;
     font-family: 'Merriweather', serif;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;

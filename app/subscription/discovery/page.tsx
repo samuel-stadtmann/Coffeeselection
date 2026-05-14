@@ -137,7 +137,8 @@ export default function DiscoverySubscriptionPage() {
             <div className="aspect-[4/5] overflow-hidden shadow-2xl">
               <img src={HERO} alt="Discovery Box" className="w-full h-full object-cover" />
             </div>
-            <div className="absolute -bottom-6 -right-6 bg-tertiary text-primary p-6 md:p-8 z-20 shadow-2xl max-w-[260px]">
+            {/* Badge: Mobile leicht innen, ab md versetzt nach aussen. */}
+            <div className="absolute -bottom-4 right-2 md:-bottom-6 md:-right-6 bg-tertiary text-primary p-5 md:p-8 z-20 shadow-2xl max-w-[200px] md:max-w-[260px]">
               <p className="font-headline font-bold text-3xl md:text-4xl mb-1">-10%</p>
               <p className="font-headline text-[10px] uppercase tracking-widest leading-tight">
                 Abo-Rabatt<br />gegenüber Einzelbestellung
