@@ -107,13 +107,16 @@ export default function HomePage() {
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface selection:bg-tertiary selection:text-white pb-20 md:pb-0">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
+      {/* Header — feste Hoehe (h-20/h-24 = 80/96px) statt vom Logo bestimmt.
+          Logo bleibt visuell gross, wird aber via overflow-hidden sauber
+          auf die Header-Hoehe beschnitten — die transparenten PNG-Raender
+          fallen damit weg. Deterministische Hoehe = vorhersehbares main-pt. */}
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 overflow-hidden bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center shrink-0">
             <img
               alt="Coffee Selection Logo"
-              className="h-40 md:h-52 w-auto object-contain -my-6 md:-my-10 mr-4 lg:mr-6 shrink-0"
+              className="h-28 md:h-36 w-auto object-contain mr-4 lg:mr-6 shrink-0"
               src={LOGO}
             />
           </Link>
@@ -145,10 +148,8 @@ export default function HomePage() {
         </nav>
       </header>
 
-      {/* pt = echte Header-Hoehe: Logo h-40/h-52 mit -my-6/-my-10 → effektiv
-          ~112px mobile / ~128px desktop. Vorher pt-36/pt-40 (144/160px) →
-          sichtbarer Gap unter dem Header. */}
-      <main className="pt-28 md:pt-32">
+      {/* pt = exakt die feste Header-Hoehe (h-20 md:h-24 = 80/96px). */}
+      <main className="pt-20 md:pt-24">
         {/* SECTION 1 — HERO */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 py-16 md:py-24">
           <div className="col-span-12 lg:col-span-5">
@@ -210,12 +211,11 @@ export default function HomePage() {
         </section>
 
         {/* SECTION 3 — HOW IT WORKS */}
-        {/* scroll-mt-44: Offset fuer den fixed Header beim Anchor-Sprung.
-            Header ist ~160px hoch (grosses Logo) — 176px Offset laesst
-            zusaetzlich den Eyebrow-Text 'So funktioniert's' sichtbar. */}
+        {/* scroll-mt = Header-Hoehe (h-20/h-24 = 80/96px) + etwas Luft fuer
+            den Eyebrow-Text beim Anchor-Sprung von 'Wie es funktioniert'. */}
         <section
           id="wie-es-funktioniert"
-          className="bg-surface-container-low py-20 md:py-24 scroll-mt-44"
+          className="bg-surface-container-low py-20 md:py-24 scroll-mt-24 md:scroll-mt-28"
         >
           <div className="max-w-7xl mx-auto px-6 md:px-8">
             <div className="text-center mb-16">
