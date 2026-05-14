@@ -225,7 +225,9 @@ export default function HomePage() {
             <div className="aspect-square overflow-hidden shadow-2xl relative z-10">
               <img alt="Premium coffee experience" className="w-full h-full object-cover" src={HERO} />
             </div>
-            <div className="absolute -bottom-6 -left-6 bg-tertiary text-white p-6 md:p-8 z-20 shadow-2xl">
+            {/* Badge: auf Mobile leicht INNEN (sonst Viewport-Overflow),
+                ab md versetzt nach aussen wie im Desktop-Design. */}
+            <div className="absolute -bottom-4 left-2 md:-bottom-6 md:-left-6 bg-tertiary text-white p-5 md:p-8 z-20 shadow-2xl">
               <p className="font-headline font-bold text-4xl md:text-5xl mb-1">8</p>
               <p className="font-headline text-[10px] uppercase tracking-widest leading-tight">Geschmackstypen<br />kuratiert für dich</p>
             </div>
