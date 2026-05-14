@@ -33,7 +33,12 @@
 @layer utilities {
   .editorial-grid {
     display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    /* minmax(0, 1fr) statt 1fr: ohne das hat 1fr ein implizites
+       min-width:auto = min-content des Inhalts. Ein breites Kind
+       (langer Text, Bild, Card) blaeht dann die Spalte auf und
+       sprengt den Grid-Container → horizontaler Overflow auf Mobile.
+       minmax(0, ...) erlaubt der Spalte auf 0 zu schrumpfen. */
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
   .glass-nav {
     backdrop-filter: blur(12px);
