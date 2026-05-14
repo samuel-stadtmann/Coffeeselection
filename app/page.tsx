@@ -207,11 +207,12 @@ export default function HomePage() {
         </section>
 
         {/* SECTION 3 — HOW IT WORKS */}
-        {/* scroll-mt-32: damit der fixed Header beim Anchor-Sprung nicht
-            den Sektions-Titel ueberdeckt */}
+        {/* scroll-mt-44: Offset fuer den fixed Header beim Anchor-Sprung.
+            Header ist ~160px hoch (grosses Logo) — 176px Offset laesst
+            zusaetzlich den Eyebrow-Text 'So funktioniert's' sichtbar. */}
         <section
           id="wie-es-funktioniert"
-          className="bg-surface-container-low py-20 md:py-24 scroll-mt-32"
+          className="bg-surface-container-low py-20 md:py-24 scroll-mt-44"
         >
           <div className="max-w-7xl mx-auto px-6 md:px-8">
             <div className="text-center mb-16">
