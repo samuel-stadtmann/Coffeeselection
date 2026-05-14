@@ -208,7 +208,7 @@ export default async function AdminHealthPage() {
         </div>
       </div>
 
-      <div className="bg-white shadow-sm overflow-hidden">
+      <div className="bg-white shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-left font-headline text-[10px] uppercase tracking-widest text-tertiary border-b border-primary/10 bg-surface-container-low">
             <tr>

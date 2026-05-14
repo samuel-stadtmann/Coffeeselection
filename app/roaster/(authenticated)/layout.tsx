@@ -49,21 +49,22 @@ export default async function RoasterAuthenticatedLayout({
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5 overflow-hidden">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
+      {/* Einheitlicher Header — feste Hoehe, overflow-hidden nur am Logo. */}
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection"
-              className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16"
+              className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left"
               src={LOGO}
             />
           </Link>
-          <div className="flex items-center gap-4 md:gap-6">
-            <div className="flex flex-col items-end">
-              <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold">
+          <div className="flex items-center gap-3 md:gap-6 shrink-0 min-w-0">
+            <div className="flex flex-col items-end min-w-0">
+              <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold truncate max-w-[40vw]">
                 {primaryRoaster?.name ?? "Röster-Portal"}
               </span>
-              <span className="text-[10px] text-on-surface-variant">
+              <span className="text-[10px] text-on-surface-variant truncate max-w-[40vw]">
                 {roasterUser.email}
               </span>
             </div>
@@ -72,7 +73,7 @@ export default async function RoasterAuthenticatedLayout({
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40 max-w-7xl mx-auto px-6 md:px-8">
+      <main className="pt-20 md:pt-24 max-w-7xl mx-auto px-6 md:px-8">
         <RoasterTabs />
         {children}
       </main>

@@ -66,6 +66,8 @@ const faqItems = [
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  // Mobile/Tablet-Navigation (< xl): Hamburger-Dropdown.
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Random 3 roasters per page load — fetched from DB
   const [featured, setFeatured] = useState<FeaturedRoaster[]>([]);
@@ -107,18 +109,20 @@ export default function HomePage() {
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface selection:bg-tertiary selection:text-white pb-20 md:pb-0">
-      {/* Einheitlicher Header: feste Hoehe h-20 md:h-24, Logo via
-          overflow-hidden beschnitten. Konsistent mit AccountLayout + QuizShell. */}
-      <header className="fixed top-0 w-full z-50 h-20 md:h-24 overflow-hidden bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center shrink-0">
+      {/* Einheitlicher Header: feste Hoehe h-20 md:h-24. overflow-hidden
+          NUR am Logo-Link (vertikales Beschneiden), NICHT am ganzen Header
+          — sonst wuerden Nav/Buttons horizontal abgeschnitten. */}
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection Logo"
-              className="h-36 md:h-44 w-auto object-contain mr-4 lg:mr-6 shrink-0"
+              className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left shrink-0"
               src={LOGO}
             />
           </Link>
-          <div className="hidden lg:flex items-center gap-x-8 xl:gap-x-10 mr-auto pl-8 xl:pl-12">
+          {/* Desktop-Nav: erst ab xl (1280px) — bei lg/Tablet zu eng */}
+          <div className="hidden xl:flex items-center gap-x-8 mr-auto pl-8 xl:pl-12">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
@@ -129,7 +133,7 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
-          <div className="flex items-center gap-x-5 md:gap-x-6 lg:pl-8 xl:pl-12">
+          <div className="flex items-center gap-x-3 sm:gap-x-4 md:gap-x-5 shrink-0">
             <Link href="/login?next=/account/dashboard" className="hidden md:block">
               <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">person</span>
             </Link>
@@ -138,12 +142,49 @@ export default function HomePage() {
             </Link>
             <Link
               href="/quiz/question-1-brewing-method"
-              className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
+              className="bg-primary text-white px-3 sm:px-5 md:px-6 py-2.5 md:py-3 text-[10px] sm:text-[11px] md:text-[12px] uppercase tracking-[0.15em] sm:tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
             >
               Quiz starten
             </Link>
+            {/* Hamburger — nur < xl, wo die Desktop-Nav versteckt ist */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((o) => !o)}
+              className="xl:hidden text-primary hover:text-tertiary transition-colors"
+              aria-label="Menü"
+              aria-expanded={mobileMenuOpen}
+            >
+              <span className="material-symbols-outlined text-3xl">
+                {mobileMenuOpen ? "close" : "menu"}
+              </span>
+            </button>
           </div>
         </nav>
+        {/* Mobile/Tablet-Dropdown */}
+        {mobileMenuOpen && (
+          <div className="xl:hidden bg-[#F9F5F0] border-b border-primary/10 shadow-lg">
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex flex-col">
+              {navLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-primary hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-sm py-3 border-b border-primary/5 last:border-b-0"
+                >
+                  {l.label}
+                </Link>
+              ))}
+              <Link
+                href="/login?next=/account/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-primary hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-sm py-3 flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-lg">person</span>
+                Mein Konto
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* pt = einheitliche Header-Hoehe (h-20 md:h-24). */}
@@ -234,7 +275,7 @@ export default function HomePage() {
                 { n: "03", title: "Perfekten Kaffee erhalten", desc: "Direct Trade Bohnen aus Schweizer Röstereien, röstfrisch in deinen Briefkasten geliefert." },
               ].map((s) => (
                 <div key={s.n} className="relative group">
-                  <span className="text-9xl font-headline font-bold text-primary/5 absolute -top-12 -left-4 -z-0 select-none">
+                  <span className="text-7xl md:text-9xl font-headline font-bold text-primary/5 absolute -top-8 md:-top-12 -left-2 md:-left-4 -z-0 select-none">
                     {s.n}
                   </span>
                   <div className="relative z-10">

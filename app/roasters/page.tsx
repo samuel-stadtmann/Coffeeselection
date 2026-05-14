@@ -30,10 +30,10 @@ export default async function RoastersOverviewPage() {
   const allCities = Array.from(new Set(roasters.map((r) => r.city).filter(Boolean) as string[])).sort();
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
+            <img alt="Coffee Selection" className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left mr-8 shrink-0" src={LOGO} />
           </Link>
           <div className="hidden lg:flex items-center space-x-10">
             {navLinks.map((l) => (
@@ -63,7 +63,7 @@ export default async function RoastersOverviewPage() {
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20 text-center">
           <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-6 block">

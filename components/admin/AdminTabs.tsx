@@ -23,8 +23,8 @@ export default function AdminTabs() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-primary/10 mb-12">
-      <ul className="flex gap-2 -mb-px">
+    <nav className="border-b border-primary/10 mb-12 overflow-x-auto">
+      <ul className="flex gap-2 -mb-px whitespace-nowrap">
         {TABS.map((tab) => {
           const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           return (

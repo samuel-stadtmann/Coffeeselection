@@ -26,10 +26,10 @@ export default async function RoasterLoginPage({
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
       <header className="border-b border-primary/5 overflow-hidden">
         <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection"
-              className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16"
+              className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left"
               src={LOGO}
             />
           </Link>
