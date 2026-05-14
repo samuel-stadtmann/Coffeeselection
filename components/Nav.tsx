@@ -14,9 +14,10 @@ export default function Nav() {
   return (
     <header className="fixed top-0 w-full z-[60] flex justify-between items-center px-6 py-4 h-16 bg-[#fdf9f4] dark:bg-[#1a0c03] glass-nav">
       <div className="flex items-center gap-4">
-        <button className="md:hidden">
-          <span className="material-symbols-outlined text-[#341706] dark:text-[#fdf9f4]">menu</span>
-        </button>
+        {/* Hamburger-Button entfernt: hatte keinen onClick (toter Code).
+            Mobile-Navigation laeuft ueber die MobileNav-Bottom-Bar, die
+            auf diesen Seiten parallel gerendert wird — kein zweites
+            Mobile-Menue noetig. */}
         <Link href="/" className="font-serif text-xl font-bold text-[#341706] dark:text-[#fdf9f4] tracking-tighter">
           Digital Sommelier
         </Link>

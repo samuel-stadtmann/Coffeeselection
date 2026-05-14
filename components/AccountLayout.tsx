@@ -6,20 +6,22 @@ const LOGO = "/logo.png";
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
+      {/* Einheitlicher Header: feste Hoehe h-20 md:h-24, Logo via
+          overflow-hidden sauber beschnitten. Konsistent mit Home + QuizShell. */}
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 overflow-hidden bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0">
+            <img alt="Coffee Selection" className="h-36 md:h-44 w-auto object-contain shrink-0" src={LOGO} />
           </Link>
           <Link
             href="/quiz/question-1-brewing-method"
-            className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
+            className="bg-primary text-white px-4 md:px-6 py-3 text-[10px] md:text-[12px] uppercase tracking-[0.15em] md:tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
           >
             Quiz wiederholen
           </Link>
         </nav>
       </header>
-      <main className="pt-36 md:pt-40 pb-20">
+      <main className="pt-20 md:pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
             <div className="lg:col-span-3">

@@ -70,7 +70,7 @@ export default function QuizQuestionPage({ params }: { params: Promise<{ step: s
     return (
       <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
         <QuizHeader step={position ?? 1} totalSteps={TOTAL_STEPS} />
-        <main className="flex-1 flex items-center justify-center pt-36 md:pt-40">
+        <main className="flex-1 flex items-center justify-center pt-20 md:pt-24">
           <p className="text-on-surface-variant">Lade Frage…</p>
         </main>
       </div>
@@ -118,7 +118,7 @@ export default function QuizQuestionPage({ params }: { params: Promise<{ step: s
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
       <QuizHeader step={question.position} totalSteps={TOTAL_STEPS} />
 
-      <main className="flex-1 flex flex-col pt-36 md:pt-40 pb-32">
+      <main className="flex-1 flex flex-col pt-20 md:pt-24 pb-32">
         <div className="max-w-4xl mx-auto px-6 md:px-8 w-full flex-1 flex flex-col">
           <div className="mb-10 md:mb-14">
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
