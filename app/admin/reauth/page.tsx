@@ -37,10 +37,10 @@ export default async function AdminReauthPage({
 
   return (
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <div className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
+            <img alt="Coffee Selection" className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left" src={LOGO} />
           </Link>
           <Link href="/" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors flex items-center gap-2">
             <span className="material-symbols-outlined text-base">close</span>
@@ -49,7 +49,7 @@ export default async function AdminReauthPage({
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center pt-36 md:pt-40 pb-16 px-6">
+      <main className="flex-1 flex items-center justify-center pt-20 md:pt-24 pb-16 px-6">
         <div className="w-full max-w-md">
           <div className="text-center mb-10">
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">

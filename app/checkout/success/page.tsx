@@ -86,18 +86,18 @@ export default async function CheckoutSuccessPage({
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection"
-              className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16"
+              className="h-24 sm:h-32 md:h-40 lg:h-44 w-auto object-contain object-left"
               src={LOGO}
             />
           </Link>
         </div>
       </header>
-      <main className="pt-36 md:pt-40 pb-12">
+      <main className="pt-20 md:pt-24 pb-12">
         <div className="max-w-2xl mx-auto px-6 md:px-8">{children}</div>
       </main>
     </div>
