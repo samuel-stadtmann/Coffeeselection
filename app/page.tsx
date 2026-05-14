@@ -275,7 +275,7 @@ export default function HomePage() {
                 { n: "03", title: "Perfekten Kaffee erhalten", desc: "Direct Trade Bohnen aus Schweizer Röstereien, röstfrisch in deinen Briefkasten geliefert." },
               ].map((s) => (
                 <div key={s.n} className="relative group">
-                  <span className="text-9xl font-headline font-bold text-primary/5 absolute -top-12 -left-4 -z-0 select-none">
+                  <span className="text-7xl md:text-9xl font-headline font-bold text-primary/5 absolute -top-8 md:-top-12 -left-2 md:-left-4 -z-0 select-none">
                     {s.n}
                   </span>
                   <div className="relative z-10">

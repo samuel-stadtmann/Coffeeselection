@@ -160,7 +160,7 @@ export default function DiscoverySubscriptionPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
               {steps.map((s) => (
                 <div key={s.n} className="relative">
-                  <span className="text-9xl font-headline font-bold text-primary/5 absolute -top-12 -left-4 -z-0 select-none">{s.n}</span>
+                  <span className="text-7xl md:text-9xl font-headline font-bold text-primary/5 absolute -top-8 md:-top-12 -left-2 md:-left-4 -z-0 select-none">{s.n}</span>
                   <div className="relative z-10">
                     <h3 className="text-lg mb-4 text-primary uppercase tracking-widest font-headline font-bold">{s.title}</h3>
                     <p className="text-on-surface-variant leading-relaxed text-[15px]">{s.desc}</p>
