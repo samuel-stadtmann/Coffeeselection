@@ -151,7 +151,11 @@ export default function HomePage() {
       {/* pt = exakt die feste Header-Hoehe (h-20 md:h-24 = 80/96px). */}
       <main className="pt-20 md:pt-24">
         {/* SECTION 1 — HERO */}
-        <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 py-16 md:py-24">
+        {/* items-start statt items-center: das Bild ist aspect-square und
+            dadurch sehr hoch — items-center wuerde den kuerzeren Text-Block
+            in der hohen Grid-Zeile vertikal zentrieren und einen grossen
+            Leerraum oben erzeugen. items-start = beide oben buendig. */}
+        <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-start gap-10 md:gap-16 py-12 md:py-16">
           <div className="col-span-12 lg:col-span-5">
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-6 block">
               Premium Swiss Specialty Coffee
