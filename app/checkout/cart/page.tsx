@@ -58,7 +58,7 @@ export default function CartPage() {
           <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection"
-              className="h-12 sm:h-16 md:h-28 lg:h-40 w-auto object-contain object-left"
+              className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left"
               src={LOGO}
             />
           </Link>

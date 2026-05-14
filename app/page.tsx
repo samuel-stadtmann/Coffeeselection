@@ -117,7 +117,7 @@ export default function HomePage() {
           <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img
               alt="Coffee Selection Logo"
-              className="h-12 sm:h-16 md:h-28 lg:h-40 w-auto object-contain object-left shrink-0"
+              className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0"
               src={LOGO}
             />
           </Link>
@@ -660,7 +660,7 @@ export default function HomePage() {
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-16 md:py-20">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-10">
           <div className="col-span-2">
-            <img alt="Coffee Selection Logo" className="h-56 md:h-72 w-auto object-contain mb-4" src={LOGO} />
+            <img alt="Coffee Selection Logo" className="h-16 md:h-24 w-auto object-contain mb-4" src={LOGO} />
             <p className="text-sm text-on-surface-variant leading-relaxed mb-6 max-w-xs">
               Handverlesen. Direkt zu dir. Premium Specialty Coffee von den besten Schweizer Röstereien.
             </p>

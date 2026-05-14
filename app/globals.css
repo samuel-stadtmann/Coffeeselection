@@ -59,6 +59,15 @@
       grid-column: 1 / -1 !important;
     }
   }
+  /* Horizontale Scroll-Leisten (Tab-Navigationen auf Mobile) ohne
+     sichtbaren Scrollbalken — der Balken wirkt dort wie ein Fehler. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .glass-nav {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
