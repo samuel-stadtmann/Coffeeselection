@@ -145,9 +145,11 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40">
+      {/* pt + Hero-pt reduziert: Sektion rutscht naeher an den Header,
+          damit der Hero im sichtbaren Bereich bleibt. Layout unveraendert. */}
+      <main className="pt-28 md:pt-32">
         {/* SECTION 1 — HERO */}
-        <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 py-16 md:py-24">
+        <section className="max-w-7xl mx-auto px-6 md:px-8 editorial-grid items-center gap-10 md:gap-16 pt-6 md:pt-8 pb-16 md:pb-24">
           <div className="col-span-12 lg:col-span-5">
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-6 block">
               Premium Swiss Specialty Coffee
@@ -207,8 +209,8 @@ export default function HomePage() {
         </section>
 
         {/* SECTION 3 — HOW IT WORKS */}
-        {/* scroll-mt-32: damit der fixed Header beim Anchor-Sprung nicht
-            den Sektions-Titel ueberdeckt */}
+        {/* scroll-mt-32: Offset fuer den fixed Header beim Anchor-Sprung
+            von 'Wie es funktioniert'. */}
         <section
           id="wie-es-funktioniert"
           className="bg-surface-container-low py-20 md:py-24 scroll-mt-32"
