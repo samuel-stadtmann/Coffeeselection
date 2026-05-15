@@ -14,6 +14,7 @@ const TABS: Tab[] = [
   { href: "/admin/metrics", label: "Metriken" },
   { href: "/admin/coffees", label: "Coffees" },
   { href: "/admin/roasters", label: "Röster" },
+  { href: "/admin/rewards", label: "Rewards" },
   { href: "/admin/health", label: "System" },
   // Zukuenftig:
   // { href: "/admin/users", label: "Kunden" },
