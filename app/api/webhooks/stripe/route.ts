@@ -389,6 +389,15 @@ async function handlePaymentSucceeded(
     `[webhooks/stripe] ✓ event ${eventId} → order ${order.id} marked paid (CHF ${amountTotalChf})`
   );
 
+  // ---- Rewards-Earnings (Promo-Code-Buchung + Loyalty-Bonus) -------------
+  try {
+    const { processOrderEarnings } = await import("@/lib/db/rewards");
+    await processOrderEarnings(svc, order.id, order.customer_id);
+  } catch (e) {
+    console.error("[webhooks/stripe] processOrderEarnings failed", e);
+    // nicht fatal — Order ist bereits paid
+  }
+
   // ---- Subscription-Activation (nur bei mode=subscription) ----------------
   // Wenn die Session ein Abo erzeugt hat, holen wir die Stripe-Subscription
   // ab und aktivieren unseren DB-Record.
@@ -865,6 +874,16 @@ async function handleInvoicePaid(
   console.log(
     `[webhooks/stripe] ✓ renewal order ${order.order_number} angelegt fuer subscription ${ourSub.id} (CHF ${totalChf})`
   );
+
+  // Loyalty-Bonus auch fuer Renewal-Orders zaehlen (jede 10. paid Order
+  // bekommt CHF 10 Treuebonus). Promo-Codes sind hier nicht relevant —
+  // Renewals haben keinen Code-Input.
+  try {
+    const { processOrderEarnings } = await import("@/lib/db/rewards");
+    await processOrderEarnings(svc, order.id, ourSub.customer_id);
+  } catch (e) {
+    console.error("[webhooks/stripe] processOrderEarnings (renewal) failed", e);
+  }
 
   // Renewal-Mail an Customer
   await sendSubscriptionRenewalMail(svc, ourSub.id, order.id);

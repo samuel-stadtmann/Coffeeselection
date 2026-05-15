@@ -36,6 +36,57 @@ export default function ReviewPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [promoState, setPromoState] = useState<
+    | { kind: "idle" }
+    | { kind: "validating" }
+    | { kind: "valid"; code: string; discount_chf: number; label: string }
+    | { kind: "error"; message: string }
+  >({ kind: "idle" });
+
+  const checkPromo = async () => {
+    const code = promoCodeInput.trim();
+    if (!code) return;
+    setPromoState({ kind: "validating" });
+    const res = await fetch("/api/promo/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    }).then((r) => r.json());
+    if (res.valid) {
+      setPromoState({
+        kind: "valid",
+        code: res.code,
+        discount_chf: Number(res.discount_chf),
+        label: res.label ?? "Aktion",
+      });
+    } else {
+      const reasonLabel: Record<string, string> = {
+        empty_code: "Bitte Code eingeben",
+        code_unknown: "Code unbekannt",
+        code_inactive: "Code ist nicht aktiv",
+        code_expired: "Code ist abgelaufen",
+        code_not_yet_valid: "Code ist noch nicht gültig",
+        code_fully_redeemed: "Code wurde vollständig eingelöst",
+        code_already_used_by_you: "Diesen Code hast du bereits eingelöst",
+        no_self_referral: "Eigener Empfehlungs-Code nicht einlösbar",
+        already_referred: "Du wurdest bereits empfohlen",
+        auth_required: "Bitte einloggen",
+      };
+      setPromoState({
+        kind: "error",
+        message: reasonLabel[res.reason] ?? "Code ungültig",
+      });
+    }
+  };
+
+  const removePromo = () => {
+    setPromoCodeInput("");
+    setPromoState({ kind: "idle" });
+  };
+
+  const promoDiscount =
+    promoState.kind === "valid" ? promoState.discount_chf : 0;
 
   const shipping =
     subtotal >= FREE_SHIPPING_THRESHOLD_CHF || subtotal === 0
@@ -119,6 +170,8 @@ export default function ReviewPage() {
                   data.billing_address.delivery_instructions || null,
               },
           customer_note: data.customer_note || null,
+          promo_code:
+            promoState.kind === "valid" ? promoState.code : null,
         }),
       }).then((r) => r.json());
 
@@ -293,6 +346,55 @@ export default function ReviewPage() {
             </Section>
           )}
 
+          {/* Promo-Code */}
+          <div className="bg-white p-6 md:p-8 mb-6 shadow-sm">
+            <h2 className="font-headline font-bold text-base text-primary uppercase tracking-tight mb-4">
+              Promo-Code oder Empfehlungs-Code
+            </h2>
+            {promoState.kind === "valid" ? (
+              <div className="flex items-center justify-between gap-3 bg-tertiary/10 border-l-4 border-tertiary p-4">
+                <div>
+                  <p className="font-headline font-bold text-primary uppercase tracking-tight text-sm">
+                    {promoState.code}
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    {promoState.label} · −CHF {promoState.discount_chf.toFixed(2)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={removePromo}
+                  className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
+                >
+                  Entfernen
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={promoCodeInput}
+                  onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                  placeholder="z.B. WELCOME10 oder MARCO10"
+                  className="flex-1 bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base uppercase tracking-wider"
+                />
+                <button
+                  type="button"
+                  onClick={checkPromo}
+                  disabled={promoState.kind === "validating" || !promoCodeInput.trim()}
+                  className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+                >
+                  {promoState.kind === "validating" ? "…" : "Einlösen"}
+                </button>
+              </div>
+            )}
+            {promoState.kind === "error" && (
+              <p className="text-xs text-red-600 font-headline uppercase tracking-widest mt-3">
+                {promoState.message}
+              </p>
+            )}
+          </div>
+
           {/* Total */}
           <div className="bg-primary text-on-primary p-6 md:p-8 mb-6">
             <h2 className="font-headline font-bold text-base uppercase tracking-tight mb-4">
@@ -307,6 +409,14 @@ export default function ReviewPage() {
                 label="Versand"
                 value={shipping === 0 ? "Gratis" : `CHF ${shipping.toFixed(2)}`}
               />
+              {promoDiscount > 0 && (
+                <SummaryRow
+                  label={`Rabatt (${
+                    promoState.kind === "valid" ? promoState.code : ""
+                  })`}
+                  value={`−CHF ${promoDiscount.toFixed(2)}`}
+                />
+              )}
               <p className="text-xs text-on-primary/60 pt-1">
                 MWST ist im Preis enthalten (Brutto).
               </p>
@@ -314,7 +424,7 @@ export default function ReviewPage() {
             <div className="border-t border-on-primary/20 pt-4">
               <SummaryRow
                 label="Total"
-                value={`CHF ${total.toFixed(2)}`}
+                value={`CHF ${Math.max(0, total - promoDiscount).toFixed(2)}`}
                 bold
               />
             </div>
@@ -342,7 +452,7 @@ export default function ReviewPage() {
             >
               {submitting
                 ? "Weiterleitung zu Stripe …"
-                : `Bezahlen · CHF ${total.toFixed(2)}`}
+                : `Bezahlen · CHF ${Math.max(0, total - promoDiscount).toFixed(2)}`}
             </button>
           </div>
         </div>
@@ -355,7 +465,7 @@ export default function ReviewPage() {
             Total
           </span>
           <span className="font-headline font-bold text-xl">
-            CHF {total.toFixed(2)}
+            CHF {Math.max(0, total - promoDiscount).toFixed(2)}
           </span>
         </div>
         <button
