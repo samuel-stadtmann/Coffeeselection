@@ -174,6 +174,11 @@ Aktuell nutzt der Match-Score eine reine Manhattan-Distanz auf 5 Sensorik-Achsen
 
 **Wichtig:** Solange wir auf der reinen Sensorik-Distanz bleiben, ist der Score sehr nachvollziehbar und manuell auditierbar. Der Wechsel zu Embeddings macht's mächtiger, aber weniger erklärbar — Trade-off bewusst entscheiden.
 
+### Profil-Reife (Konfidenz-Kurve im Geschmacksprofil)
+- [ ] Auf `/account/taste-profile` gab es eine "Profil-Reife"-Box mit hardcoded 6-Monats-Trendwerten. Vor Launch entfernt — wieder einbauen, wenn echte Daten da sind.
+- [ ] Datenquelle Vorschlag: pro Customer monatlich einen Snapshot ablegen mit (a) Anzahl Quiz-Wiederholungen, (b) Anzahl `coffee_ratings`, (c) Streuung der Ratings, (d) `quiz_responses.confidence` des aktiven Quiz. Aggregiertes Mass = "Reife in %", visualisiert als Spark-Bars über die letzten 6–12 Monate.
+- [ ] Einfache MVP-Variante ohne Snapshot-Tabelle: live berechnete Reife = `min(100, ratings_count * 10 + confidence * 50)` — keine Zeitreihe, nur Status quo. Lieber so als gar nichts.
+
 ### Empfehlungs-Begründungen dynamisch aus DB
 - [ ] Aktuell zeigt `/recommendation/alternatives` für jede Alternative einen **statischen** Text ("Sehr nah an deinem Profil — du darfst ihn unbesorgt probieren"). Funktional, aber nicht datengetrieben.
 - [ ] Soll: Begründung dynamisch ableiten aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee-Profil — z.B. "Etwas weniger Säure, dafür mehr Körper als dein Match. Falls du gelegentlich kräftigere Brews magst, perfekt."
