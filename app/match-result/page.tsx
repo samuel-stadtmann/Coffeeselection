@@ -167,6 +167,7 @@ export default function MatchResultPage() {
   const [state, setState] = useState<LoadState>("loading");
   const [adding, setAdding] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -177,6 +178,7 @@ export default function MatchResultPage() {
         setErrMsg("Bitte einloggen.");
         return;
       }
+      setLoggedIn(true);
       const { data: customer } = await supabase
         .from("customers")
         .select("id, taste_type_id")
@@ -282,7 +284,10 @@ export default function MatchResultPage() {
           <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left" src={LOGO} />
           </Link>
-          <Link href="/login?next=/account/dashboard" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors">
+          <Link
+            href={loggedIn ? "/account/dashboard" : "/login?next=/account/dashboard"}
+            className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors"
+          >
             Mein Konto
           </Link>
         </div>
