@@ -56,15 +56,15 @@ create table if not exists public.customer_credits (
   created_at     timestamptz not null default now()
 );
 
-create index customer_credits_customer_idx
+create index if not exists customer_credits_customer_idx
   on public.customer_credits(customer_id, created_at desc);
-create index customer_credits_reason_idx
+create index if not exists customer_credits_reason_idx
   on public.customer_credits(reason);
-create index customer_credits_order_idx
+create index if not exists customer_credits_order_idx
   on public.customer_credits(order_id) where order_id is not null;
-create index customer_credits_referral_idx
+create index if not exists customer_credits_referral_idx
   on public.customer_credits(referral_id) where referral_id is not null;
-create index customer_credits_expires_idx
+create index if not exists customer_credits_expires_idx
   on public.customer_credits(expires_on) where expires_on is not null;
 
 alter table public.customer_credits enable row level security;
@@ -128,11 +128,12 @@ create table if not exists public.marketing_campaigns (
   updated_at               timestamptz not null default now()
 );
 
-create index marketing_campaigns_active_idx
+create index if not exists marketing_campaigns_active_idx
   on public.marketing_campaigns(active) where active = true;
-create index marketing_campaigns_valid_idx
+create index if not exists marketing_campaigns_valid_idx
   on public.marketing_campaigns(valid_until) where valid_until is not null;
 
+drop trigger if exists trg_marketing_campaigns_updated_at on public.marketing_campaigns;
 create trigger trg_marketing_campaigns_updated_at
   before update on public.marketing_campaigns
   for each row execute function public.set_updated_at();
@@ -154,6 +155,8 @@ create policy "campaigns_all_service"
   using (true) with check (true);
 
 -- FK auf customer_credits.campaign_id nachreichen
+alter table public.customer_credits
+  drop constraint if exists customer_credits_campaign_fk;
 alter table public.customer_credits
   add constraint customer_credits_campaign_fk
   foreign key (campaign_id) references public.marketing_campaigns(id) on delete set null;
