@@ -212,6 +212,14 @@ export default function MatchResultPage() {
         return;
       }
 
+      // Defensive: nach den Branches oben ist id immer ein number, aber
+      // TS narrowing greift bei let-Reassignment nicht durchgaengig.
+      if (id == null) {
+        setState("error");
+        setErrMsg("Interner Fehler: kein Geschmackstyp ermittelt.");
+        return;
+      }
+
       const type = await getTasteTypeById(supabase, id);
       if (!type) {
         setState("error");
