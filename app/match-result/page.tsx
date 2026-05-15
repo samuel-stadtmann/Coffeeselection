@@ -188,15 +188,14 @@ export default function MatchResultPage() {
         return;
       }
 
-      let id: number | null = customer.taste_type_id ?? null;
+      // Lokale Antworten haben Vorrang: Wer das Quiz wiederholt, will
+      // ein NEUES Resultat — auch wenn schon ein taste_type_id am Customer
+      // klebt. persistAndScoreQuiz deaktiviert dann die alte quiz_response
+      // und ueberschreibt customers.taste_type_id sauber.
+      let id: number | null = null;
+      const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
 
-      // Wenn noch kein Resultat: localStorage prüfen, persistieren
-      if (id == null) {
-        const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
-        if (localAnswers.length === 0) {
-          setState("no-quiz");
-          return;
-        }
+      if (localAnswers.length > 0) {
         const result = await persistAndScoreQuiz(supabase, customer.id, localAnswers);
         if (result.error || result.tasteTypeId == null) {
           setState("error");
@@ -205,6 +204,12 @@ export default function MatchResultPage() {
         }
         clearLocalAnswers();
         id = result.tasteTypeId;
+      } else if (customer.taste_type_id != null) {
+        // Kein neuer Quiz-Durchgang, aber bereits ein gespeichertes Resultat.
+        id = customer.taste_type_id;
+      } else {
+        setState("no-quiz");
+        return;
       }
 
       const type = await getTasteTypeById(supabase, id);
