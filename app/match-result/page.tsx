@@ -167,6 +167,7 @@ export default function MatchResultPage() {
   const [state, setState] = useState<LoadState>("loading");
   const [adding, setAdding] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -177,6 +178,7 @@ export default function MatchResultPage() {
         setErrMsg("Bitte einloggen.");
         return;
       }
+      setLoggedIn(true);
       const { data: customer } = await supabase
         .from("customers")
         .select("id, taste_type_id")
@@ -188,15 +190,14 @@ export default function MatchResultPage() {
         return;
       }
 
-      let id: number | null = customer.taste_type_id ?? null;
+      // Lokale Antworten haben Vorrang: Wer das Quiz wiederholt, will
+      // ein NEUES Resultat — auch wenn schon ein taste_type_id am Customer
+      // klebt. persistAndScoreQuiz deaktiviert dann die alte quiz_response
+      // und ueberschreibt customers.taste_type_id sauber.
+      let id: number | null = null;
+      const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
 
-      // Wenn noch kein Resultat: localStorage prüfen, persistieren
-      if (id == null) {
-        const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
-        if (localAnswers.length === 0) {
-          setState("no-quiz");
-          return;
-        }
+      if (localAnswers.length > 0) {
         const result = await persistAndScoreQuiz(supabase, customer.id, localAnswers);
         if (result.error || result.tasteTypeId == null) {
           setState("error");
@@ -205,6 +206,20 @@ export default function MatchResultPage() {
         }
         clearLocalAnswers();
         id = result.tasteTypeId;
+      } else if (customer.taste_type_id != null) {
+        // Kein neuer Quiz-Durchgang, aber bereits ein gespeichertes Resultat.
+        id = customer.taste_type_id;
+      } else {
+        setState("no-quiz");
+        return;
+      }
+
+      // Defensive: nach den Branches oben ist id immer ein number, aber
+      // TS narrowing greift bei let-Reassignment nicht durchgaengig.
+      if (id == null) {
+        setState("error");
+        setErrMsg("Interner Fehler: kein Geschmackstyp ermittelt.");
+        return;
       }
 
       const type = await getTasteTypeById(supabase, id);
@@ -269,7 +284,10 @@ export default function MatchResultPage() {
           <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
             <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left" src={LOGO} />
           </Link>
-          <Link href="/login?next=/account/dashboard" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors">
+          <Link
+            href={loggedIn ? "/account/dashboard" : "/login?next=/account/dashboard"}
+            className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors"
+          >
             Mein Konto
           </Link>
         </div>
