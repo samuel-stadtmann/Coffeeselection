@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   useCart,
   unitPriceForWeight,
@@ -11,6 +12,8 @@ import {
   type CartWeight,
 } from "@/lib/cart";
 import { INTERVAL_LABELS } from "@/lib/subscription-constants";
+import { getLocalAnswers } from "@/lib/quiz-storage";
+import { createClient } from "@/lib/supabase/client";
 import CheckoutStepper from "@/components/CheckoutStepper";
 
 const LOGO = "/logo.png";
@@ -231,6 +234,34 @@ export default function CartPage() {
 
 
 function EmptyCart() {
+  // Quiz-CTA-Variante: "wiederholen" wenn User das Quiz schon gemacht
+  // hat (lokal vorhandene Antworten ODER taste_type_id am Customer),
+  // sonst "starten". Default vor Hydration: starten (sichere Annahme,
+  // keine Flicker — der Button ist gerendert, Label wechselt evtl.).
+  const [quizDone, setQuizDone] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (getLocalAnswers().length > 0) {
+        if (!cancelled) setQuizDone(true);
+        return;
+      }
+      const supabase = createClient();
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data } = await supabase
+        .from("customers")
+        .select("taste_type_id")
+        .eq("auth_user_id", auth.user.id)
+        .maybeSingle();
+      if (!cancelled) setQuizDone(data?.taste_type_id != null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="bg-white p-12 md:p-16 text-center shadow-sm">
       <span className="material-symbols-outlined text-6xl text-on-surface-variant block mb-4">
@@ -242,12 +273,20 @@ function EmptyCart() {
       <p className="text-on-surface-variant mb-6">
         Entdecke unsere Auswahl an Spezialitätenkaffees aus der Schweiz.
       </p>
-      <Link
-        href="/coffee"
-        className="inline-block bg-primary text-on-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
-      >
-        Kaffees entdecken
-      </Link>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <Link
+          href="/quiz/question-1-brewing-method"
+          className="inline-block bg-primary text-on-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
+        >
+          {quizDone ? "Quiz wiederholen" : "Quiz starten"}
+        </Link>
+        <Link
+          href="/coffee"
+          className="inline-block border-2 border-primary text-primary px-8 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+        >
+          Kaffees entdecken
+        </Link>
+      </div>
     </div>
   );
 }
