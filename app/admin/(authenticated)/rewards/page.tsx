@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createServiceClient } from "@/lib/supabase/service";
 import CampaignForm from "./CampaignForm";
 import CampaignRow from "./CampaignRow";
+import InvoiceBackfillButton from "./InvoiceBackfillButton";
 
 export const metadata: Metadata = {
   title: "Admin · Rewards — Coffee Selection",
@@ -258,6 +259,14 @@ export default async function AdminRewardsPage() {
             </table>
           </div>
         )}
+      </section>
+
+      {/* Ops */}
+      <section className="bg-white p-6 md:p-8 shadow-sm">
+        <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight mb-6">
+          Operations
+        </h2>
+        <InvoiceBackfillButton />
       </section>
 
       <Link

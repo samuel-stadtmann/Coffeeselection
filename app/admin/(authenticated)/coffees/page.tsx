@@ -104,12 +104,20 @@ export default async function AdminCoffeesPage({
             {needsAttention.length} unter Score 75.
           </p>
         </div>
-        <Link
-          href="/admin/coffees/new"
-          className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
-        >
-          + Neuer Coffee
-        </Link>
+        <div className="flex gap-2 flex-wrap">
+          <Link
+            href="/admin/coffees/sensorik"
+            className="border border-primary text-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+          >
+            Sensorik nachpflegen
+          </Link>
+          <Link
+            href="/admin/coffees/new"
+            className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
+          >
+            + Neuer Coffee
+          </Link>
+        </div>
       </div>
 
       <ScoreFilter active={onlyBelowThreshold} belowCount={needsAttention.length} />

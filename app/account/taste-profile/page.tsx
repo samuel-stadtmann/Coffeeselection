@@ -180,18 +180,18 @@ export default async function TasteProfilePage() {
               Quiz wiederholen →
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
             {answersDisplay.map((qa) => (
               <div
                 key={qa.position}
-                className="flex justify-between items-start gap-4 py-3 border-b border-surface-container last:border-0"
+                className="py-3 border-b border-surface-container last:border-0"
               >
-                <span className="text-sm text-on-surface-variant">
+                <p className="text-xs text-on-surface-variant mb-1">
                   {qa.position}. {qa.question}
-                </span>
-                <span className="font-headline text-xs uppercase tracking-widest font-bold text-primary text-right whitespace-nowrap">
+                </p>
+                <p className="font-headline text-sm uppercase tracking-wider font-bold text-primary break-words">
                   {qa.answer}
-                </span>
+                </p>
               </div>
             ))}
           </div>
