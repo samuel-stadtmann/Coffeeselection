@@ -138,6 +138,16 @@ export default function OrderHistoryView({ orders }: { orders: OrderRow[] }) {
                       Bewerten
                     </Link>
                   )}
+                  {o.invoiceUrl && (
+                    <a
+                      href={o.invoiceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors px-3 py-1 border border-surface-container"
+                    >
+                      Rechnung
+                    </a>
+                  )}
                   <button
                     onClick={() => handleReorder(o)}
                     disabled={reordering === o.id || o.items.every((i) => !i.coffee_slug)}
