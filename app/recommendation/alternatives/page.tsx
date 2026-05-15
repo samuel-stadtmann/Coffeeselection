@@ -6,6 +6,7 @@ import { getTasteTypeById } from "@/lib/db/taste-types";
 import {
   getCoffeesForTasteType,
   getNeighborTasteTypes,
+  reasoningForMatch,
 } from "@/lib/db/recommendations";
 import AlternativeCartButtons from "./AlternativeCartButtons";
 
@@ -35,6 +36,24 @@ export default async function AlternativesPage() {
   const userTasteType = userTasteTypeId
     ? await getTasteTypeById(supabase, userTasteTypeId)
     : null;
+
+  // Roh-Sensorik-Profil des User-Typs (1-5 Skala) fuer reasoningForMatch.
+  // getTasteTypeById liefert 0-100, reasoningForMatch braucht aber 1-5.
+  let userProfile1to5: {
+    acidity: number | null;
+    body: number | null;
+    sweetness: number | null;
+    bitterness: number | null;
+    complexity: number | null;
+  } | null = null;
+  if (userTasteTypeId) {
+    const { data } = await supabase
+      .from("taste_types")
+      .select("acidity, body, sweetness, bitterness, complexity")
+      .eq("id", userTasteTypeId)
+      .maybeSingle();
+    userProfile1to5 = data;
+  }
 
   // Top-Match des Users (zum Ausschluss aus Alternatives)
   const topMatch = userTasteTypeId
@@ -123,8 +142,15 @@ export default async function AlternativesPage() {
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {alternatives.map(({ coffee, neighborName }) => {
                 const unit250 = (coffee.price_chf * 250) / coffee.weight_g;
-                const reason = coffee.tasting_summary || coffee.short_description;
-                const aromaHead =
+                // Algorithmische Begruendung: laengste Profil-Differenz zwischen
+                // User-Geschmackstyp und Coffee, dazu der Tasting-Summary als
+                // sekundaere Beschreibung. Fallback auf aroma_families wenn kein
+                // tasting_summary da ist.
+                const reasoning = userProfile1to5
+                  ? reasoningForMatch(userProfile1to5, coffee)
+                  : null;
+                const taste = coffee.tasting_summary || coffee.short_description;
+                const aromas =
                   coffee.aroma_families && coffee.aroma_families.length > 0
                     ? coffee.aroma_families.slice(0, 3).join(" · ")
                     : null;
@@ -148,21 +174,35 @@ export default async function AlternativesPage() {
                         <p className="text-xs text-on-surface-variant">{coffee.roaster?.name ?? ""}</p>
                       </div>
 
-                      {/* Begründung — dynamisch: Nachbar-Typ + Aromen + tasting_summary */}
+                      {/* Begründung — dynamisch:
+                          - Headline: groesste Profil-Diff aus reasoningForMatch
+                            (z.B. "Mehr Säure", "Weniger Körper")
+                          - Detail-Zeile aus dem Algorithmus
+                          - Plus tasting_summary als Geschmacks-Beschreibung */}
                       <div className="bg-tertiary/5 border-l-4 border-tertiary p-5 mb-6">
                         <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">
                           Warum für dich
                         </span>
-                        {aromaHead && (
+                        {reasoning ? (
                           <p className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-2">
-                            {aromaHead}
+                            {reasoning.headline}
+                          </p>
+                        ) : aromas ? (
+                          <p className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-2">
+                            {aromas}
+                          </p>
+                        ) : null}
+                        {reasoning && (
+                          <p className="text-sm text-on-surface-variant leading-relaxed mb-2">
+                            {reasoning.detail}
                           </p>
                         )}
-                        {reason ? (
-                          <p className="text-sm text-on-surface-variant leading-relaxed">
-                            {reason}
+                        {taste && (
+                          <p className="text-sm text-on-surface-variant leading-relaxed italic">
+                            „{taste}"
                           </p>
-                        ) : (
+                        )}
+                        {!reasoning && !taste && (
                           <p className="text-sm text-on-surface-variant leading-relaxed">
                             Angrenzend an „{neighborName}" — knapp neben deinem Geschmackstyp.
                           </p>
