@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
 import { verifyRatingToken } from "@/lib/rating-token";
+import { triggerDriftCustomerEmbedding } from "@/lib/db/embeddings";
 
 /**
  * PA-Loop3.1: GET /api/rate/via-token?t=TOKEN&s=N
@@ -96,6 +97,7 @@ export async function GET(req: NextRequest) {
       console.error("[rate/via-token] update failed", updErr);
       return errorRedirect("db_error");
     }
+    void triggerDriftCustomerEmbedding(svc, content.customer_id, content.coffee_id, stars);
     return successRedirect(coffee.slug, stars);
   }
 
@@ -114,6 +116,7 @@ export async function GET(req: NextRequest) {
     return errorRedirect("db_error");
   }
 
+  void triggerDriftCustomerEmbedding(svc, content.customer_id, content.coffee_id, stars);
   return successRedirect(coffee.slug, stars);
 }
 

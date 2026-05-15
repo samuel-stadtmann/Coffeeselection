@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { triggerDriftCustomerEmbedding } from "@/lib/db/embeddings";
 
 // Playbook 9.10: POST /api/rating/submit
 //   Input: { coffee_id, order_id?, stars (1-5), tags?, comment? }
@@ -76,6 +78,17 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  // Embedding-Drift: bewegt taste_embedding nach jedem Rating Richtung
+  // (4-5 Sterne) oder weg von (1-2 Sterne) coffees.flavor_embedding.
+  // Service-Client weil drift_customer_embedding security definer ist
+  // und die User-Session-RLS sonst blockt.
+  void triggerDriftCustomerEmbedding(
+    createServiceClient(),
+    customer.id,
+    parsed.coffee_id,
+    parsed.stars
+  );
 
   return NextResponse.json({ success: true, rating_id: rating.id });
 }

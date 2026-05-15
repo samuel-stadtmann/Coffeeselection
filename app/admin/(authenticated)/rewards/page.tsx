@@ -4,6 +4,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import CampaignForm from "./CampaignForm";
 import CampaignRow from "./CampaignRow";
 import InvoiceBackfillButton from "./InvoiceBackfillButton";
+import EmbeddingBackfillButton from "./EmbeddingBackfillButton";
 
 export const metadata: Metadata = {
   title: "Admin · Rewards — Coffee Selection",
@@ -262,11 +263,22 @@ export default async function AdminRewardsPage() {
       </section>
 
       {/* Ops */}
-      <section className="bg-white p-6 md:p-8 shadow-sm">
-        <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight mb-6">
+      <section className="bg-white p-6 md:p-8 shadow-sm space-y-8">
+        <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight">
           Operations
         </h2>
-        <InvoiceBackfillButton />
+        <div>
+          <h3 className="font-headline font-bold text-sm text-primary uppercase tracking-tight mb-3">
+            Rechnungs-URLs
+          </h3>
+          <InvoiceBackfillButton />
+        </div>
+        <div className="border-t border-surface-container pt-8">
+          <h3 className="font-headline font-bold text-sm text-primary uppercase tracking-tight mb-3">
+            Customer-Embeddings (Hybrid-Match)
+          </h3>
+          <EmbeddingBackfillButton />
+        </div>
       </section>
 
       <Link
