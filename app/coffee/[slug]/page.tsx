@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getCoffeeBySlug, getCoffeeSlugsForStatic } from "@/lib/db/coffees";
 import { coffeeCategories, categoryBySlug, getCoffeesForCategory } from "@/lib/coffee-categories";
 import { CoffeePurchaseOptions } from "./CoffeePurchaseOptions";
+import FavoriteButton from "@/components/FavoriteButton";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -246,9 +247,12 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                 >
                   {coffee.roaster_name}
                 </Link>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.1] mb-4 font-headline font-bold uppercase tracking-tight">
-                  {coffee.name}
-                </h1>
+                <div className="flex items-start justify-between gap-4">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.1] mb-4 font-headline font-bold uppercase tracking-tight">
+                    {coffee.name}
+                  </h1>
+                  <FavoriteButton type="coffee" id={coffee.id} size="lg" />
+                </div>
                 <p className="font-headline text-on-surface-variant uppercase tracking-widest text-sm mb-6">
                   {origin}{coffee.region ? ` · ${coffee.region}` : ""}{coffee.processing_name_de ? ` · ${coffee.processing_name_de}` : ""}
                 </p>

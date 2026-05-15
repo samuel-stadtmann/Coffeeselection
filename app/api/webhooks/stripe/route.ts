@@ -289,6 +289,34 @@ async function handlePaymentSucceeded(
   // Order auf 'paid' setzen — nur wenn noch 'pending' ist (verhindert
   // unbeabsichtigtes Zurueckdrehen).
   if (order.status === "pending") {
+    // Beleg-URL fuer one-time-Orders (mode=payment) holen: Stripe erzeugt
+    // bei reinen PaymentIntents keine Invoice, aber jede Charge hat eine
+    // receipt_url. Bei mode=subscription liefert invoice.payment_succeeded
+    // spaeter die hosted_invoice_url — siehe handleInvoicePaid.
+    let receiptUrl: string | null = null;
+    if (session.mode === "payment" && session.payment_intent) {
+      try {
+        const pi = await getStripe().paymentIntents.retrieve(
+          session.payment_intent,
+          { expand: ["latest_charge"] }
+        );
+        const charge = pi.latest_charge as
+          | { receipt_url?: string | null }
+          | string
+          | null;
+        if (charge && typeof charge === "object" && charge.receipt_url) {
+          receiptUrl = charge.receipt_url;
+        }
+      } catch (e) {
+        // Fehler nicht fatal — Order wird trotzdem auf paid gesetzt,
+        // Rechnungs-URL bleibt null und der Button erscheint einfach nicht.
+        console.error(
+          `[webhooks/stripe] paymentIntents.retrieve ${session.payment_intent} failed`,
+          e
+        );
+      }
+    }
+
     const { error: updErr } = await svc
       .from("orders")
       .update({
@@ -301,6 +329,9 @@ async function handlePaymentSucceeded(
         // total_chf neu setzen mit dem WIRKLICH gezahlten Betrag von Stripe
         // (sollte mit unserem Provisional uebereinstimmen, aber sicher ist sicher).
         total_chf: amountTotalChf,
+        // Bei one-time: charge.receipt_url. Bei subscription: bleibt null
+        // bis invoice.payment_succeeded mit hosted_invoice_url kommt.
+        ...(receiptUrl ? { stripe_invoice_url: receiptUrl } : {}),
       })
       .eq("id", order.id);
 
@@ -616,11 +647,38 @@ async function handleInvoicePaid(
   invoice: InvoiceEventPayload
 ) {
   // Bei Initial-Subscription kommt das Event ein zweites Mal nach
-  // checkout.session.completed. Wir wollen NICHT eine zweite Order anlegen.
+  // checkout.session.completed. Wir wollen NICHT eine zweite Order anlegen
+  // — aber wir wollen die hosted_invoice_url auf die Initial-Order
+  // schreiben, damit der Kunde auch fuer den ersten Bezug eine Rechnung hat.
   if (invoice.billing_reason === "subscription_create") {
-    console.log(
-      `[webhooks/stripe] invoice ${invoice.id} billing_reason=subscription_create — skip (initial handled by checkout.session.completed)`
-    );
+    if (invoice.subscription && invoice.hosted_invoice_url) {
+      const { data: localSub } = await svc
+        .from("subscriptions")
+        .select("id")
+        .eq("stripe_subscription_id", invoice.subscription)
+        .maybeSingle();
+      if (localSub) {
+        // Initial-Order = aelteste Order mit dieser subscription_id, die
+        // noch keine invoice_url hat.
+        const { data: initialOrder } = await svc
+          .from("orders")
+          .select("id")
+          .eq("subscription_id", localSub.id)
+          .is("stripe_invoice_url", null)
+          .order("placed_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (initialOrder) {
+          await svc
+            .from("orders")
+            .update({ stripe_invoice_url: invoice.hosted_invoice_url })
+            .eq("id", initialOrder.id);
+          console.log(
+            `[webhooks/stripe] subscription_create: invoice_url auf Initial-Order ${initialOrder.id} gesetzt`
+          );
+        }
+      }
+    }
     return;
   }
   // Nur Renewal-Charges machen Action — andere billing_reasons (manual,
@@ -718,6 +776,7 @@ async function handleInvoicePaid(
       total_chf: totalChf,
       language: "de-CH", // Renewal: kein Customer-Sprachen-Update, default
       stripe_payment_intent_id: invoice.payment_intent,
+      stripe_invoice_url: invoice.hosted_invoice_url,
     })
     .select("id, order_number")
     .single();

@@ -24,6 +24,7 @@ export type OrderRow = {
   status: string;
   total: number;
   rated: boolean;
+  invoiceUrl: string | null;
   // Items als Snapshots — fuer "Wiederbestellen" mit gleicher Konfig.
   items: OrderItemForReorder[];
 };
@@ -56,7 +57,7 @@ export default async function OrderHistoryPage() {
   const { data: ordersRaw } = await supabase
     .from("orders")
     .select(
-      `id, order_number, placed_at, status, total_chf, subscription_id,
+      `id, order_number, placed_at, status, total_chf, subscription_id, stripe_invoice_url,
        items:order_items(
          coffee_id, coffee_name_snapshot, roaster_name_snapshot,
          quantity, weight_g, unit_price_chf, grind_preference,
@@ -85,6 +86,7 @@ export default async function OrderHistoryPage() {
     status: string;
     total_chf: number;
     subscription_id: string | null;
+    stripe_invoice_url: string | null;
     items: Array<{
       coffee_id: string;
       coffee_name_snapshot: string;
@@ -125,6 +127,7 @@ export default async function OrderHistoryPage() {
       status: STATUS_LABEL[o.status] ?? o.status,
       total: Number(o.total_chf),
       rated: ratedOrderIds.has(o.id),
+      invoiceUrl: o.stripe_invoice_url,
       items,
     };
   });
