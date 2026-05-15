@@ -122,6 +122,7 @@ const BodySchema = z
     billing_address_same_as_shipping: z.boolean().default(true),
     billing_address: AddressSchema.optional().nullable(),
     customer_note: z.string().max(1000).optional().nullable(),
+    promo_code: z.string().max(64).optional().nullable(),
   })
   .refine(
     (b) => b.billing_address_same_as_shipping || b.billing_address,
@@ -417,6 +418,28 @@ export async function POST(req: NextRequest) {
     billAddrId = ba.id;
   }
 
+  // ---- 6.5) Promo-Code (server-validiert) ----------------------------------
+  // Code matcht entweder eine marketing_campaign oder eine referrals.
+  // discount_chf wird auf total (nicht shipping) angerechnet, gedeckelt
+  // durch das Order-Total. Auto-Apply von customer_credit_balance ist
+  // bewusst noch nicht enthalten — kommt in einem Folge-PR.
+  let discountChf = 0;
+  let promoCode: string | null = null;
+  if (body.promo_code) {
+    const { validatePromoCode } = await import("@/lib/db/rewards");
+    const v = await validatePromoCode(svc, body.promo_code, customerId);
+    if (v.valid) {
+      promoCode = v.code;
+      discountChf = Math.min(v.discount_chf, total);
+    } else {
+      return NextResponse.json(
+        { error: "promo_invalid", details: v.reason },
+        { status: 400 }
+      );
+    }
+  }
+  const totalAfterDiscount = Math.max(0, Number((total - discountChf).toFixed(2)));
+
   // ---- 7) Order anlegen -----------------------------------------------------
   const { data: order, error: oErr } = await svc
     .from("orders")
@@ -430,9 +453,10 @@ export async function POST(req: NextRequest) {
       billing_address_snapshot: toSnapshot(billing),
       subtotal_chf: subtotal,
       shipping_chf: shipping,
-      discount_chf: 0,
+      discount_chf: discountChf,
       tax_chf: 0,
-      total_chf: total,
+      total_chf: totalAfterDiscount,
+      promo_code: promoCode,
       language: body.customer?.language ?? "de-CH",
       customer_note: body.customer_note ?? null,
     })

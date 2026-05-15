@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
       `
       id, order_number, status,
       customer_id,
-      shipping_chf, subtotal_chf,
+      shipping_chf, subtotal_chf, discount_chf, promo_code,
       shipping_address_snapshot,
       language,
       stripe_checkout_session_id,
@@ -361,6 +361,32 @@ export async function POST(req: NextRequest) {
     ...(sub ? { subscription_id: sub.id } : {}),
   };
 
+  // ---- 8.5) Discount via dynamischem Stripe-Coupon --------------------------
+  // Wenn die Order discount_chf > 0 hat (Promo-Code im Checkout angewendet),
+  // erzeugen wir einen einmaligen Stripe-Coupon mit amount_off und haengen
+  // ihn als discounts an die Session. duration='once' = nur Initial-Invoice
+  // (bei Subscriptions Renewals nicht mehr rabattiert).
+  const discountChf = Number(order.discount_chf ?? 0);
+  let stripeDiscounts:
+    | Array<{ coupon: string }>
+    | undefined = undefined;
+  if (discountChf > 0) {
+    const coupon = await stripe.coupons.create({
+      amount_off: Math.round(discountChf * 100),
+      currency: "chf",
+      duration: "once",
+      name: order.promo_code
+        ? `Promo ${order.promo_code}`
+        : `Rabatt ${order.order_number}`,
+      metadata: {
+        order_id: order.id,
+        order_number: order.order_number,
+        promo_code: order.promo_code ?? "",
+      },
+    });
+    stripeDiscounts = [{ coupon: coupon.id }];
+  }
+
   let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>;
   try {
     if (isSubscriptionMode && sub) {
@@ -383,6 +409,7 @@ export async function POST(req: NextRequest) {
         success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${siteUrl}/checkout/cart`,
         metadata: commonMetadata,
+        ...(stripeDiscounts ? { discounts: stripeDiscounts } : {}),
         subscription_data: {
           description: `Coffee Selection Abo ${order.order_number}`,
           metadata: {
@@ -408,6 +435,7 @@ export async function POST(req: NextRequest) {
         success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${siteUrl}/checkout/cart`,
         metadata: commonMetadata,
+        ...(stripeDiscounts ? { discounts: stripeDiscounts } : {}),
         payment_intent_data: {
           description: `Coffee Selection ${order.order_number}`,
           metadata: {
