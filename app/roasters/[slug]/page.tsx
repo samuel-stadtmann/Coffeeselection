@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getRoasters, getRoasterBySlug, getRoasterSlugsForStatic } from "@/lib/db/roasters";
 import { getCoffeesByRoasterSlug } from "@/lib/db/coffees";
+import FavoriteButton from "@/components/FavoriteButton";
 
 const LOGO = "/logo.png";
 const ROASTER_FALLBACK_IMG =
@@ -75,9 +76,12 @@ export default async function RoasterDetailPage({ params }: { params: Promise<{ 
                 {roaster.city}{roaster.region ? ` · ${roaster.region}` : ""}
               </span>
             )}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.05] mb-4 font-headline font-bold uppercase tracking-tight">
-              {roaster.name}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.05] font-headline font-bold uppercase tracking-tight">
+                {roaster.name}
+              </h1>
+              <FavoriteButton type="roaster" id={roaster.id} size="lg" />
+            </div>
             {roaster.short_description && (
               <p className="text-lg text-on-surface-variant leading-relaxed mb-8">{roaster.short_description}</p>
             )}
