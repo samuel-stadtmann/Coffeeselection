@@ -277,6 +277,26 @@ export default async function AdminRewardsPage() {
           <h3 className="font-headline font-bold text-sm text-primary uppercase tracking-tight mb-3">
             Customer-Embeddings (Hybrid-Match)
           </h3>
+          <div className="bg-tertiary/5 border-l-4 border-tertiary p-5 mb-6 space-y-3 text-sm leading-relaxed">
+            <p>
+              <strong className="font-headline uppercase tracking-widest text-[11px] text-tertiary block mb-1">
+                Was ist ein Embedding?
+              </strong>
+              Ein Embedding ist ein digitaler Fingerabdruck des Geschmacks eines Kunden — eine Zahlenreihe mit 1536 Werten, von OpenAI aus dem Geschmackstyp und den abgegebenen Bewertungen berechnet. Jeder Kaffee hat ebenfalls so einen Fingerabdruck, gebaut aus Geschmacksbeschreibung, Aroma-Familien und Cupping-Notizen. Wir vergleichen beide und finden so Kaffees, die wirklich zum Geschmack passen — auch wenn die rohen Sensorik-Werte (Säure, Süße, Körper, Bitterkeit, Komplexität) nicht exakt übereinstimmen.
+            </p>
+            <p>
+              <strong className="font-headline uppercase tracking-widest text-[11px] text-tertiary block mb-1">
+                Warum der Backfill?
+              </strong>
+              Die Funktion war im Code vorhanden, wurde aber nie automatisch ausgelöst — alle bisherigen Kunden hatten kein Embedding. Mit dem Knopf unten holen wir das für die bestehenden Kunden nach. Ab sofort wird das Embedding zudem nach jedem Quiz und nach jeder Bewertung automatisch neu berechnet.
+            </p>
+            <p>
+              <strong className="font-headline uppercase tracking-widest text-[11px] text-tertiary block mb-1">
+                Wirkung
+              </strong>
+              Empfehlungen werden präziser. Bisher war der Match-Score eine reine Manhattan-Distanz über die 5 Sensorik-Achsen — mit dem Embedding kommt jetzt ein gewichteter Mix dazu (61 % Sensorik + 39 % semantischer Geschmacks-Vergleich via cosine similarity). Ein Kaffee mit „beerig, frisch, jasmin" passt zum Beispiel auch dann, wenn die rohen Werte etwas abweichen.
+            </p>
+          </div>
           <EmbeddingBackfillButton />
         </div>
       </section>
