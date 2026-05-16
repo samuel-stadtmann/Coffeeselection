@@ -149,6 +149,14 @@ async function persistAndScoreQuiz(
     return { tasteTypeId: null, error: custErr.message };
   }
 
+  // 6) Embedding-Generation triggern (fire-and-forget — blockt Quiz-UX nicht).
+  //    Aktiviert den Hybrid-Score in /lib/db/recommendations.ts: nach diesem
+  //    Call hat der Customer ein taste_embedding und Empfehlungen nutzen
+  //    cosine similarity zu coffees.flavor_embedding.
+  void import("@/lib/db/embeddings").then((m) =>
+    m.triggerBuildCustomerEmbedding(customerId)
+  );
+
   return { tasteTypeId: primary.type, error: null };
 }
 
