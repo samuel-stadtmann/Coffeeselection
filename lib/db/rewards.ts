@@ -142,7 +142,9 @@ export async function processOrderEarnings(
   // Order laden
   const { data: order } = await svc
     .from("orders")
-    .select("id, customer_id, promo_code, discount_chf, status, total_chf")
+    .select(
+      "id, customer_id, promo_code, discount_chf, applied_credit_chf, status, total_chf"
+    )
     .eq("id", orderId)
     .maybeSingle();
   if (!order || order.status !== "paid") return;
@@ -159,9 +161,26 @@ export async function processOrderEarnings(
 
   const code = (order.promo_code ?? "").trim().toUpperCase();
   const discountChf = Number(order.discount_chf ?? 0);
+  const appliedCreditChf = Number(order.applied_credit_chf ?? 0);
+  // promo-Discount = discount_chf - applied_credit_chf (Code-Anteil).
+  const promoDiscount = Math.max(0, discountChf - appliedCreditChf);
 
-  // 1) Promo-Code-Verarbeitung
-  if (code && discountChf > 0) {
+  // 0) Balance-Redemption: wenn der Customer Guthaben angewendet hat,
+  //    buchen wir das als negativen customer_credits-Eintrag mit
+  //    reason=order_redemption. Saldo geht damit runter.
+  if (appliedCreditChf > 0) {
+    await svc.from("customer_credits").insert({
+      customer_id: customerId,
+      amount_chf: -appliedCreditChf,
+      reason: "order_redemption",
+      order_id: orderId,
+      description: `Guthaben auf Bestellung angewendet`,
+    });
+  }
+
+  // 1) Promo-Code-Verarbeitung (nutzt promoDiscount, nicht discountChf,
+  //    damit Balance-Redemption nicht doppelt verbucht wird)
+  if (code && promoDiscount > 0) {
     // Kampagne?
     const { data: campaign } = await svc
       .from("marketing_campaigns")
@@ -176,7 +195,7 @@ export async function processOrderEarnings(
         .eq("id", campaign.id);
       await svc.from("customer_credits").insert({
         customer_id: customerId,
-        amount_chf: -discountChf,
+        amount_chf: -promoDiscount,
         reason: "campaign_bonus",
         order_id: orderId,
         campaign_id: campaign.id,
@@ -198,7 +217,7 @@ export async function processOrderEarnings(
             referee_customer_id: customerId,
             referral_code: code,
             reward_referrer_chf: REFERRER_REWARD_CHF,
-            reward_referee_chf: discountChf,
+            reward_referee_chf: promoDiscount,
             status: "rewarded",
             qualifying_order_id: orderId,
             signed_up_at: new Date().toISOString(),
@@ -213,7 +232,7 @@ export async function processOrderEarnings(
         await svc.from("customer_credits").insert([
           {
             customer_id: customerId,
-            amount_chf: discountChf,
+            amount_chf: promoDiscount,
             reason: "referral_referee",
             order_id: orderId,
             referral_id: ref?.id ?? null,
@@ -221,7 +240,7 @@ export async function processOrderEarnings(
           },
           {
             customer_id: customerId,
-            amount_chf: -discountChf,
+            amount_chf: -promoDiscount,
             reason: "order_redemption",
             order_id: orderId,
             referral_id: ref?.id ?? null,

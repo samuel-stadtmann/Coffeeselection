@@ -39,11 +39,44 @@ type TasteTypeProfile = {
   sweetness: number | null;
   bitterness: number | null;
   complexity: number | null;
+  roast_level?: string | null;
+  aroma_families?: string[] | null;
 };
+
+// C3: roast_level text -> numerische Achse (1-5) fuer Manhattan-Distanz.
+const ROAST_LEVEL_NUM: Record<string, number> = {
+  light: 1,
+  medium_light: 2,
+  medium: 3,
+  medium_dark: 4,
+  dark: 5,
+};
+function roastNum(level: string | null | undefined): number {
+  if (!level) return 3;
+  return ROAST_LEVEL_NUM[level] ?? 3;
+}
+
+// C2: Aroma-Familien-Bonus. Pro Treffer zwischen taste_type.aroma_families
+// und coffee.aroma_families +5% auf den Match-Score (cap 1.0). Soll
+// "sehr nahe Aromen-Verwandtschaft" zusaetzlich zur Sensorik-Distanz
+// belohnen.
+const AROMA_BONUS_PER_MATCH = 0.05;
+function aromaOverlapBonus(
+  targetAromas: string[] | null | undefined,
+  coffeeAromas: string[] | null | undefined
+): number {
+  if (!targetAromas?.length || !coffeeAromas?.length) return 0;
+  const set = new Set(targetAromas);
+  let matches = 0;
+  for (const a of coffeeAromas) {
+    if (set.has(a)) matches++;
+  }
+  return matches * AROMA_BONUS_PER_MATCH;
+}
 
 const COFFEE_FIELDS = `
   id, slug, name, image_url, tasting_summary, short_description,
-  price_chf, weight_g, aroma_families,
+  price_chf, weight_g, aroma_families, roast_level,
   acidity, body, sweetness, bitterness, complexity,
   flavor_embedding,
   origin:origins_catalog(name_de),
@@ -56,13 +89,28 @@ const COFFEE_FIELDS = `
 const SCORING_WEIGHT = 0.55 / (0.55 + 0.35); // ≈ 0.611
 const VECTOR_WEIGHT = 0.35 / (0.55 + 0.35); // ≈ 0.389
 
-function manhattan(target: TasteTypeProfile, coffee: { acidity: number | null; body: number | null; sweetness: number | null; bitterness: number | null; complexity: number | null }) {
+// 6 Achsen: Saeure / Koerper / Suesse / Bitterkeit / Komplexitaet + Roast-Level.
+// Max-Distanz = 6 * 4 = 24 (Achsen-Range 1-5, max-Diff 4 pro Achse).
+const MANHATTAN_MAX_DISTANCE = 24;
+
+function manhattan(
+  target: TasteTypeProfile,
+  coffee: {
+    acidity: number | null;
+    body: number | null;
+    sweetness: number | null;
+    bitterness: number | null;
+    complexity: number | null;
+    roast_level?: string | null;
+  }
+) {
   return (
     Math.abs((coffee.acidity ?? 3) - (target.acidity ?? 3)) +
     Math.abs((coffee.body ?? 3) - (target.body ?? 3)) +
     Math.abs((coffee.sweetness ?? 3) - (target.sweetness ?? 3)) +
     Math.abs((coffee.bitterness ?? 3) - (target.bitterness ?? 3)) +
-    Math.abs((coffee.complexity ?? 3) - (target.complexity ?? 3))
+    Math.abs((coffee.complexity ?? 3) - (target.complexity ?? 3)) +
+    Math.abs(roastNum(coffee.roast_level) - roastNum(target.roast_level))
   );
 }
 
@@ -110,14 +158,18 @@ function cosineSimilarity01(a: number[], b: number[]): number {
 function normalizeRow(
   c: Record<string, unknown>,
   distance: number,
-  vectorSim: number | null
+  vectorSim: number | null,
+  aromaBonus: number = 0
 ): RecommendedCoffee {
   const origin = c.origin as { name_de?: string }[] | { name_de?: string } | null | undefined;
   const originName = Array.isArray(origin) ? origin[0]?.name_de ?? null : origin?.name_de ?? null;
   const roaster = c.roaster as Array<{ name: string; slug: string; city: string | null; logo_url: string | null }> | { name: string; slug: string; city: string | null; logo_url: string | null } | null;
   const roasterRow = Array.isArray(roaster) ? roaster[0] ?? null : roaster ?? null;
-  // Max-Distanz fuer 5 Achsen mit Range 1-5: 4 * 5 = 20. Score = 1 - dist/20.
-  const scoringScore = Math.max(0, 1 - distance / 20);
+  // C3: Max-Distanz fuer 6 Achsen (5 Sensorik + Roast-Level) mit Range
+  // 1-5 = 4 * 6 = 24. C2: aroma_families-Bonus addiert sich on top,
+  // gedeckelt auf 1.0.
+  const scoringScoreBase = Math.max(0, 1 - distance / MANHATTAN_MAX_DISTANCE);
+  const scoringScore = Math.min(1, scoringScoreBase + aromaBonus);
   const matchScore =
     vectorSim != null
       ? SCORING_WEIGHT * scoringScore + VECTOR_WEIGHT * vectorSim
@@ -317,7 +369,7 @@ export async function getCoffeesForTasteType(
     await Promise.all([
       supabase
         .from("taste_types")
-        .select("id, name_de, acidity, body, sweetness, bitterness, complexity")
+        .select("id, name_de, acidity, body, sweetness, bitterness, complexity, roast_level, aroma_families")
         .eq("id", tasteTypeId)
         .maybeSingle(),
       loadQueryEmbedding(supabase, tasteTypeId, opts.customerId),
@@ -355,7 +407,11 @@ export async function getCoffeesForTasteType(
         const coffeeEmb = parseVector((c as Record<string, unknown>).flavor_embedding);
         if (coffeeEmb) vectorSim = cosineSimilarity01(queryEmbedding, coffeeEmb);
       }
-      return normalizeRow(c, dist, vectorSim);
+      const bonus = aromaOverlapBonus(
+        (target as TasteTypeProfile).aroma_families,
+        (c as Record<string, unknown>).aroma_families as string[] | null
+      );
+      return normalizeRow(c, dist, vectorSim, bonus);
     })
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, limit);
@@ -375,7 +431,7 @@ export async function getNeighborTasteTypes(
 ): Promise<TasteTypeProfile[]> {
   const { data: all, error } = await supabase
     .from("taste_types")
-    .select("id, name_de, acidity, body, sweetness, bitterness, complexity");
+    .select("id, name_de, acidity, body, sweetness, bitterness, complexity, roast_level");
   if (error || !all) return [];
   const me = all.find((t) => t.id === tasteTypeId);
   if (!me) return [];

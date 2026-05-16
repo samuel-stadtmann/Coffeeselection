@@ -123,6 +123,9 @@ const BodySchema = z
     billing_address: AddressSchema.optional().nullable(),
     customer_note: z.string().max(1000).optional().nullable(),
     promo_code: z.string().max(64).optional().nullable(),
+    // C1: wenn true, ziehen wir customer_credit_balance vom Total ab
+    // (bis zur Hoehe des verbleibenden Totals nach Promo-Code).
+    apply_balance: z.boolean().optional().default(true),
   })
   .refine(
     (b) => b.billing_address_same_as_shipping || b.billing_address,
@@ -418,19 +421,21 @@ export async function POST(req: NextRequest) {
     billAddrId = ba.id;
   }
 
-  // ---- 6.5) Promo-Code (server-validiert) ----------------------------------
-  // Code matcht entweder eine marketing_campaign oder eine referrals.
-  // discount_chf wird auf total (nicht shipping) angerechnet, gedeckelt
-  // durch das Order-Total. Auto-Apply von customer_credit_balance ist
-  // bewusst noch nicht enthalten — kommt in einem Folge-PR.
-  let discountChf = 0;
+  // ---- 6.5) Discounts: Promo-Code + Balance-Auto-Apply ---------------------
+  // discount_chf wird auf total (nicht shipping) angerechnet:
+  //   1) promo_code  -> Kampagne ODER Referral (validatePromoCode)
+  //   2) apply_balance=true  -> customer_credit_balance bis zum verbleibenden
+  //                             Total, separat in applied_credit_chf gemerkt
+  //                             (Webhook bucht das nach Payment-Success als
+  //                             negativen customer_credits-Eintrag).
+  let promoDiscount = 0;
   let promoCode: string | null = null;
   if (body.promo_code) {
     const { validatePromoCode } = await import("@/lib/db/rewards");
     const v = await validatePromoCode(svc, body.promo_code, customerId);
     if (v.valid) {
       promoCode = v.code;
-      discountChf = Math.min(v.discount_chf, total);
+      promoDiscount = Math.min(v.discount_chf, total);
     } else {
       return NextResponse.json(
         { error: "promo_invalid", details: v.reason },
@@ -438,7 +443,22 @@ export async function POST(req: NextRequest) {
       );
     }
   }
-  const totalAfterDiscount = Math.max(0, Number((total - discountChf).toFixed(2)));
+  let appliedCreditChf = 0;
+  if (body.apply_balance) {
+    const { data: bal } = await svc.rpc("customer_credit_balance", {
+      p_customer_id: customerId,
+    });
+    const balance = bal != null ? Number(bal) : 0;
+    if (balance > 0) {
+      const remaining = Math.max(0, total - promoDiscount);
+      appliedCreditChf = Number(Math.min(balance, remaining).toFixed(2));
+    }
+  }
+  const discountChf = Number((promoDiscount + appliedCreditChf).toFixed(2));
+  const totalAfterDiscount = Math.max(
+    0,
+    Number((total - discountChf).toFixed(2))
+  );
 
   // ---- 7) Order anlegen -----------------------------------------------------
   const { data: order, error: oErr } = await svc
@@ -454,6 +474,7 @@ export async function POST(req: NextRequest) {
       subtotal_chf: subtotal,
       shipping_chf: shipping,
       discount_chf: discountChf,
+      applied_credit_chf: appliedCreditChf,
       tax_chf: 0,
       total_chf: totalAfterDiscount,
       promo_code: promoCode,
