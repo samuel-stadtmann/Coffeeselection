@@ -39,11 +39,13 @@ type TasteTypeProfile = {
   sweetness: number | null;
   bitterness: number | null;
   complexity: number | null;
-  roast_level?: string | null;
+  // taste_types.roast_level ist smallint (1-5), coffees.roast_level ist text
+  // ('light'..'dark'). Beide werden via roastNum() auf 1-5 normalisiert.
+  roast_level?: number | string | null;
   aroma_families?: string[] | null;
 };
 
-// C3: roast_level text -> numerische Achse (1-5) fuer Manhattan-Distanz.
+// C3: roast_level -> numerische Achse (1-5) fuer Manhattan-Distanz.
 const ROAST_LEVEL_NUM: Record<string, number> = {
   light: 1,
   medium_light: 2,
@@ -51,8 +53,9 @@ const ROAST_LEVEL_NUM: Record<string, number> = {
   medium_dark: 4,
   dark: 5,
 };
-function roastNum(level: string | null | undefined): number {
-  if (!level) return 3;
+function roastNum(level: number | string | null | undefined): number {
+  if (level == null) return 3;
+  if (typeof level === "number") return Math.max(1, Math.min(5, level));
   return ROAST_LEVEL_NUM[level] ?? 3;
 }
 
@@ -101,7 +104,7 @@ function manhattan(
     sweetness: number | null;
     bitterness: number | null;
     complexity: number | null;
-    roast_level?: string | null;
+    roast_level?: number | string | null;
   }
 ) {
   return (

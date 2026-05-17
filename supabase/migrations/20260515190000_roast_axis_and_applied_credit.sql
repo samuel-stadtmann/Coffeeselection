@@ -1,34 +1,23 @@
 -- C3: roast_level als 6. Achse im Match-Algorithmus
--- Plus C1: applied_credit_chf auf orders, damit der Webhook das angewandte
--- Customer-Credit-Balance sauber als customer_credits-Negativ-Eintrag buchen
--- kann (separat vom promo_code-Discount).
+-- Plus C1: applied_credit_chf auf orders
+--
+-- Korrektur zur ersten Version: taste_types.roast_level existiert
+-- bereits als SMALLINT (1-5), nicht als text. Deshalb Seed mit
+-- Integer-Werten statt Text-Strings.
 
 ------------------------------------------------------------------------
--- C3: taste_types.roast_level
+-- C3: taste_types.roast_level — Seed (Spalte existiert bereits als smallint)
 ------------------------------------------------------------------------
-alter table public.taste_types
-  add column if not exists roast_level text
-  check (roast_level is null or roast_level in
-         ('light','medium_light','medium','medium_dark','dark'));
-
-comment on column public.taste_types.roast_level is
-  'Bevorzugtes Roesterprofil dieses Typs. Wird als 6. Achse in der '
-  'Match-Distanz mitgerechnet — Mapping text->numeric in '
-  'lib/db/recommendations.ts.';
-
--- Seed: opinionated Defaults pro Typ. Werte basieren auf Typ-Charakter
--- (Saeure/Koerper/Komplexitaet) — koennen vom Marketing manuell
--- angepasst werden, der Algorithmus respektiert dann den neuen Wert.
+-- Mapping: 1=light, 2=medium_light, 3=medium, 4=medium_dark, 5=dark.
 update public.taste_types set roast_level = case slug
-  when 'der-klassiker'           then 'medium'        -- ausgewogen
-  when 'der-fruchtfreund'        then 'medium_light'  -- hell, fruchtig
-  when 'der-espresso-enthusiast' then 'dark'          -- kraeftig, Espresso
-  when 'der-entdecker'           then 'medium'        -- vielfaeltig
-  when 'der-sanfte'              then 'medium_light'  -- mild
-  when 'der-florale'             then 'light'         -- blumig, hell
-  when 'der-erdige'              then 'dark'          -- erdig, intensiv
-  when 'der-vollmundige'         then 'medium_dark'   -- voll, schokoladig
-  else roast_level
+  when 'der-klassiker'           then 3   -- medium
+  when 'der-fruchtfreund'        then 2   -- medium_light
+  when 'der-espresso-enthusiast' then 5   -- dark
+  when 'der-entdecker'           then 3   -- medium
+  when 'der-sanfte'              then 2   -- medium_light
+  when 'der-florale'             then 1   -- light
+  when 'der-erdige'              then 5   -- dark
+  when 'der-vollmundige'         then 4   -- medium_dark
 end
 where roast_level is null;
 
