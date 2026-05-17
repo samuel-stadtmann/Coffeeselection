@@ -69,7 +69,7 @@ export default async function CoffeesOverviewPage() {
               href="/quiz/question-1-brewing-method"
               className="inline-block bg-tertiary text-primary px-12 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
             >
-              Quiz starten · 60 Sek
+              Quiz starten
             </Link>
           </div>
         </section>

@@ -5,6 +5,7 @@ import { tasteTypeIdBySlug } from "@/lib/taste-types-map";
 import { createStaticClient } from "@/lib/supabase/static";
 import { getCoffeesForTasteType } from "@/lib/db/recommendations";
 import { getTasteTypes, getTasteTypeBySlug } from "@/lib/db/taste-types";
+import CoffeeCardCartButtons from "@/components/CoffeeCardCartButtons";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
@@ -63,7 +64,7 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
             <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
           </Link>
           <Link
-            href="/quiz/start"
+            href="/quiz/question-1-brewing-method"
             className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
           >
             Quiz starten
@@ -102,7 +103,7 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               <p className="text-lg text-on-surface-variant leading-relaxed mb-10">{type.heroDesc}</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/quiz/start"
+                  href="/quiz/question-1-brewing-method"
                   className="bg-primary text-on-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all text-center"
                 >
                   Bin ich der {type.name}?
@@ -169,10 +170,6 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               </span>
             ))}
           </div>
-          <div className="text-center mt-12 text-sm text-on-surface-variant">
-            <span className="font-headline text-[11px] uppercase tracking-widest font-bold mr-2 text-primary">Brühmethoden:</span>
-            {type.brewing.join(" · ")}
-          </div>
         </section>
 
         {/* Empfohlene Kaffees */}
@@ -226,20 +223,18 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
                         <span className="font-headline font-bold text-primary text-xl">CHF {c.price_chf.toFixed(2)}</span>
                       </div>
                     </Link>
-                    <div className="grid grid-cols-2 border-t border-primary/10">
-                      <Link
-                        href={`/coffee/${c.slug}`}
-                        className="text-center py-4 font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-bold"
-                      >
-                        Details
-                      </Link>
-                      <Link
-                        href="/checkout/cart"
-                        className="text-center py-4 font-headline text-[10px] uppercase tracking-widest bg-primary text-on-primary hover:bg-black transition-colors font-bold"
-                      >
-                        In den Warenkorb
-                      </Link>
-                    </div>
+                    <CoffeeCardCartButtons
+                      coffee_id={c.id}
+                      coffee_name={c.name}
+                      coffee_slug={c.slug}
+                      image_url={c.image_url}
+                      roaster_name={c.roaster?.name ?? ""}
+                      unit_price_chf_250g={
+                        c.weight_g > 0
+                          ? Number(((c.price_chf * 250) / c.weight_g).toFixed(2))
+                          : c.price_chf
+                      }
+                    />
                   </div>
                 ))}
               </div>
@@ -329,7 +324,7 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               Unser 12-Fragen-Quiz klassifiziert dich präzise. 60 Sekunden, keine Anmeldung.
             </p>
             <Link
-              href="/quiz/start"
+              href="/quiz/question-1-brewing-method"
               className="inline-block bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
             >
               Geschmackstyp finden
@@ -350,10 +345,10 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
 
       {/* Sticky Mobile CTA */}
       <Link
-        href="/quiz/start"
+        href="/quiz/question-1-brewing-method"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
-        Quiz starten · 60 Sek
+        Quiz starten
       </Link>
     </div>
   );
