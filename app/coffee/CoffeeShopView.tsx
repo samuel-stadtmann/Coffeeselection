@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart, type CartWeight } from "@/lib/cart";
@@ -18,18 +18,21 @@ const ROAST_LABEL: Record<string, string> = {
 };
 const ROAST_ORDER = ["light", "medium_light", "medium", "medium_dark", "dark"];
 
-// Slug -> Label-Map fuer Brewing + Flavor. Wenn ein Slug nicht im Map ist,
-// nehmen wir die slug-Variante mit grossgeschriebenem ersten Buchstaben.
+// Umgangssprachliche Bruehmethoden-Bezeichnungen. Wenn ein Slug nicht
+// im Map ist, faellt prettyLabel() ein (Capitalized).
 const BREWING_LABEL: Record<string, string> = {
-  v60: "V60",
-  filter: "Filter",
-  espresso: "Espresso",
+  v60: "Hand-Filter (V60)",
+  filter: "Filtermaschine",
+  espresso: "Siebträger",
+  fully_auto: "Vollautomat",
   french_press: "French Press",
-  aeropress: "Aeropress",
+  aeropress: "AeroPress",
   chemex: "Chemex",
-  moka: "Moka",
+  moka: "Espressokocher (Bialetti)",
+  kalita: "Hand-Filter (Kalita)",
   whole_bean: "Vollbohne",
 };
+
 function prettyLabel(slug: string): string {
   return slug
     .split(/[-_]/)
@@ -37,7 +40,7 @@ function prettyLabel(slug: string): string {
     .join(" ");
 }
 
-const PROMO_INTERVAL = 2; // Wochen — Default fuer Quick-Abo
+const PROMO_INTERVAL = 2;
 
 type Filters = {
   brewing: Set<string>;
@@ -55,8 +58,6 @@ export default function CoffeeShopView({ coffees }: { coffees: CoffeeWithDetails
     flavor: new Set(),
   });
 
-  // Filter-Optionen aus den Daten ableiten — keine hardcoded Liste, damit
-  // neue Bruehmethoden / Aromen sofort als Filter erscheinen.
   const { brewingOpts, roastOpts, flavorOpts } = useMemo(() => {
     const b = new Set<string>();
     const r = new Set<string>();
@@ -68,7 +69,9 @@ export default function CoffeeShopView({ coffees }: { coffees: CoffeeWithDetails
     }
     return {
       brewingOpts: Array.from(b).sort(),
-      roastOpts: Array.from(r).sort((x, y) => ROAST_ORDER.indexOf(x) - ROAST_ORDER.indexOf(y)),
+      roastOpts: Array.from(r).sort(
+        (x, y) => ROAST_ORDER.indexOf(x) - ROAST_ORDER.indexOf(y)
+      ),
       flavorOpts: Array.from(f).sort(),
     };
   }, [coffees]);
@@ -100,20 +103,18 @@ export default function CoffeeShopView({ coffees }: { coffees: CoffeeWithDetails
   };
 
   const reset = () => setFilters({ brewing: new Set(), roast: new Set(), flavor: new Set() });
-  const activeCount =
-    filters.brewing.size + filters.roast.size + filters.flavor.size;
+  const activeCount = filters.brewing.size + filters.roast.size + filters.flavor.size;
 
   const handleOnce = (c: CoffeeWithDetails) => {
     if (busy) return;
     setBusy(c.id);
-    const unit250 = priceFor250g(c);
     add({
       coffee_id: c.id,
       coffee_name: c.name,
       coffee_slug: c.slug,
       image_url: c.image_url,
       roaster_name: c.roaster_name,
-      unit_price_chf_250g: unit250,
+      unit_price_chf_250g: priceFor250g(c),
       weight_g: 250 as CartWeight,
       quantity: 1,
     });
@@ -122,14 +123,13 @@ export default function CoffeeShopView({ coffees }: { coffees: CoffeeWithDetails
   const handleAbo = (c: CoffeeWithDetails) => {
     if (busy) return;
     setBusy(c.id);
-    const unit250 = priceFor250g(c);
     addSubscription({
       coffee_id: c.id,
       coffee_name: c.name,
       coffee_slug: c.slug,
       image_url: c.image_url,
       roaster_name: c.roaster_name,
-      unit_price_chf_250g: unit250,
+      unit_price_chf_250g: priceFor250g(c),
       weight_g: 250 as CartWeight,
       quantity: 1,
       interval_weeks: PROMO_INTERVAL,
@@ -139,34 +139,39 @@ export default function CoffeeShopView({ coffees }: { coffees: CoffeeWithDetails
 
   return (
     <>
-      {/* Filter-Panel */}
+      {/* Filter-Bar — drei Dropdowns + Reset + Counter */}
       <section className="max-w-7xl mx-auto px-6 md:px-8 mb-10">
-        <div className="bg-white p-5 md:p-6 shadow-sm space-y-5">
-          <FilterGroup
-            title="Zubereitung"
-            options={brewingOpts}
-            selected={filters.brewing}
-            labelFor={(s) => BREWING_LABEL[s] ?? prettyLabel(s)}
-            onToggle={(v) => toggle("brewing", v)}
-          />
-          <FilterGroup
-            title="Röstung"
-            options={roastOpts}
-            selected={filters.roast}
-            labelFor={(s) => ROAST_LABEL[s] ?? prettyLabel(s)}
-            onToggle={(v) => toggle("roast", v)}
-          />
-          <FilterGroup
-            title="Geschmack"
-            options={flavorOpts}
-            selected={filters.flavor}
-            labelFor={prettyLabel}
-            onToggle={(v) => toggle("flavor", v)}
-          />
-          <div className="flex items-center justify-between pt-3 border-t border-surface-container">
-            <span className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant font-bold">
+        <div className="bg-white p-4 md:p-5 shadow-sm">
+          <div className="flex flex-wrap items-center gap-3">
+            <FilterDropdown
+              title="Zubereitung"
+              options={brewingOpts}
+              selected={filters.brewing}
+              labelFor={(s) => BREWING_LABEL[s] ?? prettyLabel(s)}
+              onToggle={(v) => toggle("brewing", v)}
+              onClear={() =>
+                setFilters((p) => ({ ...p, brewing: new Set() }))
+              }
+            />
+            <FilterDropdown
+              title="Röstung"
+              options={roastOpts}
+              selected={filters.roast}
+              labelFor={(s) => ROAST_LABEL[s] ?? prettyLabel(s)}
+              onToggle={(v) => toggle("roast", v)}
+              onClear={() => setFilters((p) => ({ ...p, roast: new Set() }))}
+            />
+            <FilterDropdown
+              title="Geschmack"
+              options={flavorOpts}
+              selected={filters.flavor}
+              labelFor={prettyLabel}
+              onToggle={(v) => toggle("flavor", v)}
+              onClear={() => setFilters((p) => ({ ...p, flavor: new Set() }))}
+            />
+            <span className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant font-bold ml-auto">
               {filtered.length} {filtered.length === 1 ? "Coffee" : "Coffees"}
-              {activeCount > 0 && ` · ${activeCount} Filter aktiv`}
+              {activeCount > 0 && ` · ${activeCount} Filter`}
             </span>
             {activeCount > 0 && (
               <button
@@ -174,7 +179,7 @@ export default function CoffeeShopView({ coffees }: { coffees: CoffeeWithDetails
                 onClick={reset}
                 className="font-headline text-[11px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors font-bold"
               >
-                Filter zurücksetzen
+                Zurücksetzen
               </button>
             )}
           </div>
@@ -217,9 +222,7 @@ export default function CoffeeShopView({ coffees }: { coffees: CoffeeWithDetails
                           {c.name}
                         </h3>
                       </Link>
-                      <p className="text-xs text-on-surface-variant mb-3">
-                        {c.roaster_name}
-                      </p>
+                      <p className="text-xs text-on-surface-variant mb-3">{c.roaster_name}</p>
                       {(c.tasting_summary || c.short_description) && (
                         <p className="text-xs text-on-surface-variant mb-4 flex-1">
                           {c.tasting_summary || c.short_description}
@@ -266,49 +269,102 @@ function priceFor250g(c: CoffeeWithDetails): number {
   return Number(((Number(c.price_chf) * 250) / c.weight_g).toFixed(2));
 }
 
-function FilterGroup({
+function FilterDropdown({
   title,
   options,
   selected,
   labelFor,
   onToggle,
+  onClear,
 }: {
   title: string;
   options: string[];
   selected: Set<string>;
   labelFor: (s: string) => string;
   onToggle: (v: string) => void;
+  onClear: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Outside-Click und Esc schliessen das Panel.
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
   if (options.length === 0) return null;
+  const count = selected.size;
+
   return (
-    <div>
-      <h3 className="font-headline font-bold text-[10px] uppercase tracking-widest text-on-surface-variant mb-3 flex items-center gap-2">
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={`flex items-center gap-2 px-4 py-2.5 font-headline text-[11px] uppercase tracking-widest font-bold border transition-colors ${
+          count > 0
+            ? "bg-primary text-on-primary border-primary"
+            : "bg-white text-primary border-surface-container hover:border-tertiary"
+        }`}
+      >
         {title}
-        {selected.size > 0 && (
-          <span className="bg-tertiary text-on-primary px-2 py-0.5 text-[9px]">
-            {selected.size}
+        {count > 0 && (
+          <span
+            className={`px-1.5 py-0.5 text-[9px] ${
+              count > 0 ? "bg-tertiary text-on-primary" : ""
+            }`}
+          >
+            {count}
           </span>
         )}
-      </h3>
-      <div className="flex flex-wrap gap-2">
-        {options.map((opt) => {
-          const active = selected.has(opt);
-          return (
+        <span className={`material-symbols-outlined text-base transition-transform ${open ? "rotate-180" : ""}`}>
+          expand_more
+        </span>
+      </button>
+      {open && (
+        <div className="absolute z-30 top-full mt-2 left-0 min-w-[240px] bg-white shadow-xl border border-surface-container p-3">
+          <div className="max-h-72 overflow-y-auto">
+            {options.map((opt) => {
+              const active = selected.has(opt);
+              return (
+                <label
+                  key={opt}
+                  className="flex items-center gap-3 px-2 py-2 hover:bg-surface-container-low cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() => onToggle(opt)}
+                    className="w-4 h-4 accent-tertiary"
+                  />
+                  <span className="text-sm text-primary">{labelFor(opt)}</span>
+                </label>
+              );
+            })}
+          </div>
+          {count > 0 && (
             <button
-              key={opt}
               type="button"
-              onClick={() => onToggle(opt)}
-              className={`px-3 py-1.5 font-headline text-[11px] uppercase tracking-widest font-bold transition-colors border ${
-                active
-                  ? "bg-primary text-on-primary border-primary"
-                  : "bg-white text-on-surface-variant border-surface-container hover:border-tertiary hover:text-primary"
-              }`}
+              onClick={onClear}
+              className="block w-full mt-2 pt-2 border-t border-surface-container text-center font-headline text-[10px] uppercase tracking-widest text-tertiary hover:text-primary transition-colors font-bold"
             >
-              {labelFor(opt)}
+              Auswahl leeren
             </button>
-          );
-        })}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
