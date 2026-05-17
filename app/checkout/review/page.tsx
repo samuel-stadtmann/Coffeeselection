@@ -88,11 +88,42 @@ export default function ReviewPage() {
   const promoDiscount =
     promoState.kind === "valid" ? promoState.discount_chf : 0;
 
+  // C1: Customer-Guthaben aus customer_credits-Ledger laden + auto-applien.
+  const [balanceChf, setBalanceChf] = useState(0);
+  const [applyBalance, setApplyBalance] = useState(true);
+  useEffect(() => {
+    (async () => {
+      const sb = (await import("@/lib/supabase/client")).createClient();
+      const { data: auth } = await sb.auth.getUser();
+      if (!auth.user) return;
+      const { data: customer } = await sb
+        .from("customers")
+        .select("id")
+        .eq("auth_user_id", auth.user.id)
+        .single();
+      if (!customer) return;
+      const { data } = await sb.rpc("customer_credit_balance", {
+        p_customer_id: customer.id,
+      });
+      if (data != null) setBalanceChf(Number(data));
+    })();
+  }, []);
+
   const shipping =
     subtotal >= FREE_SHIPPING_THRESHOLD_CHF || subtotal === 0
       ? 0
       : STANDARD_SHIPPING_CHF;
   const total = subtotal + shipping;
+  // Balance darf nur den Rest nach Promo-Discount abdecken und nicht
+  // negativ werden.
+  const balanceRedemption =
+    applyBalance && balanceChf > 0
+      ? Math.min(balanceChf, Math.max(0, total - promoDiscount))
+      : 0;
+  const totalAfterDiscounts = Math.max(
+    0,
+    total - promoDiscount - balanceRedemption
+  );
 
   // Guards (erst nach Hydration — siehe useCart-Kommentar zum loaded-Flag).
   useEffect(() => {
@@ -172,6 +203,7 @@ export default function ReviewPage() {
           customer_note: data.customer_note || null,
           promo_code:
             promoState.kind === "valid" ? promoState.code : null,
+          apply_balance: applyBalance,
         }),
       }).then((r) => r.json());
 
@@ -346,6 +378,34 @@ export default function ReviewPage() {
             </Section>
           )}
 
+          {/* Guthaben (Customer-Credit-Balance) */}
+          {balanceChf > 0 && (
+            <div className="bg-tertiary/10 border-l-4 border-tertiary p-5 mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">
+                  Dein Guthaben
+                </p>
+                <p className="text-sm">
+                  Du hast <strong>CHF {balanceChf.toFixed(2)}</strong> Guthaben.
+                  {applyBalance && balanceRedemption > 0
+                    ? ` Davon werden CHF ${balanceRedemption.toFixed(2)} auf diese Bestellung angerechnet.`
+                    : " (Aktuell nicht angewendet.)"}
+                </p>
+              </div>
+              <label className="flex items-center gap-2 shrink-0 cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={applyBalance}
+                  onChange={(e) => setApplyBalance(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="font-headline text-[11px] uppercase tracking-widest font-bold">
+                  Anwenden
+                </span>
+              </label>
+            </div>
+          )}
+
           {/* Promo-Code */}
           <div className="bg-white p-6 md:p-8 mb-6 shadow-sm">
             <h2 className="font-headline font-bold text-base text-primary uppercase tracking-tight mb-4">
@@ -417,6 +477,12 @@ export default function ReviewPage() {
                   value={`−CHF ${promoDiscount.toFixed(2)}`}
                 />
               )}
+              {balanceRedemption > 0 && (
+                <SummaryRow
+                  label="Guthaben"
+                  value={`−CHF ${balanceRedemption.toFixed(2)}`}
+                />
+              )}
               <p className="text-xs text-on-primary/60 pt-1">
                 MWST ist im Preis enthalten (Brutto).
               </p>
@@ -424,7 +490,7 @@ export default function ReviewPage() {
             <div className="border-t border-on-primary/20 pt-4">
               <SummaryRow
                 label="Total"
-                value={`CHF ${Math.max(0, total - promoDiscount).toFixed(2)}`}
+                value={`CHF ${totalAfterDiscounts.toFixed(2)}`}
                 bold
               />
             </div>
@@ -452,7 +518,7 @@ export default function ReviewPage() {
             >
               {submitting
                 ? "Weiterleitung zu Stripe …"
-                : `Bezahlen · CHF ${Math.max(0, total - promoDiscount).toFixed(2)}`}
+                : `Bezahlen · CHF ${totalAfterDiscounts.toFixed(2)}`}
             </button>
           </div>
         </div>
@@ -465,7 +531,7 @@ export default function ReviewPage() {
             Total
           </span>
           <span className="font-headline font-bold text-xl">
-            CHF {Math.max(0, total - promoDiscount).toFixed(2)}
+            CHF {totalAfterDiscounts.toFixed(2)}
           </span>
         </div>
         <button
