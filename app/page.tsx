@@ -218,7 +218,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-3 mt-8 text-on-surface-variant text-sm">
               <span className="material-symbols-outlined text-tertiary text-base">check_circle</span>
-              Kostenlos · 60 Sek · Keine Anmeldung
+              Kostenlos · Keine Anmeldung
             </div>
           </div>
           <div className="col-span-12 lg:col-span-7 relative">
@@ -732,7 +732,7 @@ export default function HomePage() {
         href="/quiz/question-1-brewing-method"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
-        Quiz starten · 60 Sek
+        Quiz starten
       </Link>
     </div>
   );

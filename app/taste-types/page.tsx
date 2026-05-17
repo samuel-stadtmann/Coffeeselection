@@ -22,7 +22,7 @@ export default async function TasteTypesOverviewPage() {
             <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
           </Link>
           <Link
-            href="/quiz/start"
+            href="/quiz/question-1-brewing-method"
             className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
           >
             Quiz starten
@@ -42,10 +42,10 @@ export default async function TasteTypesOverviewPage() {
             Wir haben Tausende Kaffeegenuss-Profile analysiert und 8 archetypische Typen identifiziert. Finde deinen.
           </p>
           <Link
-            href="/quiz/start"
+            href="/quiz/question-1-brewing-method"
             className="inline-block bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
           >
-            Quiz starten · 60 Sek
+            Quiz starten
           </Link>
         </section>
 
@@ -95,10 +95,10 @@ export default async function TasteTypesOverviewPage() {
       </footer>
 
       <Link
-        href="/quiz/start"
+        href="/quiz/question-1-brewing-method"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
-        Quiz starten · 60 Sek
+        Quiz starten
       </Link>
     </div>
   );
