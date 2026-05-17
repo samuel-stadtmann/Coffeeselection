@@ -11,13 +11,12 @@ import { usePathname } from "next/navigation";
 type Tab = { href: string; label: string };
 
 const TABS: Tab[] = [
-  { href: "/admin/metrics", label: "Metriken" },
+  { href: "/admin/dashboard", label: "Dashboard" },
+  { href: "/admin/metrics", label: "Algorithmus" },
   { href: "/admin/coffees", label: "Coffees" },
   { href: "/admin/roasters", label: "Röster" },
   { href: "/admin/rewards", label: "Rewards" },
   { href: "/admin/health", label: "System" },
-  // Zukuenftig:
-  // { href: "/admin/users", label: "Kunden" },
 ];
 
 export default function AdminTabs() {

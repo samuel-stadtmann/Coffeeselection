@@ -10,15 +10,15 @@ const LOGO = "/logo.png";
  * Auth-Wand fuer alle Admin-Sub-Routes die unter dem Route-Group
  * (authenticated) liegen. Drei Stufen:
  *
- *   1. Nicht eingeloggt          -> /login?next=/admin/metrics
+ *   1. Nicht eingeloggt          -> /login?next=/admin/dashboard
  *   2. Eingeloggt, kein Admin    -> /account/dashboard
  *   3. Admin, keine frische
- *      Re-Auth (>30 Min)         -> /admin/reauth?next=/admin/metrics
+ *      Re-Auth (>30 Min)         -> /admin/reauth?next=/admin/dashboard
  *
  * /admin/reauth selbst liegt ausserhalb dieses Route-Groups und
  * triggert die Wand daher nicht — sonst Loop.
  *
- * Der next-Pfad ist hier hardcoded auf /admin/metrics. Wenn wir mehr
+ * Der next-Pfad ist hier hardcoded auf /admin/dashboard. Wenn wir mehr
  * Tabs bekommen und die User direkt auf /admin/users etc. landen
  * lassen wollen, brauchen wir middleware-injizierte Header oder
  * eine clientseitige Capture der Original-URL.
@@ -29,9 +29,9 @@ export default async function AdminAuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const user = await getAdminUser();
-  if (!user) redirect("/login?next=/admin/metrics");
+  if (!user) redirect("/login?next=/admin/dashboard");
   if (!(await isAdminReauthValid())) {
-    redirect("/admin/reauth?next=/admin/metrics");
+    redirect("/admin/reauth?next=/admin/dashboard");
   }
 
   return (
