@@ -73,7 +73,7 @@ export default async function RoastersOverviewPage() {
             Alle Röster
           </h1>
           <p className="text-lg text-on-surface-variant leading-relaxed max-w-2xl mx-auto">
-            Wir arbeiten mit {roasters.length} Specialty-Coffee-Röstereien der Schweiz zusammen. Jede mit einer eigenen Handschrift, eigenem Stil, eigener Geschichte.
+            Wir arbeiten mit verlesenen Specialty-Coffee-Röstereien der Schweiz zusammen. Jede mit einer eigenen Handschrift, eigenem Stil, eigener Geschichte.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-8">
             {allCities.map((c) => (

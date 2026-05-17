@@ -209,9 +209,9 @@ export default async function RoasterDetailPage({ params }: { params: Promise<{ 
         <section className="bg-primary text-on-primary py-20">
           <div className="max-w-3xl mx-auto px-6 md:px-8 text-center">
             <h2 className="text-3xl md:text-4xl mb-6 uppercase tracking-tight font-headline font-bold">
-              Bereit für einen <span className="text-tertiary">{roaster.name.split(" ")[0]}-Kaffee?</span>
+              Bereit für einen Kaffee von <span className="text-tertiary">{roaster.name}?</span>
             </h2>
-            <p className="text-lg text-on-primary/70 mb-10">Mach das Quiz und finde heraus, welcher Kaffee dieser Rösterei zu dir passt.</p>
+            <p className="text-lg text-on-primary/70 mb-10">Mach das Quiz und finde heraus, ob ein Kaffee dieser Rösterei zu dir passt.</p>
             <Link
               href="/quiz/question-1-brewing-method"
               className="inline-block bg-tertiary text-primary px-12 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
