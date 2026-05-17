@@ -5,6 +5,7 @@ import { cities, cityBySlug } from "@/lib/cities";
 import { getRoastersByCity } from "@/lib/db/roasters";
 import { getCoffeesByCity } from "@/lib/db/coffees";
 import { IMG_ZURICH, IMG_BERN, IMG_BASEL, IMG_GENEVA, IMG_LUCERNE, IMG_ZUG, IMG_SWITZERLAND } from "@/lib/images";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 
@@ -41,19 +42,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
-            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
-          </Link>
-          <Link
-            href="/quiz/question-1-brewing-method"
-            className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
-          >
-            Quiz starten
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main className="pt-20 md:pt-24">
         {/* Breadcrumb */}
