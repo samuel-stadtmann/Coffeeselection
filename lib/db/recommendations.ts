@@ -93,8 +93,51 @@ const SCORING_WEIGHT = 0.55 / (0.55 + 0.35); // ≈ 0.611
 const VECTOR_WEIGHT = 0.35 / (0.55 + 0.35); // ≈ 0.389
 
 // 6 Achsen: Saeure / Koerper / Suesse / Bitterkeit / Komplexitaet + Roast-Level.
-// Max-Distanz = 6 * 4 = 24 (Achsen-Range 1-5, max-Diff 4 pro Achse).
-const MANHATTAN_MAX_DISTANCE = 24;
+// Gewichtung wird zur Laufzeit aus algorithm_config.match_weights gelesen
+// (C2). Default-Werte sind ein sinnvoller Fallback wenn die Tabelle leer
+// ist oder noch nicht migriert wurde.
+type MatchWeights = {
+  acidity: number;
+  body: number;
+  sweetness: number;
+  bitterness: number;
+  complexity: number;
+  roast_level: number;
+};
+const DEFAULT_WEIGHTS: MatchWeights = {
+  acidity: 1.5,
+  body: 1.5,
+  sweetness: 1.0,
+  bitterness: 1.0,
+  complexity: 0.7,
+  roast_level: 1.0,
+};
+function maxDistance(w: MatchWeights): number {
+  // Max-Diff pro Achse = 4 (Range 1-5). Gewichtete Max-Distanz = 4 * sum(weights).
+  return 4 * (w.acidity + w.body + w.sweetness + w.bitterness + w.complexity + w.roast_level);
+}
+
+async function loadMatchWeights(supabase: SupabaseClient): Promise<MatchWeights> {
+  try {
+    const { data } = await supabase
+      .from("algorithm_config")
+      .select("value")
+      .eq("key", "match_weights")
+      .maybeSingle();
+    const v = data?.value as Partial<MatchWeights> | null;
+    if (!v) return DEFAULT_WEIGHTS;
+    return {
+      acidity: Number(v.acidity ?? DEFAULT_WEIGHTS.acidity),
+      body: Number(v.body ?? DEFAULT_WEIGHTS.body),
+      sweetness: Number(v.sweetness ?? DEFAULT_WEIGHTS.sweetness),
+      bitterness: Number(v.bitterness ?? DEFAULT_WEIGHTS.bitterness),
+      complexity: Number(v.complexity ?? DEFAULT_WEIGHTS.complexity),
+      roast_level: Number(v.roast_level ?? DEFAULT_WEIGHTS.roast_level),
+    };
+  } catch {
+    return DEFAULT_WEIGHTS;
+  }
+}
 
 function manhattan(
   target: TasteTypeProfile,
@@ -105,15 +148,16 @@ function manhattan(
     bitterness: number | null;
     complexity: number | null;
     roast_level?: number | string | null;
-  }
+  },
+  weights: MatchWeights = DEFAULT_WEIGHTS
 ) {
   return (
-    Math.abs((coffee.acidity ?? 3) - (target.acidity ?? 3)) +
-    Math.abs((coffee.body ?? 3) - (target.body ?? 3)) +
-    Math.abs((coffee.sweetness ?? 3) - (target.sweetness ?? 3)) +
-    Math.abs((coffee.bitterness ?? 3) - (target.bitterness ?? 3)) +
-    Math.abs((coffee.complexity ?? 3) - (target.complexity ?? 3)) +
-    Math.abs(roastNum(coffee.roast_level) - roastNum(target.roast_level))
+    weights.acidity     * Math.abs((coffee.acidity     ?? 3) - (target.acidity     ?? 3)) +
+    weights.body        * Math.abs((coffee.body        ?? 3) - (target.body        ?? 3)) +
+    weights.sweetness   * Math.abs((coffee.sweetness   ?? 3) - (target.sweetness   ?? 3)) +
+    weights.bitterness  * Math.abs((coffee.bitterness  ?? 3) - (target.bitterness  ?? 3)) +
+    weights.complexity  * Math.abs((coffee.complexity  ?? 3) - (target.complexity  ?? 3)) +
+    weights.roast_level * Math.abs(roastNum(coffee.roast_level) - roastNum(target.roast_level))
   );
 }
 
@@ -162,16 +206,17 @@ function normalizeRow(
   c: Record<string, unknown>,
   distance: number,
   vectorSim: number | null,
-  aromaBonus: number = 0
+  aromaBonus: number = 0,
+  maxDist: number = maxDistance(DEFAULT_WEIGHTS)
 ): RecommendedCoffee {
   const origin = c.origin as { name_de?: string }[] | { name_de?: string } | null | undefined;
   const originName = Array.isArray(origin) ? origin[0]?.name_de ?? null : origin?.name_de ?? null;
   const roaster = c.roaster as Array<{ name: string; slug: string; city: string | null; logo_url: string | null }> | { name: string; slug: string; city: string | null; logo_url: string | null } | null;
   const roasterRow = Array.isArray(roaster) ? roaster[0] ?? null : roaster ?? null;
-  // C3: Max-Distanz fuer 6 Achsen (5 Sensorik + Roast-Level) mit Range
-  // 1-5 = 4 * 6 = 24. C2: aroma_families-Bonus addiert sich on top,
+  // C2: gewichtete Max-Distanz aus algorithm_config (durchgereicht via
+  // maxDist-Parameter). aroma_families-Bonus addiert sich on top,
   // gedeckelt auf 1.0.
-  const scoringScoreBase = Math.max(0, 1 - distance / MANHATTAN_MAX_DISTANCE);
+  const scoringScoreBase = Math.max(0, 1 - distance / maxDist);
   const scoringScore = Math.min(1, scoringScoreBase + aromaBonus);
   const matchScore =
     vectorSim != null
@@ -368,7 +413,7 @@ export async function getCoffeesForTasteType(
   // Pfad B: anonyme Quiz-Aufrufer (kein customerId) ODER RPC-Fallback.
   // JS-seitiges Hybrid-Scoring mit Type-Centroid als Embedding-Quelle.
   // ─────────────────────────────────────────────────────────────────────
-  const [{ data: target, error: tErr }, queryEmbedding, { data: coffees, error: cErr }] =
+  const [{ data: target, error: tErr }, queryEmbedding, { data: coffees, error: cErr }, weights] =
     await Promise.all([
       supabase
         .from("taste_types")
@@ -381,7 +426,9 @@ export async function getCoffeesForTasteType(
         .select(COFFEE_FIELDS)
         .eq("status", "active")
         .is("deleted_at", null),
+      loadMatchWeights(supabase),
     ]);
+  const maxDist = maxDistance(weights);
 
   if (tErr || !target) {
     console.error("[reco] taste_types fetch failed", tErr);
@@ -404,7 +451,7 @@ export async function getCoffeesForTasteType(
       );
     })
     .map((c) => {
-      const dist = manhattan(target as TasteTypeProfile, c as never);
+      const dist = manhattan(target as TasteTypeProfile, c as never, weights);
       let vectorSim: number | null = null;
       if (queryEmbedding) {
         const coffeeEmb = parseVector((c as Record<string, unknown>).flavor_embedding);
@@ -414,7 +461,7 @@ export async function getCoffeesForTasteType(
         (target as TasteTypeProfile).aroma_families,
         (c as Record<string, unknown>).aroma_families as string[] | null
       );
-      return normalizeRow(c, dist, vectorSim, bonus);
+      return normalizeRow(c, dist, vectorSim, bonus, maxDist);
     })
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, limit);
