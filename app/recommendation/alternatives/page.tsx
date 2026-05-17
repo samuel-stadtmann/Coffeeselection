@@ -9,6 +9,7 @@ import {
   reasoningForMatch,
 } from "@/lib/db/recommendations";
 import AlternativeCartButtons from "./AlternativeCartButtons";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -84,19 +85,7 @@ export default async function AlternativesPage() {
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen">
-      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
-            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
-          </Link>
-          <Link
-            href="/account/dashboard"
-            className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-tertiary transition-colors font-bold"
-          >
-            ← Zurück zum Profil
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main className="pt-20 md:pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-6 md:px-8">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getRoasters } from "@/lib/db/roasters";
 import { getCoffees } from "@/lib/db/coffees";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const ROASTER_FALLBACK_IMG =
@@ -30,38 +31,7 @@ export default async function RoastersOverviewPage() {
   const allCities = Array.from(new Set(roasters.map((r) => r.city).filter(Boolean) as string[])).sort();
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
-            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
-          </Link>
-          <div className="hidden lg:flex items-center space-x-10">
-            {navLinks.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-[14px] ${l.href === "/roasters" ? "text-tertiary" : "text-primary"}`}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center space-x-4 md:space-x-6">
-            <Link href="/login?next=/account/dashboard" className="hidden md:block">
-              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">person</span>
-            </Link>
-            <Link href="/checkout/cart">
-              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">shopping_bag</span>
-            </Link>
-            <Link
-              href="/quiz/question-1-brewing-method"
-              className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
-            >
-              Quiz starten
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main className="pt-20 md:pt-24">
         {/* Hero */}

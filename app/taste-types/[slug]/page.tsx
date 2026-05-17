@@ -6,6 +6,7 @@ import { createStaticClient } from "@/lib/supabase/static";
 import { getCoffeesForTasteType } from "@/lib/db/recommendations";
 import { getTasteTypes, getTasteTypeBySlug } from "@/lib/db/taste-types";
 import CoffeeCardCartButtons from "@/components/CoffeeCardCartButtons";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
@@ -58,19 +59,7 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       {/* Minimal Header */}
-      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
-            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
-          </Link>
-          <Link
-            href="/quiz/question-1-brewing-method"
-            className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
-          >
-            Quiz starten
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main className="pt-20 md:pt-24">
         {/* Breadcrumb */}

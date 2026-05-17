@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 
@@ -95,17 +96,7 @@ function LoginForm() {
   return (
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
       {/* Minimal Header */}
-      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <div className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
-            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left" src={LOGO} />
-          </Link>
-          <Link href="/" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">close</span>
-            <span className="hidden sm:inline">Beenden</span>
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 flex items-center justify-center pt-20 md:pt-24 pb-16 px-6">
         <div className="w-full max-w-md">
