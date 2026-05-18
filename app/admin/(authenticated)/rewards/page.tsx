@@ -32,6 +32,15 @@ type CreditAggRow = {
   count: number;
 };
 
+// K3: Marketing-Aufwand-Report — pro Tag aggregierte Einloesungen
+// (negative customer_credits-Eintraege). Das ist der tatsaechliche
+// Cash-Out aus Sicht des Rewards-Programms.
+type RedemptionDailyRow = {
+  day: string; // YYYY-MM-DD
+  redeemed_chf: number;
+  bookings: number;
+};
+
 type TopCustomerRow = {
   customer_id: string;
   customer_name: string;
@@ -55,12 +64,14 @@ export default async function AdminRewardsPage() {
     .order("created_at", { ascending: false });
   const campaigns = (campaignsRaw ?? []) as Campaign[];
 
-  // Aggregat pro Reason
+  // Aggregat pro Reason — gleichzeitig fuer K3 Tagesreport created_at
   const { data: allCredits } = await svc
     .from("customer_credits")
-    .select("reason, amount_chf");
+    .select("reason, amount_chf, created_at");
   const agg = new Map<string, { total: number; count: number }>();
-  ((allCredits ?? []) as Array<{ reason: string; amount_chf: number }>).forEach((r) => {
+  type CreditRow = { reason: string; amount_chf: number; created_at: string };
+  const credits = (allCredits ?? []) as CreditRow[];
+  credits.forEach((r) => {
     const cur = agg.get(r.reason) ?? { total: 0, count: 0 };
     cur.total += Number(r.amount_chf);
     cur.count += 1;
@@ -69,6 +80,34 @@ export default async function AdminRewardsPage() {
   const byReason: CreditAggRow[] = Array.from(agg.entries())
     .map(([reason, v]) => ({ reason, total: Number(v.total.toFixed(2)), count: v.count }))
     .sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+
+  // K3: Tages-Aggregation der Einloesungen (negative amount_chf). Wir
+  // schauen die letzten 30 Tage an und gruppieren pro UTC-Tag.
+  const redemptionsByDay = new Map<string, { redeemed: number; bookings: number }>();
+  const sinceMs = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  credits.forEach((r) => {
+    if (Number(r.amount_chf) >= 0) return;
+    const t = new Date(r.created_at).getTime();
+    if (Number.isNaN(t) || t < sinceMs) return;
+    const day = new Date(t).toISOString().slice(0, 10);
+    const cur = redemptionsByDay.get(day) ?? { redeemed: 0, bookings: 0 };
+    cur.redeemed += Math.abs(Number(r.amount_chf));
+    cur.bookings += 1;
+    redemptionsByDay.set(day, cur);
+  });
+  const redemptionsDaily: RedemptionDailyRow[] = Array.from(
+    redemptionsByDay.entries()
+  )
+    .map(([day, v]) => ({
+      day,
+      redeemed_chf: Number(v.redeemed.toFixed(2)),
+      bookings: v.bookings,
+    }))
+    .sort((a, b) => (a.day > b.day ? -1 : 1));
+  const redemptionTotal30d = redemptionsDaily.reduce(
+    (s, r) => s + r.redeemed_chf,
+    0
+  );
 
   const totalPaid = byReason
     .filter((r) => r.total > 0)
@@ -209,6 +248,63 @@ export default async function AdminRewardsPage() {
                     >
                       {r.total >= 0 ? "+" : ""}
                       {r.total.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* K3: Marketing-Aufwand pro Tag (letzte 30 Tage) */}
+      <section className="bg-white p-6 md:p-8 shadow-sm">
+        <div className="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+          <div>
+            <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight">
+              Marketing-Aufwand (30 Tage)
+            </h2>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Tatsächlicher Cash-Out aus dem Rewards-Programm: Summe aller
+              eingelösten Credits pro Tag.
+            </p>
+          </div>
+          <div className="flex items-baseline gap-4">
+            <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+              Total 30 Tage
+            </span>
+            <span className="font-headline font-bold text-2xl text-primary">
+              CHF {redemptionTotal30d.toFixed(2)}
+            </span>
+            <a
+              href="/api/admin/rewards/redemptions.csv"
+              className="font-headline text-[11px] uppercase tracking-[0.2em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-1"
+            >
+              CSV-Export →
+            </a>
+          </div>
+        </div>
+        {redemptionsDaily.length === 0 ? (
+          <p className="text-sm text-on-surface-variant">
+            Noch keine Einlösungen in den letzten 30 Tagen.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+                <tr>
+                  <th className="text-left py-2">Tag</th>
+                  <th className="text-right py-2">Buchungen</th>
+                  <th className="text-right py-2">Eingelöst CHF</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-container">
+                {redemptionsDaily.map((r) => (
+                  <tr key={r.day}>
+                    <td className="py-2 font-mono text-xs">{r.day}</td>
+                    <td className="py-2 text-right">{r.bookings}</td>
+                    <td className="py-2 text-right font-headline font-bold text-primary">
+                      {r.redeemed_chf.toFixed(2)}
                     </td>
                   </tr>
                 ))}

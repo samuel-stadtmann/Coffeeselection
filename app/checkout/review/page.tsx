@@ -163,6 +163,7 @@ export default function ReviewPage() {
             is_subscription: it.is_subscription ?? false,
             interval_weeks: it.interval_weeks,
             discount_percent: it.discount_percent,
+            is_discovery: it.is_discovery ?? false,
           })),
           customer: {
             email: data.customer.email,

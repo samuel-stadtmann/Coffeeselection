@@ -410,6 +410,33 @@ async function handlePaymentSucceeded(
       return;
     }
     await activateSubscription(svc, subscriptionUuid, session.subscription);
+    // P2: Initial-Lieferung in subscription_deliveries protokollieren,
+    // damit das Discovery-Exclude bei Renewal #1 schon den ersten Coffee
+    // ueberspringt.
+    try {
+      const { data: initialItems } = await svc
+        .from("order_items")
+        .select("coffee_id")
+        .eq("order_id", order.id)
+        .eq("is_subscription_item", true);
+      const initialCoffeeIds = (initialItems ?? [])
+        .map((i) => i.coffee_id as string)
+        .filter(Boolean);
+      if (initialCoffeeIds.length > 0) {
+        await svc.from("subscription_deliveries").insert(
+          initialCoffeeIds.map((coffee_id) => ({
+            subscription_id: subscriptionUuid,
+            order_id: order.id,
+            coffee_id,
+          }))
+        );
+      }
+    } catch (e) {
+      console.error(
+        "[webhooks/stripe] initial subscription_deliveries log failed",
+        e
+      );
+    }
     // Subscription-Confirmation-Mail (separat von Einmal-Confirmation).
     // sendMail wirft nie — Mail-Fehler blockiert den Webhook nicht.
     await sendSubscriptionConfirmationMail(svc, subscriptionUuid, order.id);
@@ -721,7 +748,7 @@ async function handleInvoicePaid(
   // Unsere Subscription via stripe_subscription_id finden
   const { data: ourSub, error: subErr } = await svc
     .from("subscriptions")
-    .select("id, customer_id, shipping_address_id, billing_address_id, price_chf_per_delivery, shipping_chf, interval_weeks, status, discount_percent")
+    .select("id, customer_id, shipping_address_id, billing_address_id, price_chf_per_delivery, shipping_chf, interval_weeks, status, discount_percent, discovery_mode")
     .eq("stripe_subscription_id", invoice.subscription)
     .maybeSingle();
 
@@ -735,16 +762,93 @@ async function handleInvoicePaid(
     return;
   }
 
-  // Subscription-Items laden (welche Coffees in welchen Mengen)
+  // Subscription-Items laden (welche Coffees in welchen Mengen). Wir
+  // brauchen Mengen + Gewicht aus dem Snapshot — bei Discovery-Abos wird
+  // der Coffee weiter unten ersetzt, Quantity/Gewicht bleiben.
   const { data: subItems, error: siErr } = await svc
     .from("subscription_items")
-    .select("coffee_id, quantity, weight_g, coffee:coffees(name, roast_level, roaster:roasters(name))")
+    .select("coffee_id, quantity, weight_g, coffee:coffees(name, roast_level, wholesale_price_chf, roaster:roasters(name))")
     .eq("subscription_id", ourSub.id);
 
   if (siErr || !subItems || subItems.length === 0) {
     throw new Error(
       `subscription_items load failed: ${siErr?.message ?? "empty"}`
     );
+  }
+
+  // P2: Discovery-Abo — pro Renewal einen NEUEN Coffee aus dem aktuellen
+  // Geschmackstyp des Customers waehlen. Excludes:
+  //   - die letzten N bereits gelieferten Coffees aus subscription_deliveries
+  //   - der aktuell konfigurierte coffee_id (bei Initial-Snapshot in
+  //     subscription_items) — nicht zwingend, aber wir wollen Abwechslung
+  let renewalCoffeeOverride: {
+    coffee_id: string;
+    name: string;
+    roast_level: string | null;
+    wholesale_price_chf: number | null;
+    roaster_name: string;
+  } | null = null;
+  if (ourSub.discovery_mode) {
+    const { data: customer } = await svc
+      .from("customers")
+      .select("taste_type_id")
+      .eq("id", ourSub.customer_id)
+      .maybeSingle();
+    if (customer?.taste_type_id != null) {
+      // Letzte 6 Lieferungen als Exclude-Set (verhindert Wiederholung
+      // innerhalb des Beobachtungsfensters).
+      const { data: lastDeliveries } = await svc
+        .from("subscription_deliveries")
+        .select("coffee_id")
+        .eq("subscription_id", ourSub.id)
+        .order("delivered_at", { ascending: false })
+        .limit(6);
+      const excludeIds = (lastDeliveries ?? []).map(
+        (d) => d.coffee_id as string
+      );
+      try {
+        const { getCoffeesForTasteType } = await import(
+          "@/lib/db/recommendations"
+        );
+        const picks = await getCoffeesForTasteType(svc, customer.taste_type_id, {
+          customerId: ourSub.customer_id,
+          excludeIds,
+          subscriptionType: "discovery",
+          limit: 1,
+        });
+        const pick = picks[0];
+        if (pick) {
+          // Coffee-Detail nachladen fuer Snapshot-Felder
+          const { data: coffeeDetail } = await svc
+            .from("coffees")
+            .select(
+              "id, name, roast_level, wholesale_price_chf, roaster:roasters(name)"
+            )
+            .eq("id", pick.id)
+            .maybeSingle();
+          if (coffeeDetail) {
+            const roaster = coffeeDetail.roaster as unknown as {
+              name: string;
+            } | null;
+            renewalCoffeeOverride = {
+              coffee_id: coffeeDetail.id as string,
+              name: coffeeDetail.name as string,
+              roast_level: (coffeeDetail.roast_level as string | null) ?? null,
+              wholesale_price_chf:
+                coffeeDetail.wholesale_price_chf == null
+                  ? null
+                  : Number(coffeeDetail.wholesale_price_chf),
+              roaster_name: roaster?.name ?? "",
+            };
+          }
+        }
+      } catch (e) {
+        console.error(
+          "[webhooks/stripe] discovery JIT-pick failed — fallback auf subscription_items",
+          e
+        );
+      }
+    }
   }
 
   // Shipping-Adresse aus subscription (vom Initial-Snapshot)
@@ -816,17 +920,44 @@ async function handleInvoicePaid(
     const coffeeRel = si.coffee as unknown as {
       name: string;
       roast_level: string | null;
+      wholesale_price_chf: number | null;
       roaster: { name: string } | null;
     } | null;
+    // P2: bei Discovery ersetzen wir coffee_id + Snapshots durch den
+    // JIT-Pick. Quantity/Weight/Preis bleiben aus subscription_items
+    // (User hat das beim Abo-Abschluss so konfiguriert).
+    const useOverride = renewalCoffeeOverride != null;
+    const coffeeId = useOverride
+      ? renewalCoffeeOverride!.coffee_id
+      : (si.coffee_id as string);
+    const coffeeName = useOverride
+      ? renewalCoffeeOverride!.name
+      : coffeeRel?.name ?? "Coffee";
+    const roasterName = useOverride
+      ? renewalCoffeeOverride!.roaster_name
+      : coffeeRel?.roaster?.name ?? "";
+    const roastLevel = useOverride
+      ? renewalCoffeeOverride!.roast_level
+      : coffeeRel?.roast_level ?? null;
+    // P6 Schritt 1: Wholesale-Preis auf order_items snapshoten, skaliert
+    // auf die tatsaechliche bag-Groesse (subscription_items.weight_g).
+    const wholesaleBase = useOverride
+      ? renewalCoffeeOverride!.wholesale_price_chf
+      : coffeeRel?.wholesale_price_chf ?? null;
+    const wholesaleChf =
+      wholesaleBase == null
+        ? null
+        : Number((Number(wholesaleBase) * (si.weight_g / 250)).toFixed(2));
     return {
       order_id: order.id,
-      coffee_id: si.coffee_id,
-      coffee_name_snapshot: coffeeRel?.name ?? "Coffee",
-      roaster_name_snapshot: coffeeRel?.roaster?.name ?? "",
-      roast_level_snapshot: coffeeRel?.roast_level ?? null,
+      coffee_id: coffeeId,
+      coffee_name_snapshot: coffeeName,
+      roaster_name_snapshot: roasterName,
+      roast_level_snapshot: roastLevel,
       quantity: si.quantity,
       weight_g: si.weight_g,
       unit_price_chf: unitPrice,
+      wholesale_price_chf: wholesaleChf,
       line_total_chf: Number((unitPrice * si.quantity).toFixed(2)),
       grind_preference: null,
       is_subscription_item: true,
@@ -871,8 +1002,26 @@ async function handleInvoicePaid(
     throw new Error(`renewal payments insert failed: ${pErr.message}`);
   }
 
+  // P2: subscription_deliveries-Log — alle Items dieser Renewal-Order
+  // (in der Praxis exakt 1 Coffee pro Abo, aber wir loggen generisch).
+  // Idempotent: doppelte (sub, order) sind durch handleInvoicePaid's
+  // payments-Idempotenz schon abgedeckt; trotzdem mit on-conflict-friendly
+  // Insert (kein Upsert noetig, mehrfache Calls wuerden mit Stripe-Retry
+  // ohnehin am payments-stripe_event_id frueher abgefangen).
+  try {
+    await svc.from("subscription_deliveries").insert(
+      orderItemsToInsert.map((oi) => ({
+        subscription_id: ourSub.id,
+        order_id: order.id,
+        coffee_id: oi.coffee_id,
+      }))
+    );
+  } catch (e) {
+    console.error("[webhooks/stripe] subscription_deliveries log failed", e);
+  }
+
   console.log(
-    `[webhooks/stripe] ✓ renewal order ${order.order_number} angelegt fuer subscription ${ourSub.id} (CHF ${totalChf})`
+    `[webhooks/stripe] ✓ renewal order ${order.order_number} angelegt fuer subscription ${ourSub.id} (CHF ${totalChf})${renewalCoffeeOverride ? " [discovery-pick]" : ""}`
   );
 
   // Loyalty-Bonus auch fuer Renewal-Orders zaehlen (jede 10. paid Order

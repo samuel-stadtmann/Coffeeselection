@@ -44,6 +44,7 @@ export function SubscriptionConfigurator(props: Props) {
   const [qty, setQty] = useState(1);
   const [intervalWeeks, setIntervalWeeks] =
     useState<SubscriptionIntervalWeeks>(2);
+  const [isDiscovery, setIsDiscovery] = useState(false);
   const [adding, setAdding] = useState(false);
 
   // Preise: Basis linear nach Gewicht skaliert (wie AddToCartButton),
@@ -66,6 +67,7 @@ export function SubscriptionConfigurator(props: Props) {
       weight_g: weight,
       quantity: qty,
       interval_weeks: intervalWeeks,
+      is_discovery: isDiscovery,
     });
     setTimeout(() => router.push("/checkout/cart"), 250);
   };
@@ -147,6 +149,28 @@ export function SubscriptionConfigurator(props: Props) {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* P2: Discovery-Toggle — Surprise-Abo (wechselnde Coffees pro Lieferung) */}
+      <div className="mb-4 bg-on-primary/5 p-3 border-l-2 border-tertiary">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isDiscovery}
+            onChange={(e) => setIsDiscovery(e.target.checked)}
+            className="mt-1 w-4 h-4 accent-tertiary cursor-pointer"
+          />
+          <span>
+            <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold block">
+              Überraschungs-Abo
+            </span>
+            <span className="text-[11px] text-on-primary/70 leading-snug block mt-0.5">
+              Bei jeder Folgelieferung wählen wir einen NEUEN Coffee aus deinem
+              Geschmackstyp — nie zweimal das Gleiche. Erste Lieferung ist der
+              hier gewählte Coffee.
+            </span>
+          </span>
+        </label>
       </div>
 
       {/* Liefer-Hinweis (kein User-w&auml;hlbares Startdatum: R&ouml;ster
