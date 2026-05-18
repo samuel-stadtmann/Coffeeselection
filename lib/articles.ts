@@ -452,5 +452,3 @@ export const articles: Article[] = [
 ];
 
 export const articleBySlug = (slug: string) => articles.find((a) => a.slug === slug);
-export const articlesByCategory = (cat: string) => articles.filter((a) => a.category === cat);
-export const allCategories = Array.from(new Set(articles.map((a) => a.category)));

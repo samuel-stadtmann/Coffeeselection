@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { articles } from "@/lib/articles";
 import SiteHeader from "@/components/SiteHeader";
 import DiscoveryCtaLink from "@/components/DiscoveryCtaLink";
+import NewsletterForm from "@/components/NewsletterForm";
 
 type FeaturedRoaster = {
   slug: string;
@@ -631,17 +632,10 @@ export default function HomePage() {
           </div>
           <div>
             <h4 className="text-[11px] uppercase tracking-[0.3em] mb-6 text-primary font-headline font-bold">Newsletter</h4>
-            <p className="text-xs text-on-surface-variant mb-4">10% Rabatt auf erste Bestellung.</p>
-            <div className="flex border-b border-primary/30 pb-2">
-              <input
-                type="email"
-                placeholder="Deine E-Mail"
-                className="bg-transparent border-none focus:ring-0 text-xs w-full px-0 font-headline placeholder:text-on-surface-variant/40 outline-none"
-              />
-              <button className="text-primary hover:text-tertiary transition-colors">
-                <span className="material-symbols-outlined text-lg">arrow_forward</span>
-              </button>
-            </div>
+            <p className="text-xs text-on-surface-variant mb-4">
+              Neue Röster, Specialty-Lots und Brüh-Tipps — max. 1× im Monat.
+            </p>
+            <NewsletterForm />
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-12 mt-12 border-t border-primary/5 flex flex-col md:flex-row justify-between gap-4 text-[10px] text-on-surface-variant/50 font-headline font-bold uppercase tracking-[0.3em]">
