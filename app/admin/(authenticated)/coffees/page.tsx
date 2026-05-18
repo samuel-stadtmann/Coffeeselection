@@ -112,6 +112,12 @@ export default async function AdminCoffeesPage({
             Sensorik nachpflegen
           </Link>
           <Link
+            href="/admin/coffees/wholesale"
+            className="border border-primary text-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+          >
+            Einkaufspreise
+          </Link>
+          <Link
             href="/admin/coffees/new"
             className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
           >

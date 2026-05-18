@@ -78,6 +78,10 @@ const ItemSchema = z
       )
       .optional(),
     discount_percent: z.number().min(0).max(100).optional(),
+    // P2: Discovery-Abo. Renewals waehlen dann pro Lieferung einen neuen
+    // Coffee aus dem Geschmackstyp des Customers. Ignored fuer
+    // Einmal-Items und non-Abo Carts.
+    is_discovery: z.boolean().optional().default(false),
   })
   .refine(
     (it) =>
@@ -269,7 +273,7 @@ export async function POST(req: NextRequest) {
   const { data: coffees, error: coffeesErr } = await svc
     .from("coffees")
     .select(
-      "id, name, price_chf, weight_g, status, stock_status, roaster:roasters(name), roast_level"
+      "id, name, price_chf, wholesale_price_chf, weight_g, status, stock_status, roaster:roasters(name), roast_level"
     )
     .in("id", coffeeIds);
 
@@ -335,6 +339,13 @@ export async function POST(req: NextRequest) {
       : 1;
     const unitPrice = Number((basisUnit * discountMul).toFixed(2));
     const lineTotal = Number((unitPrice * item.quantity).toFixed(2));
+    // P6 Schritt 1: Wholesale-Preis pro Bag (weight_g) als Snapshot.
+    // coffees.wholesale_price_chf ist auf 250g-Basis (analog price_chf) —
+    // wir skalieren linear mit weightFactor.
+    const wholesaleUnitChf =
+      c.wholesale_price_chf == null
+        ? null
+        : Number((Number(c.wholesale_price_chf) * weightFactor).toFixed(2));
     return {
       coffee_id: item.coffee_id,
       coffee_name_snapshot: c.name,
@@ -343,12 +354,14 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
       weight_g: item.weight_g,
       unit_price_chf: unitPrice,
+      wholesale_price_chf: wholesaleUnitChf,
       line_total_chf: lineTotal,
       grind_preference: item.grind_preference ?? null,
       // Wird nach order-insert genutzt um subscriptions anzulegen
       is_subscription: item.is_subscription ?? false,
       interval_weeks: item.interval_weeks,
       discount_percent: item.discount_percent,
+      is_discovery: item.is_discovery ?? false,
     };
   });
 
@@ -501,6 +514,7 @@ export async function POST(req: NextRequest) {
       is_subscription,
       interval_weeks: _iw,
       discount_percent: _dp,
+      is_discovery: _id,
       ...rest
     } = li;
     return {
@@ -552,6 +566,7 @@ export async function POST(req: NextRequest) {
         price_chf_per_delivery: pricePerDelivery,
         shipping_chf: subShippingChf,
         discount_percent: subItem.discount_percent ?? 0,
+        discovery_mode: subItem.is_discovery ?? false,
         status: "pending", // Webhook hebt auf 'active' bei Stripe-Bestaetigung
         first_order_id: order.id,
       })

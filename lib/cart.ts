@@ -60,6 +60,10 @@ export type CartItem = {
   interval_weeks?: SubscriptionIntervalWeeks;
   start_date?: string; // YYYY-MM-DD, fruehestens morgen
   discount_percent?: number; // Snapshot zum Anlage-Zeitpunkt, z.B. 10
+  // P2 Discovery-Abo: bei jeder Renewal-Lieferung waehlt der Webhook einen
+  // NEUEN Coffee aus dem Geschmackstyp des Customers (Surprise-Abo).
+  // Initial-Lieferung bleibt der gewaehlte Coffee. Default false (Fix-Abo).
+  is_discovery?: boolean;
 };
 
 export type Cart = {
@@ -209,6 +213,7 @@ export function useCart() {
       weight_g: CartWeight;
       quantity: number;
       interval_weeks: SubscriptionIntervalWeeks;
+      is_discovery?: boolean;
     }) => {
       update((c) => {
         // Bisherige Abo-Items entfernen (max 1-Limit)
@@ -217,6 +222,7 @@ export function useCart() {
           ...item,
           is_subscription: true,
           discount_percent: SUBSCRIPTION_DISCOUNT_PERCENT,
+          is_discovery: item.is_discovery ?? false,
           id: cryptoRandomId(),
           added_at: new Date().toISOString(),
         };
