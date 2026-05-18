@@ -190,7 +190,7 @@ export default function CartPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => router.push("/checkout/shipping")}
+                    onClick={() => router.push("/checkout/review")}
                     className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
                   >
                     Weiter zu Versand
@@ -221,7 +221,7 @@ export default function CartPage() {
           </div>
           <button
             type="button"
-            onClick={() => router.push("/checkout/shipping")}
+            onClick={() => router.push("/checkout/review")}
             className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest"
           >
             Weiter zu Versand

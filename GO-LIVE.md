@@ -36,17 +36,15 @@ Pre-Launch-TODOs:
 - [ ] Test-Keys → Live-Keys (in Vercel Env-Vars).
 - [ ] Webhook-URLs auf Production-Domain umstellen.
 
-## Checkout / Payment-Flow optimieren (Pre-Launch)
+## Checkout / Payment-Flow — ✅ erledigt
 
-Aktuell gibt es Redundanzen und unnötige Schritte im Checkout. Vor Go-Live aufräumen:
-
-- [ ] **Lieferadresse nur einmal abfragen** — aktuell taucht sie sowohl in `/checkout/shipping` als auch in `/checkout/payment` auf. Heute via Redirect entschärft (`shipping → payment`), aber Payment-Page muss überarbeitet werden damit alles einheitlich an einer Stelle ist.
-- [ ] **Schritt-Anzahl reduzieren** — Cart → Payment statt Cart → Shipping → Review → Payment. Aktuell sind `/checkout/shipping` und `/checkout/review` per Redirect deaktiviert; entweder ganz löschen oder in einen Single-Page-Checkout konsolidieren.
-- [ ] **Saved Addresses für eingeloggte User** aus `customer_addresses`-Tabelle vorausfüllen.
-- [ ] **Order-Persistierung**: Bei Checkout-Submit echten Eintrag in `orders` + `order_items` schreiben (heute reines Mock).
-- [ ] **Stripe oder Shopify-Integration** finalisieren — heute Stub mit env-gated Init.
-- [ ] **Confirmation-Email** nach erfolgreichem Checkout (via Supabase-Trigger oder Edge-Function).
-- [ ] **Error-States im Checkout** sauber behandeln (Karten-Decline, Versand-Fehler, etc.).
+- [x] **Schritt-Anzahl reduziert**: Cart → Checkout → Stripe → Bestätigung. `/checkout/shipping` ist Redirect auf `/checkout/review` (Single-Page-Checkout); Stepper auf 3 Schritte gekürzt.
+- [x] **Lieferadresse nur einmal abgefragt**: Adress-Form via `components/checkout/ShippingForm.tsx` direkt auf `/checkout/review` eingebettet (statt separater Step).
+- [x] **Saved Addresses fuer eingeloggte User**: `SavedAddressesPicker` (in ShippingForm) laed bis zu 5 Adressen aus `customer_addresses`, ein Klick fuellt die Form, „Neue Adresse" raeumt sie wieder leer.
+- [x] **Order-Persistierung**: `POST /api/orders/create` legt echten `orders`+`order_items`-Eintrag an (war schon live, kein Mock).
+- [x] **Stripe-Integration**: Hosted Checkout, Webhook setzt Status, Stripe-Tax aktiv. Live.
+- [x] **Confirmation-Email**: `/api/webhooks/stripe` sendet bei `paid` automatisch `orderConfirmationEmail()` (Einmalkauf) bzw. `subscriptionConfirmationEmail()` (Abo) ueber Resend. (Edge-Function-Variante laut Original-Eintrag waere ein Refactor ohne Mehrwert — Webhook ist der natuerliche Trigger-Punkt.)
+- [x] **Error-States**: Stripe-Cancel-Redirect geht auf `/checkout/review?canceled=1` und zeigt eine Hinweisbox, Customer kann Adresse/Zahlungsmittel anpassen und retry. `/api/orders/create`-Fehler werden inline gerendert.
 
 ## Röster-Dashboard (Pre-Launch)
 
@@ -81,7 +79,14 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
   - `orders.rating_reminder_sent_at` blockt eine Order nach erstem Send.
   - `rating_reminder_log(customer_id, coffee_id, sent_at)` blockt Coffee-Reminder fuer 90 Tage.
   - Coffees mit bestehendem `coffee_ratings`-Eintrag werden vor Send ausgefiltert (kein Reminder fuer bereits bewertete Sorten).
-- [ ] **Vor Go-Live noch zu erledigen**: Vault-Secrets `SITE_URL` und `CRON_SECRET` in Production setzen + `CRON_SECRET` als Vercel Env-Var spiegeln.
+- [ ] **Vor Go-Live noch zu erledigen** (Production-Supabase + Production-Vercel):
+  ```sql
+  -- Im Production-Supabase SQL Editor:
+  select vault.create_secret('https://coffeeselection.ch', 'SITE_URL');
+  select vault.create_secret('<production_cron_secret>', 'CRON_SECRET');
+  -- Falls schon vorhanden, vault.update_secret(...) statt create_secret.
+  ```
+  Dann gleiche Migration `20260518100000_cron_rating_reminders.sql` einmal auf Production laufen lassen. `CRON_SECRET` als Vercel Env-Var (Production) muss identisch sein.
 
 ## Domain & DNS
 
@@ -147,10 +152,9 @@ Aktuell sind alle "Empfehlungen" Mock-Daten oder Platzhalter. Phase A löst das 
 ### A.6 Reklassifikations-Cron
 - [ ] Täglicher Job: User mit ≥5 Ratings → Distance zu Type-Centroids berechnen → bei klarem Wechsel Email senden ("Geschmack hat sich entwickelt — Quiz neu machen?")
 
-### A.7 Cleanup: Mock-Datenquellen entfernen
-- [ ] `lib/coffees.ts` (Mock-Coffees aus `taste-types.ts`-Arrays) → entfernen sobald A.2 + A.3 durch
-- [ ] `lib/roasters.ts` → entfernen (DB ist jetzt Source-of-Truth, lib nur noch von alten Pages referenziert)
-- [ ] `lib/taste-types.ts` reduzieren auf statische SEO-Texte (Name, Tagline, Hero-Desc) — alle Coffee/Roaster-Listen daraus entfernen
+### A.7 Cleanup: Mock-Datenquellen entfernen — ✅ erledigt
+- [x] `lib/coffees.ts`, `lib/roasters.ts`, `lib/taste-types.ts` existieren nicht mehr — DB-Layer unter `lib/db/*.ts` ist Source-of-Truth.
+- [x] `lib/taste-types-map.ts` bleibt als statisches Slug↔ID-Mapping (kein Mock-Daten-File, sondern Routing-Helper).
 
 ## Post-Launch — Empfehlungs-Algorithmus verfeinern
 

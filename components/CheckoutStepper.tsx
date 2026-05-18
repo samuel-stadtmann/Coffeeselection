@@ -1,13 +1,17 @@
+// Seit dem Single-Page-Checkout (Adresse+Zahlung kombiniert auf
+// /checkout/review) gibt es nur noch 3 Schritte. Stepper-active-Indices:
+//   0 = /checkout/cart
+//   1 = /checkout/review
+//   2 = /checkout/success
 const steps = [
   { label: "Warenkorb" },
-  { label: "Adresse" },
-  { label: "Zahlung" },
+  { label: "Checkout" },
   { label: "Bestätigung" },
 ];
 
-// Gemeinsamer Checkout-Fortschritt fuer Cart/Shipping/Review.
-// min-w-0 + schmaleres Tracking/Spacing auf Mobile: 4 Labels in einer
-// Reihe sprengen sonst schon ab ~360px den Viewport.
+// Gemeinsamer Checkout-Fortschritt fuer Cart/Review/Success.
+// min-w-0 + schmaleres Tracking/Spacing auf Mobile: 3 Labels passen jetzt
+// auch bei sehr engen Viewports.
 export default function CheckoutStepper({ active }: { active: number }) {
   return (
     <div className="max-w-3xl mx-auto px-6 md:px-8 mb-10">

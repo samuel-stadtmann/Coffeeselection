@@ -407,7 +407,7 @@ export async function POST(req: NextRequest) {
         payment_method_types: ["card"],
         locale: stripeLocale,
         success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${siteUrl}/checkout/cart`,
+        cancel_url: `${siteUrl}/checkout/review?canceled=1`,
         metadata: commonMetadata,
         ...(stripeDiscounts ? { discounts: stripeDiscounts } : {}),
         subscription_data: {
@@ -433,7 +433,7 @@ export async function POST(req: NextRequest) {
         expires_at:
           Math.floor(Date.now() / 1000) + SESSION_EXPIRES_AFTER_SEC,
         success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${siteUrl}/checkout/cart`,
+        cancel_url: `${siteUrl}/checkout/review?canceled=1`,
         metadata: commonMetadata,
         ...(stripeDiscounts ? { discounts: stripeDiscounts } : {}),
         payment_intent_data: {
