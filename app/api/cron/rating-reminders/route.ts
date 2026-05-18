@@ -21,18 +21,19 @@ import { createRatingToken } from "@/lib/rating-token";
  *   - Falls Mail-Send fehlschlaegt: rating_reminder_sent_at bleibt NULL,
  *     wird im naechsten Cron-Run nochmal versucht
  *
- * Zeitfenster (5-14 Tage):
- *   - Untergrenze 5d: Coffee muss angekommen + ein paar Tage probiert sein
- *     (Versand 2-5 Werktage + paar Tage geniessen)
- *   - Obergrenze 14d: nach 2 Wochen ist die Customer-Erinnerung zu schwach,
- *     macht keinen Sinn mehr zu nerven
+ * Zeitfenster (10-21 Tage):
+ *   - Untergrenze 10d: Roester roestet on-demand (1-3 Tage), Versand 2-5
+ *     Werktage, Customer braucht 2-3 Brews bis er ein fundiertes Urteil
+ *     hat — 10 Tage trifft das Fenster „schon gut kennengelernt".
+ *   - Obergrenze 21d: nach 3 Wochen ist der Coffee meist leer und die
+ *     Erinnerung verblasst — danach nicht mehr nerven.
  *
  * Aktuell: 1 Mail pro Order (auch wenn mehrere Coffees drin). Im Template
  * wird pro Coffee eine 5-Stern-Reihe gerendert.
  */
 
-const PAID_MIN_AGE_DAYS = 5;
-const PAID_MAX_AGE_DAYS = 14;
+const PAID_MIN_AGE_DAYS = 10;
+const PAID_MAX_AGE_DAYS = 21;
 const MAX_ORDERS_PER_RUN = 50; // damit ein Cron-Run nicht ewig dauert
 const PER_COFFEE_COOLDOWN_DAYS = 90; // pro (customer,coffee) max alle 90d
 
