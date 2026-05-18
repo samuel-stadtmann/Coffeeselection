@@ -26,61 +26,38 @@ const IMG =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
 // ----------------------------------------------------------------------------
-// Article-Hero-Bilder — pro Artikel ein eigener Slot, damit nicht alle 11
-// Magazine-Artikel dasselbe Stockfoto teilen.
-//
-// TODO: ersetze die Platzhalter mit thematisch passenden Bildern.
-// Bezugsquellen: Unsplash (royalty-free, Hotlink ok via images.unsplash.com),
-// Pexels oder eigene Fotos in Supabase Storage unter "magazine/<slug>.jpg".
-//
-// Bildformat: Featured-Card 16:9 (Listenansicht) + Detail-Hero 16:9 bis 21:9.
-// Untere Haelfte bekommt Gradient + Title-Overlay — Hauptmotiv sollte daher
-// oben/zentriert sitzen, mit ruhigem Vordergrund-Raum unten.
+// Article-Hero-Bilder — pro Artikel ein eigener Slot.
+// Alle Bilder von Pexels (royalty-free, kommerzielle Nutzung erlaubt, keine
+// Attribution-Pflicht). CDN-URL-Pattern:
+//   https://images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?...
+// Format: 16:9 (Listenansicht) bis 21:9 (Hero). Hauptmotiv ideal oben.
 // ----------------------------------------------------------------------------
 
-// what-is-specialty-coffee → SCA-Cupping-Session: Cupper mit Loeffel ueber
-// Cupping-Bowls, professionell, hell, fokussiert.
-const IMG_SPECIALTY = IMG;
+const PX = (id: string, slug: string) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop&dpr=2#${slug}`;
 
-// how-to-choose-coffee → Auswahl verschiedener Coffee-Bags nebeneinander
-// auf Holztisch, oder Hand greift einen Bag aus dem Regal.
-const IMG_CHOOSE = IMG;
-
-// coffee-flavor-wheel → Das SCA-Flavor-Wheel selbst (illustrativ) oder
-// arrangierte Aromen-Zutaten (Beeren, Kakao, Nuesse, Bluete) als Flat-Lay.
-const IMG_FLAVOR_WHEEL = IMG;
-
-// espresso-vs-filter → Split-Komposition: links V60, rechts Siebtraeger;
-// alternativ zwei Tassen nebeneinander (eine klar, eine creamy).
-const IMG_ESPRESSO_VS_FILTER = IMG;
-
-// light-vs-dark-roast → Bohnen-Spektrum von gruen ueber hellbraun bis
-// dunkel-oelig nebeneinander auf Leinwand, gleichmaessige Beleuchtung.
-const IMG_LIGHT_VS_DARK = IMG;
-
-// coffee-acidity-explained → Zitrusfrucht-Stillleben mit Coffee: Zitrone
-// + Apfel + Tasse, helles Tageslicht, "frisch & fruchtig"-Stimmung.
-const IMG_ACIDITY = IMG;
-
-// best-coffee-for-full-automatic → Vollautomat im Einsatz (Jura, Saeco),
-// Crema laeuft frisch in Tasse, Kueche im Hintergrund.
-const IMG_FULL_AUTOMATIC = IMG;
-
-// how-to-brew-v60 → V60-Hand-Pour Top-Down oder Side-View, duenner
-// Wasserstrahl, sichtbare Bloom-Phase im Filter.
-const IMG_V60 = IMG;
-
-// how-to-brew-espresso → Siebtraeger mit perfekter goldener Crema im Glas,
-// Timer im Hintergrund, "Hasenschwanz"-Stroemung.
-const IMG_BREW_ESPRESSO = IMG;
-
-// how-coffee-subscriptions-work → Geoeffnete Abo-Box mit Coffee-Packung +
-// handgeschriebener Karte, gemuetliches Sonntagmorgen-Setting.
-const IMG_SUBSCRIPTIONS = IMG;
-
-// best-coffee-switzerland → Schweizer Setting: Bergpanorama mit Coffee
-// oder urbane Schweizer Cafe-Szene (Zuerich/Bern Altstadt), atmosphaerisch.
-const IMG_SWITZERLAND = IMG;
+// what-is-specialty-coffee → Coffee-Tasting-Setup mit Cups + Loeffeln.
+const IMG_SPECIALTY = PX("34505585", "specialty-cupping");
+// how-to-choose-coffee → Artisan Coffee-Bags Display auf Holzregal.
+const IMG_CHOOSE = PX("28458004", "choose-coffee-bags");
+// coffee-flavor-wheel → Flat-Lay von Spices & Herbs (Aromen-Vokabular).
+const IMG_FLAVOR_WHEEL = PX("4871156", "flavor-wheel-aromas");
+// espresso-vs-filter → Faceless barista pouring coffee into dripper.
+const IMG_ESPRESSO_VS_FILTER = PX("7125760", "espresso-vs-filter");
+// light-vs-dark-roast → Generic roasted coffee beans (Spektrum-Idee).
+const IMG_LIGHT_VS_DARK = PX("2309058", "light-vs-dark-roast");
+// coffee-acidity-explained → Citrus close-up mit Bluete + Frucht.
+const IMG_ACIDITY = PX("434284", "acidity-citrus");
+// best-coffee-for-full-automatic → Coffee Machine auf Countertop + Bags.
+const IMG_FULL_AUTOMATIC = PX("16051797", "full-automatic-machine");
+// how-to-brew-v60 → Boiling Water gepourt in V60-Dripper.
+const IMG_V60 = PX("15672170", "v60-pour-over");
+// how-to-brew-espresso → Person bereitet Espresso an der Maschine zu.
+const IMG_BREW_ESPRESSO = PX("5825405", "brew-espresso");
+// how-coffee-subscriptions-work → Coffee-Bag-Packaging als Abo-Symbol.
+const IMG_SUBSCRIPTIONS = PX("18138946", "subscriptions-package");
+// best-coffee-switzerland → Schweizer Alpen mit See, Landschaft.
+const IMG_SWITZERLAND = PX("35309605", "switzerland-alps");
 
 export const articles: Article[] = [
   {

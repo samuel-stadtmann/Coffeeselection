@@ -25,40 +25,39 @@ const IMG_DARK =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBN8IgtovkYQlygVeCT7-HQJ3MxBIeXLHA7DLDxl1WsR_OhCTGdjP5WesE-1cuQRX2vSR__im3sOEI3Io4OQIaVy0Id7JoExY3qQQYId3uFZ0QVQ97HAEuACLlAIx1qmx6h9H7xFKRyQu1GTx1w87_FIcnKzg7zHh6N1JV8CH_0r5HSJp1bQCci05GFg8a9-XCnRtJRO_Y0T3nVzh4tLab0BxXGH_-yl0BwzYHtUSYMv6Gj_lGWgVZf3eVU60m2PPVUZdFKNue8cwtB";
 
 // ----------------------------------------------------------------------------
-// Compare-Hero-Bilder — pro Vergleich-Seite ein eigener Slot, damit nicht
-// alle 4 Vergleiche dieselben zwei Stockfotos teilen.
-//
-// TODO: ersetze die Platzhalter mit thematisch passenden Bildern. Bezugs-
-// quellen: Unsplash (royalty-free, Hotlink ok via images.unsplash.com),
-// Pexels oder eigene Fotos in Supabase Storage unter coffees/compare/.
-//
-// Bildformat: 4:5 mobile bzw. 3:4 desktop, mit textfreier oberer Haelfte
-// (unten kommt Gradient + Title-Overlay).
+// Compare-Hero-Bilder — pro Vergleich-Seite ein eigener Slot.
+// Alle Bilder von Pexels (royalty-free, kommerzielle Nutzung erlaubt, keine
+// Attribution-Pflicht). CDN-URL-Pattern:
+//   https://images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?...
+// Format: 4:5 mobile bzw. 3:4 desktop, mit textfreier oberer Haelfte.
 // ----------------------------------------------------------------------------
 
+const PX = (id: string, slug: string) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1600&h=2000&fit=crop&dpr=2#${slug}`;
+
 // fruity-vs-chocolatey-coffee
-// A "Fruchtig" → Pour-Over-Tasse mit Beeren/Zitrusfruechten, hell, Aquarell.
-const IMG_FRUITY = IMG_LIGHT;
-// B "Schokoladig" → Dunkler Espresso + Kakaobohnen + Karamell, warm, holzig.
-const IMG_CHOCOLATEY = IMG_DARK;
+// A "Fruchtig" → Schale frischer Blaubeeren, hell, hell.
+const IMG_FRUITY = PX("30070198", "fruity");
+// B "Schokoladig" → Schokoladen-Dessert neben Kaffeetasse, warm, sinnlich.
+const IMG_CHOCOLATEY = PX("2223247", "chocolatey");
 
 // filter-vs-espresso
-// A "Filter" → V60/Chemex im Querschnitt, Wasserstrahl, ruhig, Negativraum.
-const IMG_FILTER = IMG_LIGHT;
-// B "Espresso" → Siebtraeger-Detail, goldene Crema, Manometer, Edelstahl.
-const IMG_ESPRESSO = IMG_DARK;
+// A "Filter" → Minimalistisches Dripper-Setup auf hellem Tisch, ruhig.
+const IMG_FILTER = PX("8004598", "filter");
+// B "Espresso" → Espressomaschine im Coffee-Shop, professionell.
+const IMG_ESPRESSO = PX("27969804", "espresso");
 
 // light-vs-dark-roast
-// A "Helle Roestung" → Makro auf matt-hellbraune Bohnen, sandig, Tageslicht.
-const IMG_LIGHT_ROAST = IMG_LIGHT;
-// B "Dunkle Roestung" → Makro auf dunkel-glaenzend oelige Bohnen, Gegenlicht.
-const IMG_DARK_ROAST = IMG_DARK;
+// A "Helle Roestung" → Helle Specialty-Bohnen, matt, sandig.
+const IMG_LIGHT_ROAST = PX("796609", "light-roast");
+// B "Dunkle Roestung" → Makro auf dunkel-oelige Bohnen, kontrastreich.
+const IMG_DARK_ROAST = PX("13737042", "dark-roast");
 
 // arabica-vs-robusta
-// A "Arabica" → Arabica-Strauch im Hochland mit reifen roten Kirschen am Zweig.
-const IMG_ARABICA = IMG_LIGHT;
-// B "Robusta" → Italienische Espresso-Bar oder reife Robusta-Kirschen, kontrastreich.
-const IMG_ROBUSTA = IMG_DARK;
+// A "Arabica" → Reife rote Kaffeekirschen am Strauch (Hochland-Setting).
+const IMG_ARABICA = PX("9323843", "arabica");
+// B "Robusta" → Pile of coffee beans — robust, dicht.
+const IMG_ROBUSTA = PX("942808", "robusta");
 
 export const comparisons: Comparison[] = [
   {
