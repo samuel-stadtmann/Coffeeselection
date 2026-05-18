@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart, lineTotal } from "@/lib/cart";
 import { useCheckout } from "@/lib/checkout";
@@ -138,9 +138,13 @@ export default function ReviewPage() {
   }, [cartLoaded, checkoutLoaded, items.length, router]);
 
   // Stripe-Cancel-Redirect leitet hierher mit ?canceled=1 — Userin sieht
-  // dann eine Hinweisbox statt einer leeren Wiederkehr.
-  const searchParams = useSearchParams();
-  const canceled = searchParams.get("canceled") === "1";
+  // dann eine Hinweisbox statt einer leeren Wiederkehr. useSearchParams
+  // wuerde Suspense erzwingen; window.location reicht (client-only).
+  const [canceled, setCanceled] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setCanceled(new URLSearchParams(window.location.search).get("canceled") === "1");
+  }, []);
 
   const handlePay = async () => {
     if (submitting) return;
