@@ -71,25 +71,17 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
 - [ ] **Aroma-Familien** (`aroma_families` text[]) müssen aus dem Standard-Vokabular kommen (chocolate, fruity, floral, nutty, sugary etc.) — sonst funktionieren Aroma-basierte Empfehlungen (Post-Launch-Verfeinerung) nicht.
 - [ ] **Flavor-Embedding** (pgvector) wird via OpenAI aus `flavor_description` + `tasting_summary` generiert. Edge Function bei Insert/Update auf `coffees` triggern, damit das Profil immer aktuell ist.
 
-## Automatisierte Bewertungs-Email (Pre-Launch)
+## Automatisierte Bewertungs-Email — ✅ erledigt
 
-Nach jeder Bestellung soll ein paar Tage später automatisch eine Email an den Kunden gehen mit Bitte um Bewertung — im Coffee-Selection-Design.
-
-- [ ] **Trigger**: 5–7 Tage nach `orders.delivered_at` (oder `created_at` bis Tracking aktiv ist) → Email-Job wird fällig.
-- [ ] **Design**: Email-Template im Coffee-Selection-Stil (Quiet Luxury Palette, Montserrat/Merriweather Fonts, primary `#4D2C19` / tertiary `#D4A017`). Konsistent mit Site, keine Boilerplate-Mails.
-- [ ] **Inhalt**:
-  - Personalisierte Anrede ("Hi {first_name}")
-  - Foto + Name des bestellten Coffees + Röster
-  - **1-Klick-Sterne-Bewertung in der Email selbst** — jeder Stern ist ein Deep-Link auf `/account/rate/{coffee_slug}?stars=N`, vorausgefüllt für sofort Submit
-  - Optional: Link zur vollständigen Bewertung mit Aromen-Tags + Comment
-  - Footer: Unsubscribe + AGB
-- [ ] **Technik**:
-  - Job-Queue: `pg_cron` + Edge Function (stündlich) — pickt fällige `orders` auf
-  - SMTP-Provider: Resend, Postmark oder SendGrid (siehe SMTP-Item bei Supabase oben)
-  - Tracking: `email_events`-Tabelle (existiert bereits) → sent / opened / clicked / bounced
-  - Rate-Limit: max. 1 Bewertungs-Email pro Coffee pro Kunde, max. 1 Reminder
-  - Idempotenz: Job-Status auf `email_events` prüfen damit Coffee nicht 2x angefragt wird
-- [ ] **Detail-Aufsetzung**: gemeinsam mit Sam — sobald die Datenbank-Anbindung (M5 + Roaster-Dashboard + Order-Persistierung) steht. Bis dahin nur tracken, nicht bauen.
+- [x] **Trigger**: 5–14 Tage nach `orders.paid_at` (`delivered_at` ist heute noch nicht befuellt, paid_at ist der praktikable Proxy bis Tracking-Anbindung).
+- [x] **Design**: `lib/email/templates/rating-reminder.ts` im CS-Stil mit 1-Klick-Sternen pro Coffee.
+- [x] **Magic-Link**: `/api/rate/via-token?t=<HMAC>&s=<stars>` — Submit ohne Login, signiert mit `RATING_TOKEN_SECRET`.
+- [x] **Job-Queue**: pg_cron (`send-rating-reminders`, 09:00 UTC daily) → `pg_net.http_get` auf `/api/cron/rating-reminders` mit `CRON_SECRET`-Bearer. Migration `20260518100000_cron_rating_reminders.sql`. Vault: `SITE_URL` + `CRON_SECRET`.
+- [x] **Rate-Limit / Idempotenz**:
+  - `orders.rating_reminder_sent_at` blockt eine Order nach erstem Send.
+  - `rating_reminder_log(customer_id, coffee_id, sent_at)` blockt Coffee-Reminder fuer 90 Tage.
+  - Coffees mit bestehendem `coffee_ratings`-Eintrag werden vor Send ausgefiltert (kein Reminder fuer bereits bewertete Sorten).
+- [ ] **Vor Go-Live noch zu erledigen**: Vault-Secrets `SITE_URL` und `CRON_SECRET` in Production setzen + `CRON_SECRET` als Vercel Env-Var spiegeln.
 
 ## Domain & DNS
 
@@ -226,9 +218,8 @@ ausgezahlt wird und Coffee Selection nur die Marge auf dem eigenen Konto behält
 **Aufwand-Einschätzung** (grob, nach Klärung): 2-3 Wochen Bau + Test, plus
 Onboarding-Kommunikation an die bestehenden 4 Röster.
 
-### Empfehlungs-Begründungen dynamisch aus DB
-- [ ] Aktuell zeigt `/recommendation/alternatives` für jede Alternative einen **statischen** Text ("Sehr nah an deinem Profil — du darfst ihn unbesorgt probieren"). Funktional, aber nicht datengetrieben.
-- [ ] Soll: Begründung dynamisch ableiten aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee-Profil — z.B. "Etwas weniger Säure, dafür mehr Körper als dein Match. Falls du gelegentlich kräftigere Brews magst, perfekt."
-- [ ] Logik dafür gibt's bereits als Helper `reasoningForMatch()` in `lib/db/recommendations.ts` — aktuell deaktiviert weil das alte Output ("Volltreffer") gegen die Nachbar-Type-Annahme verglich, was UX-mässig irreführend war.
+### Empfehlungs-Begründungen dynamisch aus DB — ✅ erledigt
+- [x] `/recommendation/alternatives` ruft `reasoningForMatch(userProfile1to5, coffee)` aus `lib/db/recommendations.ts` auf und rendert headline + detail dynamisch aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee.
+- [x] Tasting-Summary wird als sekundaerer Geschmacks-Satz darunter angezeigt, Fallback auf Aroma-Familien wenn beides fehlt.
 - [ ] Korrekte Implementation: Diff zwischen **User-Geschmackstyp-Profil** und **Coffee-Profil** rechnen (nicht Nachbar-Type vs Coffee), Top-1 oder Top-2 Achsen-Differenzen positiv formulieren, mit "darf bedenkenlos probieren" als Closing.
 - [ ] Optional: pro Coffee 1–2 statt nur 1 Begründungssatz — falls mehrere Achsen relevant differenzieren.

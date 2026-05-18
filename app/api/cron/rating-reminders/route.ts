@@ -145,6 +145,20 @@ export async function GET(req: NextRequest) {
       .gte("sent_at", cooldownCutoff);
     const onCooldown = new Set((recentLogs ?? []).map((r) => r.coffee_id));
 
+    // Welche Coffees hat der Customer bereits bewertet? Diese sparen wir
+    // im Mail aus — Customer soll nicht zum Rating einer schon-bewerteten
+    // Sorte gedraengt werden. (Per-Coffee, nicht per-Order — wenn ein
+    // Coffee in mehreren Orders auftaucht, kommt er trotzdem nur 1x
+    // ins Rating und dann nie wieder.)
+    const { data: existingRatings } = await svc
+      .from("coffee_ratings")
+      .select("coffee_id")
+      .eq("customer_id", order.customer_id)
+      .in("coffee_id", uniqueCoffeeIds);
+    const alreadyRated = new Set(
+      (existingRatings ?? []).map((r) => r.coffee_id as string)
+    );
+
     const seen = new Set<string>();
     const coffees: Array<{
       coffeeSlug: string;
@@ -159,6 +173,10 @@ export async function GET(req: NextRequest) {
       if (onCooldown.has(it.coffee_id)) {
         // Customer hat in den letzten 90d schon eine Mail fuer diesen
         // Coffee bekommen — skip im Mail-Inhalt.
+        continue;
+      }
+      if (alreadyRated.has(it.coffee_id)) {
+        // Coffee bereits bewertet — Reminder waere nervig.
         continue;
       }
       seen.add(it.coffee_id);
