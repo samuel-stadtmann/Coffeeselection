@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart, lineTotal } from "@/lib/cart";
-import { useCheckout, type CheckoutAddress } from "@/lib/checkout";
+import { useCheckout } from "@/lib/checkout";
 import { INTERVAL_LABELS } from "@/lib/subscription-constants";
 import CheckoutStepper from "@/components/CheckoutStepper";
+import ShippingForm from "@/components/checkout/ShippingForm";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -126,23 +127,20 @@ export default function ReviewPage() {
   );
 
   // Guards (erst nach Hydration — siehe useCart-Kommentar zum loaded-Flag).
+  // Konsolidierter Checkout: shipping/billing-Form ist eingebettet, also
+  // KEIN Redirect zu /checkout/shipping mehr. Wenn invalid, blockt der
+  // Pay-Button (disabled + Hint).
   useEffect(() => {
     if (!cartLoaded || !checkoutLoaded) return;
     if (items.length === 0) {
       router.replace("/checkout/cart");
-      return;
     }
-    if (!shippingValid || !billingValid) {
-      router.replace("/checkout/shipping");
-    }
-  }, [
-    cartLoaded,
-    checkoutLoaded,
-    items.length,
-    shippingValid,
-    billingValid,
-    router,
-  ]);
+  }, [cartLoaded, checkoutLoaded, items.length, router]);
+
+  // Stripe-Cancel-Redirect leitet hierher mit ?canceled=1 — Userin sieht
+  // dann eine Hinweisbox statt einer leeren Wiederkehr.
+  const searchParams = useSearchParams();
+  const canceled = searchParams.get("canceled") === "1";
 
   const handlePay = async () => {
     if (submitting) return;
@@ -276,20 +274,33 @@ export default function ReviewPage() {
       </header>
 
       <main className="pt-20 md:pt-24">
-        <CheckoutStepper active={2} />
+        <CheckoutStepper active={1} />
 
         <div className="max-w-3xl mx-auto px-6 md:px-8">
           <div className="mb-8">
             <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-3 block">
-              Schritt 3 · Übersicht
+              Schritt 2 · Checkout
             </span>
             <h1 className="text-3xl md:text-5xl text-primary mb-2 font-headline font-bold uppercase tracking-tight">
-              Alles korrekt?
+              Adresse & Bezahlung
             </h1>
             <p className="text-on-surface-variant">
-              Prüf deine Bestellung. Mit Klick auf "Bezahlen" wirst du zu Stripe weitergeleitet.
+              Adresse eintragen, Bestellung prüfen, mit „Bezahlen" zu Stripe.
             </p>
           </div>
+
+          {canceled && (
+            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 text-sm">
+              <strong className="font-headline text-[11px] uppercase tracking-widest text-amber-900 font-bold block mb-1">
+                Zahlung abgebrochen
+              </strong>
+              Deine Bestellung wurde nicht abgebucht. Du kannst Adresse oder
+              Zahlungsmittel anpassen und es nochmal versuchen.
+            </div>
+          )}
+
+          {/* Adresse + Kontakt (frueher /checkout/shipping) */}
+          <ShippingForm />
 
           {/* Items */}
           <Section title="Bestellung" editHref="/checkout/cart">
@@ -338,46 +349,6 @@ export default function ReviewPage() {
               })}
             </div>
           </Section>
-
-          {/* Lieferung */}
-          <Section title="Lieferadresse" editHref="/checkout/shipping">
-            <AddressDisplay address={data.shipping_address} />
-            {data.shipping_address.delivery_instructions && (
-              <p className="text-xs text-on-surface-variant mt-2 italic">
-                Hinweis: {data.shipping_address.delivery_instructions}
-              </p>
-            )}
-          </Section>
-
-          {/* Rechnung */}
-          <Section title="Rechnungsadresse" editHref="/checkout/shipping">
-            {data.billing_address_same_as_shipping ? (
-              <p className="text-sm text-on-surface-variant">
-                Identisch mit Lieferadresse
-              </p>
-            ) : (
-              <AddressDisplay address={data.billing_address} />
-            )}
-          </Section>
-
-          {/* Kontakt */}
-          <Section title="Kontakt" editHref="/checkout/shipping">
-            <p className="text-sm">{data.customer.email}</p>
-            {(data.customer.first_name || data.customer.last_name) && (
-              <p className="text-sm text-on-surface-variant">
-                {[data.customer.first_name, data.customer.last_name]
-                  .filter(Boolean)
-                  .join(" ")}
-              </p>
-            )}
-          </Section>
-
-          {/* Notiz */}
-          {data.customer_note && (
-            <Section title="Anmerkung" editHref="/checkout/shipping">
-              <p className="text-sm whitespace-pre-wrap">{data.customer_note}</p>
-            </Section>
-          )}
 
           {/* Guthaben (Customer-Credit-Balance) */}
           {balanceChf > 0 && (
@@ -503,19 +474,27 @@ export default function ReviewPage() {
             </div>
           )}
 
+          {/* Pay-Button Validation: shipping+billing muss komplett sein. Wenn
+              nicht, button disabled mit Hint. */}
+          {(!shippingValid || !billingValid) && (
+            <p className="text-xs text-on-surface-variant mb-4 text-right">
+              Bitte alle Pflichtfelder oben ausfüllen.
+            </p>
+          )}
+
           {/* CTA Desktop */}
           <div className="hidden md:flex justify-between items-center">
             <Link
-              href="/checkout/shipping"
+              href="/checkout/cart"
               className="font-headline text-xs uppercase tracking-widest text-on-surface-variant hover:text-primary"
             >
-              ← Zurück zur Adresse
+              ← Zurück zum Warenkorb
             </Link>
             <button
               type="button"
               onClick={handlePay}
-              disabled={submitting}
-              className="bg-tertiary text-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all disabled:opacity-50 disabled:cursor-wait"
+              disabled={submitting || !shippingValid || !billingValid}
+              className="bg-tertiary text-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting
                 ? "Weiterleitung zu Stripe …"
@@ -538,28 +517,12 @@ export default function ReviewPage() {
         <button
           type="button"
           onClick={handlePay}
-          disabled={submitting}
-          className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest disabled:opacity-50"
+          disabled={submitting || !shippingValid || !billingValid}
+          className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting ? "…" : "Bezahlen"}
         </button>
       </div>
-    </div>
-  );
-}
-
-function AddressDisplay({ address }: { address: CheckoutAddress }) {
-  return (
-    <div className="text-sm space-y-0.5">
-      <p className="font-bold">{address.recipient_name}</p>
-      {address.company && <p>{address.company}</p>}
-      <p>{address.street}</p>
-      {address.street_additional && <p>{address.street_additional}</p>}
-      <p>
-        {address.postal_code} {address.city}
-        {address.region && `, ${address.region}`}
-      </p>
-      <p>{address.country === "CH" ? "Schweiz" : address.country}</p>
     </div>
   );
 }
