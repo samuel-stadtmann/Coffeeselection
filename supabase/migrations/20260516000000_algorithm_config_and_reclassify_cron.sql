@@ -8,17 +8,29 @@
 --     verarbeitet noch nicht prozessierte coffee_ratings: Embedding-
 --     Drift + ggf. Reklassifikation des Customers in einen anderen
 --     Geschmackstyp.
+--
+-- HINWEIS Schema-Kompatibilitaet: auf staging existierte
+-- algorithm_config bereits mit (key, value_numeric, value_text,
+-- description, updated_at). Diese Migration ergaenzt eine value-JSONB-
+-- Spalte und seedet das Match-Weights-Setting dort. Code in
+-- lib/db/recommendations.ts liest aus value (JSONB).
 
 ------------------------------------------------------------------------
--- 1) algorithm_config — generische Key-Value-Tabelle fuer Tuning-Params
+-- 1) algorithm_config — Tabelle existieren lassen ODER anlegen
 ------------------------------------------------------------------------
 create table if not exists public.algorithm_config (
   key         text primary key,
-  value       jsonb not null,
-  description text,
+  value       jsonb,
+  description text not null default '',
   updated_at  timestamptz not null default now()
 );
 
+-- Falls die Tabelle in einer aelteren Variante existiert (nur
+-- value_numeric/value_text), die fehlende JSONB-Spalte nachreichen.
+alter table public.algorithm_config
+  add column if not exists value jsonb;
+
+-- Trigger updated_at — idempotent.
 drop trigger if exists trg_algorithm_config_updated_at on public.algorithm_config;
 create trigger trg_algorithm_config_updated_at
   before update on public.algorithm_config
@@ -38,9 +50,7 @@ create policy "algorithm_config_all_service"
   to service_role
   using (true) with check (true);
 
--- Achsen-Gewichtung. Default: Saeure + Koerper am wichtigsten,
--- Komplexitaet am wenigsten. Werte koennen ueber UPDATE jederzeit
--- angepasst werden — der Code liest den aktuellen Wert pro Request.
+-- Seed match_weights — idempotent via ON CONFLICT.
 insert into public.algorithm_config (key, value, description)
 values (
   'match_weights',
@@ -52,7 +62,6 @@ on conflict (key) do nothing;
 ------------------------------------------------------------------------
 -- 2) C3: pg_cron-Schedule fuer process_pending_ratings (alle 15 Min)
 ------------------------------------------------------------------------
--- Idempotent: alten Job entfernen falls vorhanden, dann neu anlegen.
 do $$
 begin
   if exists (
