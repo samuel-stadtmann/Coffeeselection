@@ -24,9 +24,9 @@ export async function syncResendNewsletterOptIn(
   try {
     const resend = getResendClient();
     if (optIn) {
-      // Idempotent — Resend.contacts.create wirft bei doppeltem Insert nur Info,
-      // kein hartes Error. Wir koennen einfach create rufen; bei "already exists"
-      // updaten wir unsubscribed=false.
+      // Resend-SDK wirft KEINE Exception bei API-Fehlern — gibt {data, error}
+      // zurueck. Wir muessen .error explizit pruefen, sonst schlucken wir
+      // alles und melden Erfolg obwohl Resend abgelehnt hat.
       const created = await resend.contacts.create({
         email,
         firstName: meta.firstName ?? undefined,
@@ -34,24 +34,46 @@ export async function syncResendNewsletterOptIn(
         unsubscribed: false,
         audienceId,
       });
-      // resend.contacts.create gibt {data, error} zurueck. Wenn error wegen
-      // Duplikat, versuchen wir update via remove + add geht nicht — also
-      // direkt Update:
       if (created.error) {
-        await resend.contacts.update({
+        // Vermutlich "already_exists" → Re-Aktivierung via Update.
+        // Anderer Fehler (Auth, falsche Audience-ID etc.) muss aber
+        // hochpropagieren — nicht silent ignorieren.
+        console.warn(
+          "[email/audience] contacts.create returned error, trying update:",
+          JSON.stringify(created.error)
+        );
+        const updated = await resend.contacts.update({
           email,
           audienceId,
           unsubscribed: false,
         });
+        if (updated.error) {
+          console.error(
+            "[email/audience] contacts.update also failed:",
+            JSON.stringify(updated.error)
+          );
+          return {
+            ok: false,
+            reason: `resend_update_failed: ${updated.error.message ?? "unknown"} (create-error: ${created.error.message ?? "unknown"})`,
+          };
+        }
       }
     } else {
-      // Opt-out: nicht loeschen, sondern nur unsubscribed=true setzen
-      // (Resend best practice fuer Suppression-Lists).
-      await resend.contacts.update({
+      const updated = await resend.contacts.update({
         email,
         audienceId,
         unsubscribed: true,
       });
+      if (updated.error) {
+        console.error(
+          "[email/audience] contacts.update (opt-out) failed:",
+          JSON.stringify(updated.error)
+        );
+        return {
+          ok: false,
+          reason: `resend_optout_failed: ${updated.error.message ?? "unknown"}`,
+        };
+      }
     }
     return { ok: true };
   } catch (e) {
