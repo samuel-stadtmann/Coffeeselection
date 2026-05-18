@@ -5,7 +5,7 @@
  * dem Discovery-Funnel kommt (Home-Section 6 oder /subscription/discovery).
  *
  * Wird in:
- *   - CoffeePurchaseOptions: preselect Tab "Ueberraschungs-Abo"
+ *   - CoffeePurchaseOptions: preselect Tab "Discovery"
  *   - match-result: preselect Order-Type "subscription" + is_discovery
  *
  * Lebenszeit: SessionStorage — bleibt fuer den ganzen Browse-Pfad bis

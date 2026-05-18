@@ -164,7 +164,7 @@ export function SubscriptionConfigurator(props: Props) {
         <div className="mb-4 bg-tertiary/15 p-3 border-l-2 border-tertiary">
           <p className="text-[11px] text-on-primary leading-snug">
             <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold block mb-0.5">
-              Überraschungs-Abo aktiv
+              Discovery-Abo aktiv
             </span>
             Bei jeder Folgelieferung wählen wir einen NEUEN Coffee aus deinem
             Geschmackstyp — nie zweimal das Gleiche. Erste Lieferung ist der

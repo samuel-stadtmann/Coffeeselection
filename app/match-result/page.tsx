@@ -498,7 +498,7 @@ export default function MatchResultPage() {
                     <span className="absolute -top-3 left-3 bg-tertiary text-white px-2 py-0.5 font-headline text-[9px] uppercase tracking-widest font-bold">
                       Neu
                     </span>
-                    <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Überraschung</h4>
+                    <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Discovery</h4>
                     <p className="text-xs text-on-surface-variant">Jede Lieferung ein neuer Coffee aus deinem Geschmackstyp</p>
                   </button>
                   <button

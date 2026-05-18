@@ -7,14 +7,14 @@ import { SUBSCRIPTION_DISCOUNT_PERCENT } from "@/lib/subscription-constants";
 import { hasDiscoveryIntent } from "@/lib/discovery-intent";
 
 /**
- * P1B-3c + P2: Tab-Wrapper "Einmalig | Abo | Ueberraschungs-Abo" auf der
+ * P1B-3c + P2: Tab-Wrapper "Einmalig | Abo | Discovery" auf der
  * Coffee-Detail-Page.
  *
  *   - Einmalig   → AddToCartButton (one-time, P1A)
  *   - Abo        → SubscriptionConfigurator fix (P1B)
- *   - Ueberraschung → SubscriptionConfigurator mit isDiscovery=true (P2)
+ *   - Discovery  → SubscriptionConfigurator mit isDiscovery=true (P2)
  *
- * Auto-Preselect "Ueberraschungs-Abo" wenn der User aus dem Discovery-
+ * Auto-Preselect "Discovery" wenn der User aus dem Discovery-
  * Funnel kommt (Flag in sessionStorage, siehe lib/discovery-intent.ts).
  */
 
@@ -63,7 +63,7 @@ export function CoffeePurchaseOptions(props: Props) {
         <TabButton
           active={mode === "discovery"}
           onClick={() => setMode("discovery")}
-          label="Überraschung"
+          label="Discovery"
           badge="Neu"
         />
       </div>
