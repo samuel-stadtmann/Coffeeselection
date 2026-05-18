@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
+import DiscoveryCtaLink from "@/components/DiscoveryCtaLink";
 
 const LOGO = "/logo.png";
 const HERO =
@@ -74,12 +75,12 @@ export default function DiscoverySubscriptionPage() {
               Das Discovery Abo bringt dir kuratierte Specialty Coffees, perfekt auf deinen Geschmackstyp abgestimmt — direkt von 16 Schweizer Top-Röstern.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link
+              <DiscoveryCtaLink
                 href="/quiz/question-1-brewing-method"
                 className="bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all text-center"
               >
                 Geschmackstyp finden
-              </Link>
+              </DiscoveryCtaLink>
               <Link
                 href="#how"
                 className="flex items-center justify-center gap-3 font-headline font-bold text-primary px-6 py-5 hover:bg-surface-container-low transition-colors uppercase tracking-widest text-[11px]"
@@ -178,12 +179,12 @@ export default function DiscoverySubscriptionPage() {
                   Du weißt, was du willst? Wähle direkt einen unserer beliebtesten Specialty Coffees als Abo. Mit 10% Mitglieder-Rabatt.
                 </p>
               </div>
-              <Link
+              <DiscoveryCtaLink
                 href="/quiz/question-1-brewing-method"
                 className="font-headline text-[11px] font-bold uppercase tracking-[0.3em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-2 whitespace-nowrap"
               >
                 Lieber Quiz machen →
-              </Link>
+              </DiscoveryCtaLink>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -277,12 +278,12 @@ export default function DiscoverySubscriptionPage() {
             <p className="text-lg text-on-primary/70 mb-10">
               Quiz machen, Geschmackstyp finden, Abo starten — alles in unter 5 Minuten.
             </p>
-            <Link
+            <DiscoveryCtaLink
               href="/quiz/question-1-brewing-method"
               className="inline-block bg-tertiary text-primary px-12 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
             >
               Quiz starten
-            </Link>
+            </DiscoveryCtaLink>
           </div>
         </section>
       </main>
@@ -296,12 +297,12 @@ export default function DiscoverySubscriptionPage() {
         </div>
       </footer>
 
-      <Link
+      <DiscoveryCtaLink
         href="/quiz/question-1-brewing-method"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
         Abo starten · Quiz machen
-      </Link>
+      </DiscoveryCtaLink>
     </div>
   );
 }

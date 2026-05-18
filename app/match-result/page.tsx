@@ -7,6 +7,7 @@ import { getTasteTypeById, type TasteType } from "@/lib/db/taste-types";
 import { getLocalAnswers, clearLocalAnswers, type LocalQuizAnswer } from "@/lib/quiz-storage";
 import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
 import { useCart, type CartWeight } from "@/lib/cart";
+import { hasDiscoveryIntent, clearDiscoveryIntent } from "@/lib/discovery-intent";
 import {
   SUBSCRIPTION_DISCOUNT_PERCENT,
   SUBSCRIPTION_INTERVAL_WEEKS,
@@ -168,6 +169,15 @@ export default function MatchResultPage() {
   const router = useRouter();
   const { add, addSubscription } = useCart();
   const [orderType, setOrderType] = useState<"once" | "subscription">("subscription");
+  // P2: Wenn User aus Discovery-Funnel (Home Section 6 oder /subscription/discovery)
+  // kommt, wird das Abo automatisch als Discovery-Abo angelegt.
+  const [isDiscovery, setIsDiscovery] = useState(false);
+  useEffect(() => {
+    if (hasDiscoveryIntent()) {
+      setIsDiscovery(true);
+      setOrderType("subscription");
+    }
+  }, []);
   const [interval, setInterval] = useState<SubscriptionIntervalWeeks>(2);
   const [size, setSize] = useState("500g");
   const [tasteType, setTasteType] = useState<TasteType | undefined>();
@@ -277,10 +287,17 @@ export default function MatchResultPage() {
       quantity: 1,
     };
     if (orderType === "subscription") {
-      addSubscription({ ...common, interval_weeks: interval });
+      addSubscription({
+        ...common,
+        interval_weeks: interval,
+        is_discovery: isDiscovery,
+      });
     } else {
       add(common);
     }
+    // Intent ist nach Cart-Add eingelöst — verhindert, dass ein
+    // spaeterer Besuch auf /coffee/<slug> nochmals Discovery vorwaehlt.
+    clearDiscoveryIntent();
     setTimeout(() => router.push("/checkout/cart"), 200);
   };
 
@@ -449,11 +466,14 @@ export default function MatchResultPage() {
               {/* Order Type Toggle */}
               <div>
                 <h3 className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-3">Bestelltyp</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button
-                    onClick={() => setOrderType("subscription")}
+                    onClick={() => {
+                      setOrderType("subscription");
+                      setIsDiscovery(false);
+                    }}
                     className={`relative p-5 text-left transition-all border-2 ${
-                      orderType === "subscription"
+                      orderType === "subscription" && !isDiscovery
                         ? "border-tertiary bg-tertiary/5"
                         : "border-surface-container bg-white hover:border-tertiary/40"
                     }`}
@@ -465,7 +485,27 @@ export default function MatchResultPage() {
                     <p className="text-xs text-on-surface-variant">Regelmäßig liefern, jederzeit pausieren</p>
                   </button>
                   <button
-                    onClick={() => setOrderType("once")}
+                    onClick={() => {
+                      setOrderType("subscription");
+                      setIsDiscovery(true);
+                    }}
+                    className={`relative p-5 text-left transition-all border-2 ${
+                      orderType === "subscription" && isDiscovery
+                        ? "border-tertiary bg-tertiary/5"
+                        : "border-surface-container bg-white hover:border-tertiary/40"
+                    }`}
+                  >
+                    <span className="absolute -top-3 left-3 bg-tertiary text-white px-2 py-0.5 font-headline text-[9px] uppercase tracking-widest font-bold">
+                      Neu
+                    </span>
+                    <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Überraschung</h4>
+                    <p className="text-xs text-on-surface-variant">Jede Lieferung ein neuer Coffee aus deinem Geschmackstyp</p>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOrderType("once");
+                      setIsDiscovery(false);
+                    }}
                     className={`p-5 text-left transition-all border-2 ${
                       orderType === "once"
                         ? "border-tertiary bg-tertiary/5"
