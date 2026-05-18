@@ -5,6 +5,7 @@ import AdminFooterLink from "@/components/AdminFooterLink";
 import { createClient } from "@/lib/supabase/client";
 import { articles } from "@/lib/articles";
 import SiteHeader from "@/components/SiteHeader";
+import DiscoveryCtaLink from "@/components/DiscoveryCtaLink";
 
 type FeaturedRoaster = {
   slug: string;
@@ -411,12 +412,12 @@ export default function HomePage() {
                   <span className="font-headline font-bold text-xl text-primary">Ab CHF 22 / Lieferung</span>
                 </div>
                 <p className="text-sm text-on-surface-variant mb-6">Menge &amp; Intervall frei wählbar · inkl. Versand · jederzeit kündbar</p>
-                <Link
+                <DiscoveryCtaLink
                   href="/quiz/question-1-brewing-method"
                   className="block text-center w-full bg-primary text-on-primary py-4 font-headline font-bold uppercase tracking-widest text-[10px] hover:bg-black transition-all"
                 >
                   Geschmackstyp finden &amp; bestellen
-                </Link>
+                </DiscoveryCtaLink>
               </div>
             </div>
           </div>

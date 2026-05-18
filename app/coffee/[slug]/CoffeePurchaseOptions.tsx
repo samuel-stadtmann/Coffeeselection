@@ -1,20 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AddToCartButton } from "./AddToCartButton";
 import { SubscriptionConfigurator } from "./SubscriptionConfigurator";
 import { SUBSCRIPTION_DISCOUNT_PERCENT } from "@/lib/subscription-constants";
+import { hasDiscoveryIntent } from "@/lib/discovery-intent";
 
 /**
- * P1B-3c: Tab-Wrapper "Einmalig | Abo" auf der Coffee-Detail-Page.
+ * P1B-3c + P2: Tab-Wrapper "Einmalig | Abo | Discovery" auf der
+ * Coffee-Detail-Page.
  *
- * Beide Kauf-Pfade fuer einen konkreten Coffee:
- *   - Einmalig → AddToCartButton (one-time purchase, P1A)
- *   - Abo     → SubscriptionConfigurator (recurring delivery, P1B)
+ *   - Einmalig   → AddToCartButton (one-time, P1A)
+ *   - Abo        → SubscriptionConfigurator fix (P1B)
+ *   - Discovery  → SubscriptionConfigurator mit isDiscovery=true (P2)
  *
- * Der "Lass mich ueberraschen"-Pfad (Discovery-Abo via /match-result) bleibt
- * separat als Link unter dieser Component — andere Mechanik (KI-Match),
- * gehoert nicht in die gleichen Tabs.
+ * Auto-Preselect "Discovery" wenn der User aus dem Discovery-
+ * Funnel kommt (Flag in sessionStorage, siehe lib/discovery-intent.ts).
  */
 
 type Props = {
@@ -26,56 +27,48 @@ type Props = {
   unit_price_chf_250g: number;
 };
 
-type Mode = "once" | "subscription";
+type Mode = "once" | "subscription" | "discovery";
 
 export function CoffeePurchaseOptions(props: Props) {
   const [mode, setMode] = useState<Mode>("once");
 
+  // Beim Mount pruefen ob der User aus dem Discovery-Funnel kommt — dann
+  // direkt den Discovery-Tab vorauswaehlen. Nur einmal beim ersten Render
+  // (User darf nachher manuell wechseln, ohne dass wir ihn zurueckziehen).
+  useEffect(() => {
+    if (hasDiscoveryIntent()) {
+      setMode("discovery");
+    }
+  }, []);
+
   return (
     <div>
-      {/* Tab-Switcher */}
+      {/* Tab-Switcher — 3 Spalten, scrollbar auf engen Mobiles */}
       <div
         role="tablist"
         aria-label="Kaufoption"
-        className="grid grid-cols-2 gap-0 mb-6 border border-on-primary/20"
+        className="grid grid-cols-3 gap-0 mb-6 border border-on-primary/20"
       >
-        <button
-          role="tab"
-          aria-selected={mode === "once"}
-          type="button"
+        <TabButton
+          active={mode === "once"}
           onClick={() => setMode("once")}
-          className={`py-3 font-headline text-[11px] uppercase tracking-widest transition-all ${
-            mode === "once"
-              ? "bg-tertiary text-primary font-bold"
-              : "text-on-primary/70 hover:text-on-primary"
-          }`}
-        >
-          Einmalig
-        </button>
-        <button
-          role="tab"
-          aria-selected={mode === "subscription"}
-          type="button"
+          label="Einmalig"
+        />
+        <TabButton
+          active={mode === "subscription"}
           onClick={() => setMode("subscription")}
-          className={`relative py-3 font-headline text-[11px] uppercase tracking-widest transition-all ${
-            mode === "subscription"
-              ? "bg-tertiary text-primary font-bold"
-              : "text-on-primary/70 hover:text-on-primary"
-          }`}
-        >
-          Abo
-          <span
-            className={`ml-2 font-headline text-[9px] font-bold ${
-              mode === "subscription" ? "text-primary/70" : "text-tertiary"
-            }`}
-          >
-            −{SUBSCRIPTION_DISCOUNT_PERCENT}%
-          </span>
-        </button>
+          label="Abo"
+          badge={`−${SUBSCRIPTION_DISCOUNT_PERCENT}%`}
+        />
+        <TabButton
+          active={mode === "discovery"}
+          onClick={() => setMode("discovery")}
+          label="Discovery"
+          badge="Neu"
+        />
       </div>
 
-      {/* Tab-Panel */}
-      {mode === "once" ? (
+      {mode === "once" && (
         <AddToCartButton
           coffee_id={props.coffee_id}
           coffee_name={props.coffee_name}
@@ -84,7 +77,8 @@ export function CoffeePurchaseOptions(props: Props) {
           roaster_name={props.roaster_name}
           unit_price_chf_250g={props.unit_price_chf_250g}
         />
-      ) : (
+      )}
+      {(mode === "subscription" || mode === "discovery") && (
         <SubscriptionConfigurator
           coffee_id={props.coffee_id}
           coffee_name={props.coffee_name}
@@ -92,8 +86,46 @@ export function CoffeePurchaseOptions(props: Props) {
           image_url={props.image_url}
           roaster_name={props.roaster_name}
           unit_price_chf_250g={props.unit_price_chf_250g}
+          isDiscovery={mode === "discovery"}
         />
       )}
     </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  label,
+  badge,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  badge?: string;
+}) {
+  return (
+    <button
+      role="tab"
+      aria-selected={active}
+      type="button"
+      onClick={onClick}
+      className={`relative py-3 px-2 font-headline text-[11px] uppercase tracking-widest transition-all whitespace-nowrap ${
+        active
+          ? "bg-tertiary text-primary font-bold"
+          : "text-on-primary/70 hover:text-on-primary"
+      }`}
+    >
+      {label}
+      {badge && (
+        <span
+          className={`ml-2 font-headline text-[9px] font-bold ${
+            active ? "text-primary/70" : "text-tertiary"
+          }`}
+        >
+          {badge}
+        </span>
+      )}
+    </button>
   );
 }

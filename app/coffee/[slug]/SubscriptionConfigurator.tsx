@@ -29,6 +29,13 @@ type Props = {
   image_url: string | null;
   roaster_name: string;
   unit_price_chf_250g: number;
+  /**
+   * P2: Wenn true, wird das Abo als Discovery-Abo angelegt (Renewals
+   * picken automatisch neuen Coffee aus dem Geschmackstyp). Wird vom
+   * Parent gesetzt — UI im Configurator zeigt nur einen Hinweis-Banner,
+   * kein eigener Toggle hier mehr.
+   */
+  isDiscovery?: boolean;
 };
 
 const WEIGHTS: { id: CartWeight; label: string }[] = [
@@ -44,7 +51,7 @@ export function SubscriptionConfigurator(props: Props) {
   const [qty, setQty] = useState(1);
   const [intervalWeeks, setIntervalWeeks] =
     useState<SubscriptionIntervalWeeks>(2);
-  const [isDiscovery, setIsDiscovery] = useState(false);
+  const isDiscovery = props.isDiscovery === true;
   const [adding, setAdding] = useState(false);
 
   // Preise: Basis linear nach Gewicht skaliert (wie AddToCartButton),
@@ -151,27 +158,20 @@ export function SubscriptionConfigurator(props: Props) {
         </select>
       </div>
 
-      {/* P2: Discovery-Toggle — Surprise-Abo (wechselnde Coffees pro Lieferung) */}
-      <div className="mb-4 bg-on-primary/5 p-3 border-l-2 border-tertiary">
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={isDiscovery}
-            onChange={(e) => setIsDiscovery(e.target.checked)}
-            className="mt-1 w-4 h-4 accent-tertiary cursor-pointer"
-          />
-          <span>
-            <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold block">
-              Überraschungs-Abo
+      {/* P2: Hinweis-Banner bei Discovery-Modus — Toggle liegt im Parent
+          (CoffeePurchaseOptions) als eigener Tab. */}
+      {isDiscovery && (
+        <div className="mb-4 bg-tertiary/15 p-3 border-l-2 border-tertiary">
+          <p className="text-[11px] text-on-primary leading-snug">
+            <span className="font-headline text-[11px] uppercase tracking-widest text-tertiary font-bold block mb-0.5">
+              Discovery-Abo aktiv
             </span>
-            <span className="text-[11px] text-on-primary/70 leading-snug block mt-0.5">
-              Bei jeder Folgelieferung wählen wir einen NEUEN Coffee aus deinem
-              Geschmackstyp — nie zweimal das Gleiche. Erste Lieferung ist der
-              hier gewählte Coffee.
-            </span>
-          </span>
-        </label>
-      </div>
+            Bei jeder Folgelieferung wählen wir einen NEUEN Coffee aus deinem
+            Geschmackstyp — nie zweimal das Gleiche. Erste Lieferung ist der
+            hier gewählte Coffee.
+          </p>
+        </div>
+      )}
 
       {/* Liefer-Hinweis (kein User-w&auml;hlbares Startdatum: R&ouml;ster
           steuert Timing, R&ouml;stung erfolgt fris&ouml;st) */}
