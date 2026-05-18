@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { articles, allCategories } from "@/lib/articles";
+import { articles } from "@/lib/articles";
 import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
@@ -62,17 +62,6 @@ export default function MagazinePage() {
               </div>
             </div>
           </Link>
-        </section>
-
-        {/* Category Pills */}
-        <section className="max-w-7xl mx-auto px-6 md:px-8 mb-8">
-          <div className="flex flex-wrap gap-2">
-            {allCategories.map((c) => (
-              <span key={c} className="bg-white px-4 py-2 font-headline text-[10px] uppercase tracking-widest font-bold text-primary border border-primary/10">
-                {c}
-              </span>
-            ))}
-          </div>
         </section>
 
         {/* Article Grid */}
