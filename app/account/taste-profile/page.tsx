@@ -16,7 +16,7 @@ export default async function TasteProfilePage() {
 
   const { data: customer } = await supabase
     .from("customers")
-    .select("id, taste_type_id")
+    .select("id, taste_type_id, num_ratings_given")
     .eq("auth_user_id", auth.user.id)
     .single();
   if (!customer) redirect("/login");
@@ -24,6 +24,35 @@ export default async function TasteProfilePage() {
   const tasteType = customer.taste_type_id
     ? await getTasteTypeById(supabase, customer.taste_type_id)
     : null;
+
+  // Profil-Reife (MVP-Formel ohne Snapshot-Tabelle):
+  //   reife % = min(100, num_ratings_given * 10 + profile_confidence * 50)
+  //   - 5 Ratings + 100% Confidence = 100% Reife
+  //   - 0 Ratings + 80% Confidence = 40% Reife
+  //   - 10 Ratings + 0% Confidence = 100% Reife (genug Daten ueber Ratings)
+  // profile_confidence kommt aus dem aktivsten quiz_responses-Eintrag, sonst 0.
+  const { data: confidenceRow } = await supabase
+    .from("quiz_responses")
+    .select("confidence")
+    .eq("customer_id", customer.id)
+    .eq("is_active", true)
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const ratingsCount = Number(customer.num_ratings_given ?? 0);
+  const confidence = Number((confidenceRow?.confidence as number | null) ?? 0);
+  const maturityPct = Math.min(
+    100,
+    Math.round(ratingsCount * 10 + confidence * 50)
+  );
+  const maturityLabel =
+    maturityPct >= 80
+      ? "Sehr ausgereift"
+      : maturityPct >= 50
+        ? "Solide"
+        : maturityPct >= 25
+          ? "Aufbau-Phase"
+          : "Frisch";
 
   // Letzte aktive Quiz-Response + zugehoerige Antworten + Frage-/Optionen-Texte
   // fuer die "Deine Quiz-Antworten"-Box.
@@ -107,6 +136,43 @@ export default async function TasteProfilePage() {
           >
             Quiz starten
           </Link>
+        </div>
+      )}
+
+      {/* Profil-Reife — MVP ohne Snapshot-Tabelle. Berechnet aus
+          num_ratings_given + Quiz-Confidence. Detailwerte aufgedeckt
+          fuer Transparenz. */}
+      {tasteType && (
+        <div className="bg-white p-6 md:p-8 shadow-sm">
+          <div className="flex items-baseline justify-between mb-3 flex-wrap gap-3">
+            <div>
+              <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">
+                Profil-Reife
+              </span>
+              <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg">
+                {maturityLabel}
+              </h3>
+            </div>
+            <span className="font-headline font-bold text-3xl text-primary">
+              {maturityPct} %
+            </span>
+          </div>
+          <div className="h-2 bg-surface-container relative overflow-hidden mb-3">
+            <div
+              className="h-full bg-tertiary transition-all"
+              style={{ width: `${maturityPct}%` }}
+            />
+          </div>
+          <p className="text-xs text-on-surface-variant leading-relaxed">
+            Quiz-Confidence: <strong>{Math.round(confidence * 100)} %</strong> ·{" "}
+            Bewertungen abgegeben: <strong>{ratingsCount}</strong>
+            {maturityPct < 50 && (
+              <>
+                {" "}— bewerte ein paar Kaffees, dann lernt der Algorithmus
+                deinen Geschmack präziser kennen.
+              </>
+            )}
+          </p>
         </div>
       )}
 

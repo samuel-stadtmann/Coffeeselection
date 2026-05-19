@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const SITE_URL =
@@ -106,6 +107,10 @@ export default function RootLayout({
           </>
         )}
         {children}
+        {/* Vercel Analytics — Page-Views + Core Web Vitals, ergaenzt
+            GA4 mit Vercel-spezifischen Performance-Metriken. Aktiviert
+            sich auf Vercel-Production+Preview automatisch, no-op lokal. */}
+        <Analytics />
       </body>
     </html>
   );

@@ -18,6 +18,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: c.seoTitle,
     description: c.seoDescription,
     keywords: c.keywords,
+    openGraph: {
+      title: c.seoTitle,
+      description: c.seoDescription,
+      type: "article",
+      images: c.a.image ? [{ url: c.a.image, alt: c.title }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: c.seoTitle,
+      description: c.seoDescription,
+      images: c.a.image ? [c.a.image] : undefined,
+    },
   };
 }
 
