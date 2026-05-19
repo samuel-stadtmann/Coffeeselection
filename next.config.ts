@@ -46,7 +46,8 @@ export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: true,
+  // Suppress Build-Logs lokal, in CI sichtbar lassen (per Skill-Empfehlung).
+  silent: !process.env.CI,
   widenClientFileUpload: true,
   // Tunnel route umgeht Ad-Blocker, die Sentry-Requests filtern.
   tunnelRoute: "/monitoring",
