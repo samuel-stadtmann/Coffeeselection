@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { trackPurchase } from "@/lib/analytics";
 
 /**
  * Client-Komponente fuer /checkout/success.
@@ -39,6 +40,25 @@ export function SuccessClient({
   const [order, setOrder] = useState<OrderState>(initialOrder);
   const [polling, setPolling] = useState(initialOrder.status === "pending");
   const [timedOut, setTimedOut] = useState(false);
+
+  // GA4 purchase-Event genau EINMAL feuern, sobald die Order auf 'paid'
+  // umspringt (egal ob initial oder via Polling). Doppelt-Fire vermeiden
+  // wenn React den State mehrmals an uns durchschickt.
+  const purchaseFired = useRef(false);
+  useEffect(() => {
+    if (order.status !== "paid" || purchaseFired.current) return;
+    purchaseFired.current = true;
+    trackPurchase({
+      orderId: order.id,
+      totalChf: order.total_chf,
+      shippingChf: order.shipping_chf,
+      taxChf: order.tax_chf,
+      // Items werden auf der Success-Page selber nicht geladen — fuer den
+      // GA4-Funnel reichen die Gesamtwerte. Wer Item-Level-Reporting will,
+      // muesste das in einer Erweiterung aus orders.items nachladen.
+      items: [],
+    });
+  }, [order.status, order.id, order.total_chf, order.shipping_chf, order.tax_chf]);
 
   useEffect(() => {
     if (!polling) return;

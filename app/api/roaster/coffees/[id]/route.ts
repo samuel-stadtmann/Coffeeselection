@@ -2,6 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getRoasterUser } from "@/lib/roaster/auth";
 import { createServiceClient } from "@/lib/supabase/service";
+import { AROMA_FAMILIES } from "@/lib/coffee/form-helpers";
+
+const AROMA_SLUGS = AROMA_FAMILIES.map((a) => a.slug) as [string, ...string[]];
 
 // PATCH /api/roaster/coffees/[id]
 //   Body: CoffeeFormState
@@ -44,7 +47,7 @@ const BodySchema = z.object({
   sweetness: z.number().int().min(1).max(5),
   bitterness: z.number().int().min(1).max(5),
   complexity: z.number().int().min(1).max(5),
-  aroma_families: z.array(z.string().min(1).max(50)).max(20),
+  aroma_families: z.array(z.enum(AROMA_SLUGS)).max(20),
   price_chf: z.number().positive(),
   wholesale_price_chf: z.number().min(0).nullable().optional(),
   weight_g: z.number().int().positive(),

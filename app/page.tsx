@@ -639,8 +639,8 @@ export default function HomePage() {
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-12 mt-12 border-t border-primary/5 flex flex-col md:flex-row justify-between gap-4 text-[10px] text-on-surface-variant/50 font-headline font-bold uppercase tracking-[0.3em]">
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
-          <div className="flex gap-6">
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
             <Link href="/privacy" className="hover:text-tertiary transition-colors">Privacy</Link>
             <Link href="#" className="hover:text-tertiary transition-colors">Terms</Link>
             <Link href="/contact" className="hover:text-tertiary transition-colors">Kontakt</Link>
