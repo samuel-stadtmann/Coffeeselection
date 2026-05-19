@@ -2,6 +2,16 @@
 
 Diese Liste enthält alles, was vor dem Production-Launch von Development/Test- auf Production-Werte umgestellt werden muss.
 
+## 🚨 Offene Punkte zum Fertigstellen (Pre-Go-Live)
+
+- [ ] **Google Analytics 4 Setup fertigstellen**
+  - Property + Web-Stream für `coffeeselection.ch` anlegen (teilweise erledigt)
+  - **Measurement-ID** (Format `G-XXXXXXXXXX`) als Vercel Env-Var `NEXT_PUBLIC_GA_MEASUREMENT_ID` setzen (Production + Preview)
+  - **Enhanced Measurement** aktivieren (Scrolls, Outbound-Clicks, Form-Submissions)
+  - **Conversion-Events** markieren in GA4 Admin → Events → Mark as Conversion: `quiz_complete`, `newsletter_subscribe`, `purchase`
+  - **Funnel Exploration** anlegen unter Explore → New: page_view `/` → `quiz_complete` → `add_to_cart` → `begin_checkout` → `purchase`
+  - Verify: Inkognito-Tab → Network-Tab → `gtag/js?id=G-XXX` lädt → in GA4 Realtime sichtbar
+
 ## Deploy-Workflow (Stand 2026-05-09)
 
 - **Production Branch in Vercel**: `main` — Vercel baut diesen Branch automatisch.
