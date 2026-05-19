@@ -135,6 +135,7 @@ export default async function AdminDashboardPage({
     { count: coffeeCount },
     { count: newsletterSubscribers },
     { data: newsletterRows },
+    { data: marketingSpendRows },
   ] = await Promise.all([
     svc.from("customers").select("id", { count: "exact", head: true }).is("deleted_at", null),
     svc.from("customers").select("created_at").is("deleted_at", null).gte("created_at", since),
@@ -154,6 +155,13 @@ export default async function AdminDashboardPage({
     svc.from("coffees").select("id", { count: "exact", head: true }).eq("status", "active"),
     svc.from("customers").select("id", { count: "exact", head: true }).eq("marketing_opt_in", true).is("deleted_at", null),
     svc.from("customers").select("created_at").eq("marketing_opt_in", true).is("deleted_at", null).gte("created_at", since),
+    // Marketing-Spend in der Periode — Aktivitaeten die im Zeitfenster
+    // gestartet sind. Fuer CAC/CPO summieren wir spent_chf.
+    svc
+      .from("marketing_spend")
+      .select("spent_chf, starts_at, ends_at")
+      .is("deleted_at", null)
+      .gte("starts_at", since.slice(0, 10)),
   ]);
 
   type OrderRow = {
@@ -232,6 +240,24 @@ export default async function AdminDashboardPage({
   const clv = distinctCustomersWithOrder > 0
     ? allRevSum / distinctCustomersWithOrder
     : 0;
+
+  // CAC + CPO aus marketing_spend (in der Periode):
+  //   CAC = Sum(spent_chf) / Anzahl Neukunden in Periode
+  //   CPO = Sum(spent_chf) / Anzahl Orders in Periode
+  // Wenn Marketing-Spend oder Numerator 0 ist, lassen wir "—" stehen.
+  const marketingSpentInPeriod = ((marketingSpendRows ?? []) as Array<{
+    spent_chf: number;
+  }>).reduce((s, r) => s + Number(r.spent_chf), 0);
+  const newCustomersInPeriod = (customersRows ?? []).length;
+  const ordersInPeriod = ordersTyped.length;
+  const cac =
+    marketingSpentInPeriod > 0 && newCustomersInPeriod > 0
+      ? marketingSpentInPeriod / newCustomersInPeriod
+      : null;
+  const cpo =
+    marketingSpentInPeriod > 0 && ordersInPeriod > 0
+      ? marketingSpentInPeriod / ordersInPeriod
+      : null;
 
   // Lifecycle: zaehle Customers nach Stage
   const { data: lifecycleRows } = await svc.rpc("customer_lifecycle_buckets" as never);
@@ -346,13 +372,27 @@ export default async function AdminDashboardPage({
           Marketing-KPIs
         </h2>
         <p className="text-sm text-on-surface-variant mb-6">
-          CAC und CPO brauchen die Marketing-Ausgaben pro Periode — heute noch
-          nicht im System. Manuell ergänzen oder via Ad-Tool importieren.
+          CAC + CPO werden aus <code className="bg-surface-container px-1">marketing_spend</code>{" "}
+          (Tab „Marketing") berechnet. Sum der ausgegebenen CHF in der gewählten
+          Periode geteilt durch Neukunden bzw. Bestellungen im gleichen Fenster.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Kpi label="CLV (Ø)" value={`CHF ${fmtChf(clv)}`} tooltip="Total Revenue (paid Orders) / Distinct Customers mit Bestellung" />
-          <Kpi label="CAC" value="—" tooltip="Marketing-Spend / Anzahl Neukunden. Daten manuell ergänzen." />
-          <Kpi label="CPO" value="—" tooltip="Marketing-Spend / Anzahl Orders. Daten manuell ergänzen." />
+          <Kpi
+            label="Marketing-Spend"
+            value={`CHF ${fmtChf(marketingSpentInPeriod)}`}
+            tooltip="Summe spent_chf der Marketing-Aktivitäten in der Periode"
+          />
+          <Kpi
+            label="CAC"
+            value={cac != null ? `CHF ${fmtChf(cac)}` : "—"}
+            tooltip="Marketing-Spend / Neukunden in Periode"
+          />
+          <Kpi
+            label="CPO"
+            value={cpo != null ? `CHF ${fmtChf(cpo)}` : "—"}
+            tooltip="Marketing-Spend / Orders in Periode"
+          />
         </div>
       </section>
 

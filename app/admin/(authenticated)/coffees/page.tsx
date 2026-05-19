@@ -54,10 +54,11 @@ function scoreBadgeLabel(score: number | null): string {
 export default async function AdminCoffeesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; q?: string }>;
 }) {
-  const { filter } = await searchParams;
+  const { filter, q } = await searchParams;
   const onlyBelowThreshold = filter === "below";
+  const query = (q ?? "").trim().toLowerCase();
 
   const sb = createServiceClient();
   const { data, error } = await sb
@@ -82,9 +83,17 @@ export default async function AdminCoffeesPage({
   const needsAttention = rows.filter(
     (r) => (r.data_quality_score ?? 0) < 75 && !r.data_verified_at
   );
-  const filtered = onlyBelowThreshold
-    ? rows.filter((r) => (r.data_quality_score ?? 0) < 75 && !r.data_verified_at)
+  // Search-Filter (Name + Roaster-Name + Slug). Wenn leer, alle.
+  const filteredBySearch = query
+    ? rows.filter((r) => {
+        const roaster = Array.isArray(r.roaster) ? r.roaster[0] : r.roaster;
+        const hay = `${r.name} ${roaster?.name ?? ""} ${r.slug}`.toLowerCase();
+        return hay.includes(query);
+      })
     : rows;
+  const filtered = onlyBelowThreshold
+    ? filteredBySearch.filter((r) => (r.data_quality_score ?? 0) < 75 && !r.data_verified_at)
+    : filteredBySearch;
   const draftsToShow = filtered.filter((r) => r.status === "draft");
   const othersToShow = filtered.filter((r) => r.status !== "draft");
 
@@ -127,6 +136,36 @@ export default async function AdminCoffeesPage({
       </div>
 
       <ScoreFilter active={onlyBelowThreshold} belowCount={needsAttention.length} />
+
+      {/* Suche nach Coffee-Name, Roester-Name oder Slug. GET-Form mit ?q=…
+          damit URL teilbar bleibt + Page-Refresh die Suche behaelt. */}
+      <form method="get" className="mb-6 flex gap-2 items-center">
+        {onlyBelowThreshold && <input type="hidden" name="filter" value="below" />}
+        <input
+          type="search"
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder="Suche nach Name, Röster oder Slug…"
+          className="flex-1 min-w-[200px] bg-white border border-primary/10 px-4 py-2 text-sm focus:outline-none focus:border-tertiary"
+        />
+        <button
+          type="submit"
+          className="bg-primary text-on-primary px-4 py-2 font-headline font-bold text-[11px] uppercase tracking-widest hover:bg-black transition-all"
+        >
+          Suchen
+        </button>
+        {query && (
+          <Link
+            href={onlyBelowThreshold ? "/admin/coffees?filter=below" : "/admin/coffees"}
+            className="font-headline text-[11px] uppercase tracking-widest text-on-surface-variant hover:text-primary"
+          >
+            Reset
+          </Link>
+        )}
+        <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold ml-auto">
+          {filtered.length} {filtered.length === 1 ? "Coffee" : "Coffees"}
+        </span>
+      </form>
 
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8 text-sm text-blue-900">
         <p className="font-bold mb-1">So funktioniert der Workflow (Score-driven)</p>
