@@ -27,10 +27,24 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const c = await getCoffeeBySlug(slug);
   if (!c) return {};
   const origin = c.origin_name_de ?? "Specialty";
+  const description = `${c.name} aus ${origin}, geröstet von ${c.roaster_name}. Specialty Coffee, Direct Trade, CHF ${Number(c.price_chf).toFixed(2)}.`;
+  const title = `${c.name} — ${c.roaster_name} | Coffee Selection`;
   return {
-    title: `${c.name} — ${c.roaster_name} | Coffee Selection`,
-    description: `${c.name} aus ${origin}, geröstet von ${c.roaster_name}. Specialty Coffee, Direct Trade, CHF ${Number(c.price_chf).toFixed(2)}.`,
+    title,
+    description,
     keywords: [c.name.toLowerCase(), origin.toLowerCase(), c.roaster_name.toLowerCase(), "specialty coffee", "schweizer kaffee"],
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: c.image_url ? [{ url: c.image_url, alt: c.name }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: c.image_url ? [c.image_url] : undefined,
+    },
   };
 }
 
@@ -228,6 +242,39 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
       (data ?? []).map((r) => [r.slug as string, r.name_de as string])
     );
   })();
+  // Schema.org Product JSON-LD fuer dieses Coffee-Detail-Item. Hilft
+  // Google die Seite als Produkt zu klassifizieren (Rich Result mit
+  // Preis + Bewertung wenn aggregateRating geliefert).
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: coffee.name,
+    description: heroBlurb ?? description,
+    image: coffee.image_url ? [coffee.image_url] : undefined,
+    brand: { "@type": "Brand", name: coffee.roaster_name },
+    sku: coffee.slug,
+    offers: {
+      "@type": "Offer",
+      url: `https://coffeeselection.ch/coffee/${coffee.slug}`,
+      priceCurrency: "CHF",
+      price: Number(coffee.price_chf).toFixed(2),
+      availability:
+        coffee.stock_status === "out_of_stock"
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+    },
+    ...(coffee.avg_rating_public != null && (coffee.rating_count_public ?? 0) > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number(coffee.avg_rating_public),
+            reviewCount: coffee.rating_count_public,
+            bestRating: 5,
+          },
+        }
+      : {}),
+  };
+
   const formatAromaSlug = (s: string): string =>
     aromaLookup.get(s) ??
     s
@@ -237,6 +284,10 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <Header />
       <main className="pt-20 md:pt-24">
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">

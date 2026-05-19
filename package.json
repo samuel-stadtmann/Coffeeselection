@@ -11,9 +11,11 @@
     "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.53.1",
     "@stripe/stripe-js": "^9.4.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.3",
+    "@vercel/analytics": "^2.0.1",
     "next": "^15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

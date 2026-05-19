@@ -30,7 +30,7 @@ Läuft **Postgres-seitig** via `pg_cron` — unabhängig von Vercel:
 
 Pre-Launch-TODOs:
 
-- [ ] **Aroma-basierte Reklassifikation** (anderer Trigger als der existierende "no"-Counter): über Aroma-Sentiment-Score per Geschmackstyp. Nach OpenAI-Integration (M5b) elegant via Embedding-Centroids; bis dahin als zweiter pg_cron-Job mit stündlichem/täglichem Score-Vergleich falls gewünscht.
+- [x] **Aroma-basierte Reklassifikation** — Migration `20260519100000_aroma_based_reclassification.sql` legt Function `suggest_aroma_based_reclassification(min_ratings, score_threshold)` an + pg_cron-Job `suggest-aroma-reclassification` (taeglich 06:00 UTC). Pickt Customer mit ≥5 Ratings, scored Geschmackstypen anhand `customer_aroma_preferences.sentiment` ueber `taste_types.aroma_families`, setzt `reclassification_suggested_at` + `reclassification_suggested_type` wenn anderer Typ deutlich besser passt. Email kommt ueber bestehende `send-reclassification-emails`-Edge-Function.
 - [x] **M5b — Embedding-Drift**: erledigt. `triggerBuildCustomerEmbedding` wird im Quiz-Submit-Pfad gerufen (`lib/db/quiz.ts:273`), `drift_customer_embedding` wandert das `customers.taste_embedding` bei jeder neuen Rating-Auswertung in/weg vom `coffees.flavor_embedding` (re-normalisiert auf Einheitslaenge), Lern-Worker `process_pending_ratings` laeuft alle 15 Min via pg_cron. Backfill-Button im Admin-Rewards laedt Bestandskunden nach.
 
 ## Supabase
@@ -107,15 +107,15 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
 ## Analytics & Monitoring
 
 - [ ] Google Analytics / Plausible Tracking-ID einbauen.
-- [ ] Sentry o.ä. für Error-Tracking.
-- [ ] Vercel Analytics aktivieren.
+- [x] Sentry: `@sentry/nextjs` installiert + `sentry.client/server/edge.config.ts` + `withSentryConfig`-Wrapper in `next.config.ts`. Aktiviert sich wenn `NEXT_PUBLIC_SENTRY_DSN` als Vercel-Env-Var gesetzt ist; sonst no-op. Optional `SENTRY_ORG` + `SENTRY_PROJECT` + `SENTRY_AUTH_TOKEN` für Source-Map-Upload.
+- [x] Vercel Analytics: `@vercel/analytics` installiert + `<Analytics />` in `app/layout.tsx`. Aktiviert sich automatisch auf Vercel Production+Preview, im Vercel-Dashboard Analytics-Tab einschalten.
 
 ## SEO
 
 - [ ] `app/sitemap.ts` mit finalen Routen.
 - [ ] `app/robots.ts` von `noindex` auf `index, follow` umstellen.
 - [ ] OpenGraph-Bilder pro wichtiger Page.
-- [ ] Strukturierte Daten (Schema.org Product/Organization).
+- [x] Strukturierte Daten — Schema.org Organization ✅ (global in `layout.tsx`), Product ✅ (Coffee-Detail-Page), BlogPosting ✅ (Article-Detail-Page).
 
 ## Content
 
@@ -180,10 +180,9 @@ Aktuell nutzt der Match-Score eine reine Manhattan-Distanz auf 5 Sensorik-Achsen
 
 **Wichtig:** Solange wir auf der reinen Sensorik-Distanz bleiben, ist der Score sehr nachvollziehbar und manuell auditierbar. Der Wechsel zu Embeddings macht's mächtiger, aber weniger erklärbar — Trade-off bewusst entscheiden.
 
-### Profil-Reife (Konfidenz-Kurve im Geschmacksprofil)
-- [ ] Auf `/account/taste-profile` gab es eine "Profil-Reife"-Box mit hardcoded 6-Monats-Trendwerten. Vor Launch entfernt — wieder einbauen, wenn echte Daten da sind.
-- [ ] Datenquelle Vorschlag: pro Customer monatlich einen Snapshot ablegen mit (a) Anzahl Quiz-Wiederholungen, (b) Anzahl `coffee_ratings`, (c) Streuung der Ratings, (d) `quiz_responses.confidence` des aktiven Quiz. Aggregiertes Mass = "Reife in %", visualisiert als Spark-Bars über die letzten 6–12 Monate.
-- [ ] Einfache MVP-Variante ohne Snapshot-Tabelle: live berechnete Reife = `min(100, ratings_count * 10 + confidence * 50)` — keine Zeitreihe, nur Status quo. Lieber so als gar nichts.
+### Profil-Reife (Konfidenz-Kurve im Geschmacksprofil) — ✅ MVP erledigt
+- [x] MVP-Variante live: `min(100, num_ratings_given * 10 + profile_confidence * 50)` rendert als Progress-Bar mit Label ("Sehr ausgereift" / "Solide" / "Aufbau-Phase" / "Frisch") auf `/account/taste-profile`. Quiz-Confidence + Ratings-Count werden transparent darunter angezeigt.
+- [ ] **Spaeter optional**: Snapshot-Tabelle mit monatlichen Eintraegen für die 6-12-Monats-Spark-Bars-Visualisierung. Aktuell nur Status quo, keine Zeitreihe.
 
 ### P6 Schritt 2 — Stripe Connect für Marketplace-Splits (Backlog, vor Bauen klären)
 

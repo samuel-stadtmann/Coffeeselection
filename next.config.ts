@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   images: {
@@ -37,4 +38,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry-Wrapper — laedt Source-Maps fuer bessere Stacktraces hoch (wenn
+// SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT in Vercel-Env gesetzt),
+// instrumentiert Next.js-internals fuer automatisches Tracing.
+// Hat keinen Side-Effect wenn DSN fehlt — config-Aufrufe sind no-op.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: true,
+  widenClientFileUpload: true,
+  // Tunnel route umgeht Ad-Blocker, die Sentry-Requests filtern.
+  tunnelRoute: "/monitoring",
+  disableLogger: true,
+});

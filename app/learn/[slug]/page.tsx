@@ -17,6 +17,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: a.seoTitle,
     description: a.seoDescription,
     keywords: a.keywords,
+    openGraph: {
+      title: a.seoTitle,
+      description: a.seoDescription,
+      type: "article",
+      publishedTime: a.publishedAt,
+      images: a.image ? [{ url: a.image, alt: a.title }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: a.seoTitle,
+      description: a.seoDescription,
+      images: a.image ? [a.image] : undefined,
+    },
   };
 }
 
@@ -84,8 +97,33 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   const relatedArticles = article.related.map((s) => articleBySlug(s)).filter(Boolean);
 
+  // Schema.org BlogPosting — gibt Google das Article-Format mit
+  // Headline, Image, Published-Date, Author/Publisher.
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: article.title,
+    description: article.excerpt,
+    image: article.image ? [article.image] : undefined,
+    datePublished: article.publishedAt,
+    author: { "@type": "Organization", name: "Coffee Selection" },
+    publisher: {
+      "@type": "Organization",
+      name: "Coffee Selection",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://coffeeselection.ch/logo.png",
+      },
+    },
+    mainEntityOfPage: `https://coffeeselection.ch/learn/${article.slug}`,
+  };
+
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
         <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
           <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
