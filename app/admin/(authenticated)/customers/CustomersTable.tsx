@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 export type CustomerRow = {
   id: string;
@@ -139,9 +140,12 @@ export default function CustomersTable({ rows }: { rows: CustomerRow[] }) {
               {filtered.map((r) => (
                 <tr key={r.id} className="hover:bg-surface-container-low/50">
                   <td className="py-2 px-2">
-                    <div className="font-headline font-bold text-primary uppercase tracking-tight text-xs">
+                    <Link
+                      href={`/admin/customers/${r.id}`}
+                      className="font-headline font-bold text-primary uppercase tracking-tight text-xs hover:text-tertiary transition-colors"
+                    >
                       {r.full_name}
-                    </div>
+                    </Link>
                   </td>
                   <td className="py-2 px-2 text-on-surface-variant text-xs">{r.email}</td>
                   <td className="py-2 px-2 text-on-surface-variant text-xs">{r.created_at}</td>

@@ -595,8 +595,46 @@ export default function HomePage() {
               Handverlesen. Direkt zu dir. Premium Specialty Coffee von den besten Schweizer Röstereien.
             </p>
             <div className="flex gap-4">
-              <Link href="#"><span className="material-symbols-outlined text-primary hover:text-tertiary transition-colors">local_cafe</span></Link>
-              <Link href="#"><span className="material-symbols-outlined text-primary hover:text-tertiary transition-colors">filter_drama</span></Link>
+              {/* Social-Media-Icons. Aktuell Platzhalter-Hrefs — Accounts
+                  noch nicht erstellt. Sobald @-Handles live sind, hier die
+                  echten URLs eintragen. Material Symbols hat keine Brand-
+                  Glyphen → wir nutzen inline SVG (Simple Icons).
+                  Akzessibilitaets-Labels sind unter aria-label, nicht im
+                  visuellen Markup. */}
+              {[
+                {
+                  href: "#",
+                  label: "Instagram",
+                  // simpleicons.org Instagram
+                  d: "M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.336 3.608 1.311.975.975 1.249 2.242 1.311 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.336 2.633-1.311 3.608-.975.975-2.242 1.249-3.608 1.311-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.336-3.608-1.311-.975-.975-1.249-2.242-1.311-3.608C2.175 15.747 2.163 15.367 2.163 12s.012-3.584.07-4.85c.062-1.366.336-2.633 1.311-3.608.975-.975 2.242-1.249 3.608-1.311C8.416 2.175 8.796 2.163 12 2.163zm0 1.622c-3.155 0-3.5.012-4.737.067-1.013.046-1.563.215-1.928.357-.485.188-.832.412-1.196.776-.364.364-.588.711-.776 1.196-.142.365-.311.915-.357 1.928-.055 1.237-.067 1.582-.067 4.737s.012 3.5.067 4.737c.046 1.013.215 1.563.357 1.928.188.485.412.832.776 1.196.364.364.711.588 1.196.776.365.142.915.311 1.928.357 1.237.055 1.582.067 4.737.067s3.5-.012 4.737-.067c1.013-.046 1.563-.215 1.928-.357.485-.188.832-.412 1.196-.776.364-.364.588-.711.776-1.196.142-.365.311-.915.357-1.928.055-1.237.067-1.582.067-4.737s-.012-3.5-.067-4.737c-.046-1.013-.215-1.563-.357-1.928-.188-.485-.412-.832-.776-1.196-.364-.364-.711-.588-1.196-.776-.365-.142-.915-.311-1.928-.357-1.237-.055-1.582-.067-4.737-.067zM12 6.865A5.135 5.135 0 1 1 6.865 12 5.14 5.14 0 0 1 12 6.865zm0 8.468A3.333 3.333 0 1 0 12 8.667a3.333 3.333 0 0 0 0 6.666zm5.338-9.87a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z",
+                },
+                {
+                  href: "#",
+                  label: "Facebook",
+                  d: "M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.413c0-3.017 1.791-4.683 4.533-4.683 1.313 0 2.686.236 2.686.236v2.964h-1.513c-1.491 0-1.956.93-1.956 1.886v2.266h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z",
+                },
+                {
+                  href: "#",
+                  label: "LinkedIn",
+                  d: "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.063 2.063 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z",
+                },
+              ].map((s) => (
+                <Link
+                  key={s.label}
+                  href={s.href}
+                  aria-label={s.label}
+                  className="text-primary hover:text-tertiary transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="w-5 h-5 fill-current"
+                    aria-hidden
+                  >
+                    <path d={s.d} />
+                  </svg>
+                </Link>
+              ))}
             </div>
           </div>
           <div>
