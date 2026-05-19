@@ -2,13 +2,33 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { QuizHeader } from "@/components/QuizShell";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoadingMatchPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const t = setTimeout(() => router.push("/login?next=/match-result"), 3500);
-    return () => clearTimeout(t);
+    // Wenn der User schon eingeloggt ist (z.B. wiederholt das Quiz), gehen
+    // wir direkt auf /match-result und sparen den Anmelde-Zwischenstopp.
+    // Bei nicht-Eingeloggten weiter wie bisher auf Login → Quiz-Persist
+    // → /match-result.
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      if (cancelled) return;
+      try {
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        if (cancelled) return;
+        router.push(data.user ? "/match-result" : "/login?next=/match-result");
+      } catch {
+        if (cancelled) return;
+        router.push("/login?next=/match-result");
+      }
+    }, 3500);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, [router]);
 
   return (

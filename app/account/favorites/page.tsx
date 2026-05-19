@@ -13,7 +13,7 @@ type FavCoffeeRow = {
         name: string;
         price_chf: number;
         image_url: string | null;
-        origin_name: string | null;
+        origin: { name_de: string | null } | { name_de: string | null }[] | null;
         roaster: { name: string; slug: string } | { name: string; slug: string }[] | null;
       }
     | null;
@@ -43,7 +43,8 @@ export default async function FavoritesPage() {
       .from("customer_favorite_coffees")
       .select(
         `coffee_id, created_at,
-         coffee:coffees(id, slug, name, price_chf, image_url, origin_name,
+         coffee:coffees(id, slug, name, price_chf, image_url,
+           origin:origins_catalog(name_de),
            roaster:roasters(name, slug))`
       )
       .order("created_at", { ascending: false }),
@@ -61,11 +62,12 @@ export default async function FavoritesPage() {
     .filter((c): c is NonNullable<FavCoffeeRow["coffee"]> => c != null)
     .map((c) => {
       const roaster = Array.isArray(c.roaster) ? c.roaster[0] : c.roaster;
+      const origin = Array.isArray(c.origin) ? c.origin[0] : c.origin;
       return {
         id: c.id,
         slug: c.slug,
         name: c.name,
-        origin: c.origin_name ?? "Specialty",
+        origin: origin?.name_de ?? "Specialty",
         roasterName: roaster?.name ?? "",
         price: c.price_chf,
       };

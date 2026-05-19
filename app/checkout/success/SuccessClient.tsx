@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { trackPurchase } from "@/lib/analytics";
+import { useCart } from "@/lib/cart";
 
 /**
  * Client-Komponente fuer /checkout/success.
@@ -40,10 +41,13 @@ export function SuccessClient({
   const [order, setOrder] = useState<OrderState>(initialOrder);
   const [polling, setPolling] = useState(initialOrder.status === "pending");
   const [timedOut, setTimedOut] = useState(false);
+  const { clear: clearCart } = useCart();
 
   // GA4 purchase-Event genau EINMAL feuern, sobald die Order auf 'paid'
   // umspringt (egal ob initial oder via Polling). Doppelt-Fire vermeiden
-  // wenn React den State mehrmals an uns durchschickt.
+  // wenn React den State mehrmals an uns durchschickt. Gleicher Trigger
+  // leert auch den SessionStorage-Cart — sonst sieht der Customer beim
+  // naechsten Cart-Aufruf seine bereits bestellten Items.
   const purchaseFired = useRef(false);
   useEffect(() => {
     if (order.status !== "paid" || purchaseFired.current) return;
@@ -58,7 +62,8 @@ export function SuccessClient({
       // muesste das in einer Erweiterung aus orders.items nachladen.
       items: [],
     });
-  }, [order.status, order.id, order.total_chf, order.shipping_chf, order.tax_chf]);
+    clearCart();
+  }, [order.status, order.id, order.total_chf, order.shipping_chf, order.tax_chf, clearCart]);
 
   useEffect(() => {
     if (!polling) return;

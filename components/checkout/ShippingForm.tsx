@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCheckout, type CheckoutAddress } from "@/lib/checkout";
 import { createClient } from "@/lib/supabase/client";
 
@@ -29,6 +29,39 @@ export default function ShippingForm() {
     setBillingSameAsShipping,
     setCustomerNote,
   } = useCheckout();
+
+  // Wenn der User bereits eingeloggt ist und das Email-Feld noch leer
+  // (frischer Checkout-Eintritt), prefill aus customers-Row. Lockt nicht
+  // bestehende Edits ueber — wir setzen nur was leer ist.
+  const prefillFired = useRef(false);
+  useEffect(() => {
+    if (prefillFired.current) return;
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user || cancelled) return;
+      const { data: customer } = await supabase
+        .from("customers")
+        .select("email, first_name, last_name, language, marketing_opt_in")
+        .eq("auth_user_id", auth.user.id)
+        .maybeSingle();
+      if (!customer || cancelled) return;
+      prefillFired.current = true;
+      setCustomer({
+        ...(data.customer.email ? {} : { email: customer.email ?? auth.user.email ?? "" }),
+        ...(data.customer.first_name ? {} : { first_name: customer.first_name ?? "" }),
+        ...(data.customer.last_name ? {} : { last_name: customer.last_name ?? "" }),
+        ...(customer.language ? { language: customer.language } : {}),
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Nur einmal beim ersten Render. Mit allen Deps lockt der useEffect bei
+    // jeder Form-Eingabe — wir wollen aber nur den initialen Prefill.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-4 mb-6">

@@ -64,7 +64,7 @@ export function CoffeePurchaseOptions(props: Props) {
           active={mode === "discovery"}
           onClick={() => setMode("discovery")}
           label="Discovery"
-          badge="Neu"
+          badge={`−${SUBSCRIPTION_DISCOUNT_PERCENT}%`}
         />
       </div>
 
