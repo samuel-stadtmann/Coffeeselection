@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCoffeeBySlug, getCoffeeSlugsForStatic } from "@/lib/db/coffees";
+import { createClient } from "@/lib/supabase/server";
 import { coffeeCategories, categoryBySlug, getCoffeesForCategory } from "@/lib/coffee-categories";
 import { CoffeePurchaseOptions } from "./CoffeePurchaseOptions";
 import FavoriteButton from "@/components/FavoriteButton";
@@ -201,10 +202,38 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
 
   const origin = coffee.origin_name_de ?? "Specialty";
   const priceLabel = `CHF ${Number(coffee.price_chf).toFixed(2)}`;
-  const aromas = coffee.flavor_slugs ?? [];
+  const aromaSlugs = coffee.flavor_slugs ?? [];
   const brewing = coffee.recommended_brewing_slugs ?? [];
   const description =
     coffee.description ?? coffee.short_description ?? coffee.tasting_summary ?? "";
+  // Kurz-Pitch unter dem Hero-Bild — bevorzugt short_description, dann
+  // tasting_summary, dann erster Satz der description.
+  const heroBlurb =
+    coffee.short_description ??
+    coffee.tasting_summary ??
+    (coffee.description ? coffee.description.split(". ")[0] + "." : null);
+
+  // flavor_slugs sind aus flavor_notes_catalog.slug (z.B. "choco_milk",
+  // "caramel", "nuts_walnut"). Im UI wollen wir die deutschen name_de
+  // anzeigen — Lookup einmalig via supabase, dann Map. Fallback: slug
+  // mit underscores zu Leerzeichen + Title-Case.
+  const aromaLookup = await (async () => {
+    if (aromaSlugs.length === 0) return new Map<string, string>();
+    const sb = await createClient();
+    const { data } = await sb
+      .from("flavor_notes_catalog")
+      .select("slug, name_de")
+      .in("slug", aromaSlugs);
+    return new Map(
+      (data ?? []).map((r) => [r.slug as string, r.name_de as string])
+    );
+  })();
+  const formatAromaSlug = (s: string): string =>
+    aromaLookup.get(s) ??
+    s
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (m) => m.toUpperCase());
+  const aromas = aromaSlugs.map(formatAromaSlug);
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
@@ -226,6 +255,11 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
               <div className="aspect-square overflow-hidden bg-surface-container-low shadow-2xl">
                 <img src={coffee.image_url || COFFEE_FALLBACK_IMG} alt={coffee.name} className="w-full h-full object-cover" />
               </div>
+              {heroBlurb && (
+                <p className="mt-4 text-sm md:text-base text-on-surface-variant leading-relaxed italic">
+                  {heroBlurb}
+                </p>
+              )}
             </div>
 
             <div className="lg:sticky lg:top-28 lg:self-start space-y-8">

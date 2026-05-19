@@ -181,9 +181,18 @@ export default async function AdminCoffeesPage({
                   }
                 >
                   <td className="px-4 py-3 font-bold">
-                    <Link href={`/coffee/${c.slug}`} className="hover:text-tertiary" target="_blank">
+                    <Link href={`/admin/coffees/${c.id}`} className="hover:text-tertiary">
                       {c.name}
-                    </Link>
+                    </Link>{" "}
+                    <a
+                      href={`/coffee/${c.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-headline text-[9px] uppercase tracking-widest text-on-surface-variant hover:text-tertiary ml-2"
+                      title="Live ansehen"
+                    >
+                      ↗
+                    </a>
                     {verified && (
                       <div className="font-headline text-[9px] uppercase tracking-widest font-bold text-emerald-800 mt-1">
                         Manuell freigegeben · {verifiedDate}
