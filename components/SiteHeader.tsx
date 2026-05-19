@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Einheitlicher Public-Site-Header. Wird auf allen oeffentlichen Seiten
@@ -28,6 +29,28 @@ const navLinks = [
 export default function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { count: cartCount } = useCart();
+  // Auth-State: wenn eingeloggt, geht das Person-Icon direkt auf
+  // /account/dashboard statt durch den Login-Loop (Mattia's Bug: jeder
+  // Klick auf das Icon hat ihn zur Anmeldemaske geschickt obwohl die
+  // Session frisch war).
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled) setLoggedIn(!!data.user);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
+      if (!cancelled) setLoggedIn(!!session?.user);
+    });
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+  const accountHref = loggedIn
+    ? "/account/dashboard"
+    : "/login?next=/account/dashboard";
   return (
     <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
       <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
@@ -52,7 +75,7 @@ export default function SiteHeader() {
         </div>
         <div className="flex items-center gap-x-3 sm:gap-x-4 md:gap-x-5 shrink-0">
           <Link
-            href="/login?next=/account/dashboard"
+            href={accountHref}
             className="hidden md:block"
             aria-label="Mein Konto"
           >
@@ -112,7 +135,7 @@ export default function SiteHeader() {
               </Link>
             ))}
             <Link
-              href="/login?next=/account/dashboard"
+              href={accountHref}
               onClick={() => setMobileMenuOpen(false)}
               className="text-primary hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-sm py-3 flex items-center gap-2"
             >
