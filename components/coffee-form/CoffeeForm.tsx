@@ -78,8 +78,14 @@ export default function CoffeeForm({
     }
     setSubmitting(true);
     try {
+      // Slug-Sanitize: User darf das Feld editieren — aber bei Backslash,
+      // Umlaut-Reste, trailing-Dash etc. crasht der Server-Zod-Regex
+      // (^[a-z0-9]+(-[a-z0-9]+)*$). Wir normalisieren clientseitig
+      // nochmal mit slugify, damit das Form niemals invalid abschickt.
+      const cleanSlug = slugify(s.slug || s.name);
       const payload = {
         ...s,
+        slug: cleanSlug,
         acidity: tenToFive(s.acidity),
         body: tenToFive(s.body),
         sweetness: tenToFive(s.sweetness),

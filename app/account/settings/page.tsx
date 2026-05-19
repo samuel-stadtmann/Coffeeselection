@@ -13,6 +13,34 @@ type ProfileForm = {
   language: string;
 };
 
+type AddressForm = {
+  // null wenn der Customer noch keine Default-Lieferadresse hat — dann
+  // legt der Save eine neue Zeile an statt zu updaten.
+  id: string | null;
+  recipient_name: string;
+  company: string;
+  street: string;
+  street_additional: string;
+  postal_code: string;
+  city: string;
+  region: string;
+  country: string;
+  delivery_instructions: string;
+};
+
+const EMPTY_ADDRESS: AddressForm = {
+  id: null,
+  recipient_name: "",
+  company: "",
+  street: "",
+  street_additional: "",
+  postal_code: "",
+  city: "",
+  region: "",
+  country: "CH",
+  delivery_instructions: "",
+};
+
 type NotificationKey = "notify_shipping" | "notify_recommendations" | "marketing_opt_in";
 
 type NotificationFlags = Record<NotificationKey, boolean>;
@@ -26,8 +54,13 @@ const NOTIFICATION_DEFS: Array<{ key: NotificationKey; label: string; desc: stri
 export default function Page() {
   const [form, setForm] = useState<ProfileForm | null>(null);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressMsg, setAddressMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
@@ -56,9 +89,10 @@ export default function Page() {
       setAuthUserId(auth.user.id);
       const { data } = await supabase
         .from("customers")
-        .select("first_name, last_name, phone, language, notify_shipping, notify_recommendations, marketing_opt_in")
+        .select("id, first_name, last_name, phone, language, notify_shipping, notify_recommendations, marketing_opt_in")
         .eq("auth_user_id", auth.user.id)
         .single();
+      if (data?.id) setCustomerId(data.id);
       setForm({
         firstName: data?.first_name ?? "",
         lastName: data?.last_name ?? "",
@@ -71,8 +105,93 @@ export default function Page() {
         notify_recommendations: data?.notify_recommendations ?? true,
         marketing_opt_in: data?.marketing_opt_in ?? false,
       });
+
+      // Default-Lieferadresse laden. RLS sorgt dass nur die eigenen
+      // Adressen sichtbar sind. Bevorzugt is_default=true, sonst neueste
+      // shipping-Adresse, sonst leer (User legt eine an).
+      if (data?.id) {
+        const { data: addrs } = await supabase
+          .from("customer_addresses")
+          .select(
+            "id, recipient_name, company, street, street_additional, postal_code, city, region, country, delivery_instructions, is_default, type, created_at"
+          )
+          .eq("customer_id", data.id)
+          .in("type", ["shipping", "both"])
+          .order("is_default", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(1);
+        const a = (addrs ?? [])[0];
+        if (a) {
+          setAddress({
+            id: a.id as string,
+            recipient_name: a.recipient_name ?? "",
+            company: a.company ?? "",
+            street: a.street ?? "",
+            street_additional: a.street_additional ?? "",
+            postal_code: a.postal_code ?? "",
+            city: a.city ?? "",
+            region: a.region ?? "",
+            country: a.country ?? "CH",
+            delivery_instructions: a.delivery_instructions ?? "",
+          });
+        }
+      }
     })();
   }, []);
+
+  const handleAddressSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerId) return;
+    if (savingAddress) return;
+    setAddressMsg(null);
+    setSavingAddress(true);
+    const supabase = createClient();
+    const payload = {
+      customer_id: customerId,
+      type: "shipping" as const,
+      is_default: true,
+      recipient_name: address.recipient_name.trim(),
+      company: address.company.trim() || null,
+      street: address.street.trim(),
+      street_additional: address.street_additional.trim() || null,
+      postal_code: address.postal_code.trim(),
+      city: address.city.trim(),
+      region: address.region.trim() || null,
+      country: address.country.trim() || "CH",
+      delivery_instructions: address.delivery_instructions.trim() || null,
+    };
+    // is_default ist normalerweise UNIQUE partial per (customer_id, type,
+    // is_default=true). Wir setzen daher andere shipping-Defaults vorher
+    // auf false, dann insert/update.
+    await supabase
+      .from("customer_addresses")
+      .update({ is_default: false })
+      .eq("customer_id", customerId)
+      .in("type", ["shipping", "both"])
+      .eq("is_default", true);
+    let saveErr: string | null = null;
+    if (address.id) {
+      const { error } = await supabase
+        .from("customer_addresses")
+        .update(payload)
+        .eq("id", address.id);
+      if (error) saveErr = error.message;
+    } else {
+      const { data: ins, error } = await supabase
+        .from("customer_addresses")
+        .insert(payload)
+        .select("id")
+        .single();
+      if (error) saveErr = error.message;
+      else if (ins) setAddress((a) => ({ ...a, id: ins.id as string }));
+    }
+    setSavingAddress(false);
+    if (saveErr) {
+      setAddressMsg({ type: "err", text: saveErr });
+    } else {
+      setAddressMsg({ type: "ok", text: "Adresse gespeichert." });
+    }
+  };
 
   const toggleNotification = async (key: NotificationKey) => {
     if (savingNotif) return;
@@ -267,6 +386,148 @@ export default function Page() {
             </button>
           </div>
         )}
+      </form>
+
+      {/* Standard-Lieferadresse */}
+      <form onSubmit={handleAddressSubmit} className="bg-white p-6 md:p-8 shadow-sm">
+        <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-lg mb-2">
+          Standard-Lieferadresse
+        </h3>
+        <p className="text-sm text-on-surface-variant mb-6">
+          Wird beim Checkout automatisch vorausgefüllt. Du kannst dort jederzeit eine andere
+          Adresse eingeben — der Standard hier bleibt unverändert.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+              Empfänger*in
+            </label>
+            <input
+              required
+              value={address.recipient_name}
+              onChange={(e) => setAddress({ ...address, recipient_name: e.target.value })}
+              autoComplete="name"
+              className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+            />
+          </div>
+          <div>
+            <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+              Firma (optional)
+            </label>
+            <input
+              value={address.company}
+              onChange={(e) => setAddress({ ...address, company: e.target.value })}
+              autoComplete="organization"
+              className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+            />
+          </div>
+          <div>
+            <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+              Strasse + Nr.
+            </label>
+            <input
+              required
+              value={address.street}
+              onChange={(e) => setAddress({ ...address, street: e.target.value })}
+              autoComplete="address-line1"
+              className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+            />
+          </div>
+          <div>
+            <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+              Adresszusatz (optional)
+            </label>
+            <input
+              value={address.street_additional}
+              onChange={(e) => setAddress({ ...address, street_additional: e.target.value })}
+              autoComplete="address-line2"
+              className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                PLZ
+              </label>
+              <input
+                required
+                value={address.postal_code}
+                onChange={(e) =>
+                  setAddress({ ...address, postal_code: e.target.value.trim() })
+                }
+                autoComplete="postal-code"
+                className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+              />
+            </div>
+            <div>
+              <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                Stadt
+              </label>
+              <input
+                required
+                value={address.city}
+                onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                autoComplete="address-level2"
+                className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+              />
+            </div>
+            <div>
+              <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                Kanton (optional)
+              </label>
+              <input
+                value={address.region}
+                onChange={(e) => setAddress({ ...address, region: e.target.value })}
+                autoComplete="address-level1"
+                className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+              Land
+            </label>
+            <select
+              value={address.country}
+              onChange={(e) => setAddress({ ...address, country: e.target.value })}
+              className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+            >
+              <option value="CH">Schweiz</option>
+              <option value="LI">Liechtenstein</option>
+            </select>
+          </div>
+          <div>
+            <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+              Lieferhinweis (optional)
+            </label>
+            <input
+              value={address.delivery_instructions}
+              onChange={(e) =>
+                setAddress({ ...address, delivery_instructions: e.target.value })
+              }
+              placeholder="z.B. Bei Nachbar abgeben, 2. Stock links"
+              className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+            />
+          </div>
+          {addressMsg && (
+            <div
+              className={`px-4 py-3 text-sm border-l-4 ${
+                addressMsg.type === "ok"
+                  ? "bg-tertiary/10 border-tertiary text-primary"
+                  : "bg-error/10 border-error text-primary"
+              }`}
+            >
+              {addressMsg.text}
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={savingAddress || !customerId}
+            className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+          >
+            {savingAddress ? "Wird gespeichert…" : "Adresse speichern"}
+          </button>
+        </div>
       </form>
 
       {/* Password */}
