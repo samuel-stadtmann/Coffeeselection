@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 type State = "idle" | "sending" | "success" | "error";
 
@@ -49,6 +50,7 @@ export default function NewsletterForm() {
       }
       setState("success");
       setEmail("");
+      trackEvent("newsletter_subscribe", { source: "footer" });
     } catch {
       setErrorMsg("Hat gerade nicht geklappt — bitte später nochmal versuchen.");
       setState("error");

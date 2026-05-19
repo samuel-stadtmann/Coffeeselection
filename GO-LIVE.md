@@ -2,6 +2,16 @@
 
 Diese Liste enthält alles, was vor dem Production-Launch von Development/Test- auf Production-Werte umgestellt werden muss.
 
+## 🚨 Offene Punkte zum Fertigstellen (Pre-Go-Live)
+
+- [ ] **Google Analytics 4 Setup fertigstellen**
+  - Property + Web-Stream für `coffeeselection.ch` anlegen (teilweise erledigt)
+  - **Measurement-ID** (Format `G-XXXXXXXXXX`) als Vercel Env-Var `NEXT_PUBLIC_GA_MEASUREMENT_ID` setzen (Production + Preview)
+  - **Enhanced Measurement** aktivieren (Scrolls, Outbound-Clicks, Form-Submissions)
+  - **Conversion-Events** markieren in GA4 Admin → Events → Mark as Conversion: `quiz_complete`, `newsletter_subscribe`, `purchase`
+  - **Funnel Exploration** anlegen unter Explore → New: page_view `/` → `quiz_complete` → `add_to_cart` → `begin_checkout` → `purchase`
+  - Verify: Inkognito-Tab → Network-Tab → `gtag/js?id=G-XXX` lädt → in GA4 Realtime sichtbar
+
 ## Deploy-Workflow (Stand 2026-05-09)
 
 - **Production Branch in Vercel**: `main` — Vercel baut diesen Branch automatisch.
@@ -21,7 +31,7 @@ Läuft **Postgres-seitig** via `pg_cron` — unabhängig von Vercel:
 Pre-Launch-TODOs:
 
 - [ ] **Aroma-basierte Reklassifikation** (anderer Trigger als der existierende "no"-Counter): über Aroma-Sentiment-Score per Geschmackstyp. Nach OpenAI-Integration (M5b) elegant via Embedding-Centroids; bis dahin als zweiter pg_cron-Job mit stündlichem/täglichem Score-Vergleich falls gewünscht.
-- [ ] **M5b — Embedding-Drift**: braucht OpenAI-Integration. Customer-Taste-Embedding aus Aroma-Sentiments + bisherigen Bewertungen ableiten und gegen Coffee-Embeddings matchen.
+- [x] **M5b — Embedding-Drift**: erledigt. `triggerBuildCustomerEmbedding` wird im Quiz-Submit-Pfad gerufen (`lib/db/quiz.ts:273`), `drift_customer_embedding` wandert das `customers.taste_embedding` bei jeder neuen Rating-Auswertung in/weg vom `coffees.flavor_embedding` (re-normalisiert auf Einheitslaenge), Lern-Worker `process_pending_ratings` laeuft alle 15 Min via pg_cron. Backfill-Button im Admin-Rewards laedt Bestandskunden nach.
 
 ## Supabase
 
@@ -67,7 +77,7 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
 - [ ] **Variante C: Onboarding-Form** — neue Röster füllen ein Online-Formular aus, Admin reviewed + freigibt. Hybrid aus A und B.
 - [ ] **Pflicht-Felder pro Coffee**: Sensorik-Profile (acidity/body/sweetness/bitterness/complexity, jeweils 1–5) müssen gesetzt sein, sonst landet der Coffee nicht in Empfehlungen. Heute fehlt z.B. bei "Brasil Cerrado" das ganze Profil — solche Coffees sind unsichtbar im Match.
 - [ ] **Aroma-Familien** (`aroma_families` text[]) müssen aus dem Standard-Vokabular kommen (chocolate, fruity, floral, nutty, sugary etc.) — sonst funktionieren Aroma-basierte Empfehlungen (Post-Launch-Verfeinerung) nicht.
-- [ ] **Flavor-Embedding** (pgvector) wird via OpenAI aus `flavor_description` + `tasting_summary` generiert. Edge Function bei Insert/Update auf `coffees` triggern, damit das Profil immer aktuell ist.
+- [x] **Flavor-Embedding** (pgvector) wird automatisch synchronisiert: DB-Trigger `trg_coffee_embedding_autosync` (Migration `20260518200000`) ruft `generate-coffee-embedding` per `pg_net.http_post` async nach Insert/Update von embedding-relevanten Coffee-Feldern. Voraussetzung Production: Vault-Secrets `SUPABASE_URL` + `SERVICE_ROLE_KEY` + Edge-Function-Secret `OPENAI_API_KEY_COFFEESELECTION`.
 
 ## Automatisierte Bewertungs-Email — ✅ erledigt
 

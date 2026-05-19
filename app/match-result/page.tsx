@@ -8,6 +8,7 @@ import { getLocalAnswers, clearLocalAnswers, type LocalQuizAnswer } from "@/lib/
 import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
 import { useCart, type CartWeight } from "@/lib/cart";
 import { hasDiscoveryIntent, clearDiscoveryIntent } from "@/lib/discovery-intent";
+import { trackEvent } from "@/lib/analytics";
 import {
   SUBSCRIPTION_DISCOUNT_PERCENT,
   SUBSCRIPTION_INTERVAL_WEEKS,
@@ -252,6 +253,12 @@ export default function MatchResultPage() {
       const matches = await getCoffeesForTasteType(supabase, id, { limit: 1 });
       setCoffee(matches[0] ?? null);
       setState("ready");
+      // GA4: Quiz erfolgreich abgeschlossen, Geschmackstyp ermittelt.
+      trackEvent("quiz_complete", {
+        taste_type_id: id,
+        taste_type_slug: type?.slug ?? null,
+        matched_coffee_slug: matches[0]?.slug ?? null,
+      });
     })();
   }, []);
 

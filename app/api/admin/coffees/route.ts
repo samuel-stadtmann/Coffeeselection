@@ -3,6 +3,12 @@ import { z } from "zod";
 import { getAdminUser } from "@/lib/admin/auth";
 import { refreshAdminReauthCookie } from "@/lib/admin/reauth";
 import { createServiceClient } from "@/lib/supabase/service";
+import { AROMA_FAMILIES } from "@/lib/coffee/form-helpers";
+
+// Erlaubte aroma_families-Slugs aus dem Standard-Vokabular. Schuetzt vor
+// freitext-Eingaben, die spaeter aus dem Matching-Algorithmus rausfallen
+// (Aroma-Bonus laeuft ueber Slug-Vergleich, nicht Stringaehnlichkeit).
+const AROMA_SLUGS = AROMA_FAMILIES.map((a) => a.slug) as [string, ...string[]];
 
 // POST /api/admin/coffees
 //   Body: CoffeeFormState (siehe lib/coffee/form-helpers.ts)
@@ -45,7 +51,7 @@ const BodySchema = z.object({
   sweetness: z.number().int().min(1).max(5),
   bitterness: z.number().int().min(1).max(5),
   complexity: z.number().int().min(1).max(5),
-  aroma_families: z.array(z.string().min(1).max(50)).max(20),
+  aroma_families: z.array(z.enum(AROMA_SLUGS)).max(20),
   price_chf: z.number().positive(),
   wholesale_price_chf: z.number().min(0).nullable().optional(),
   weight_g: z.number().int().positive(),

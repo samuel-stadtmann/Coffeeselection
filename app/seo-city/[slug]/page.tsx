@@ -265,7 +265,7 @@ export default async function CityPage({ params }: { params: Promise<{ slug: str
           <Link href="/" className="flex items-center">
             <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
           </Link>
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
         </div>
       </footer>
     </div>

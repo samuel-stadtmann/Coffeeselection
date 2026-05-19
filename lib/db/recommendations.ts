@@ -498,7 +498,10 @@ export async function getNeighborTasteTypes(
 
 /**
  * Erzeugt eine kurze Begründung warum ein Coffee zum User passt — basiert
- * auf der grössten Profil-Differenz zwischen User-Typ und Coffee.
+ * auf der Profil-Differenz zwischen User-Typ und Coffee. Liefert eine
+ * Headline (groesste Differenz) und 1-2 Detail-Saetze: ersten zur
+ * Hauptdifferenz, optional zweiten wenn eine zweite Achse ebenfalls
+ * relevant abweicht. Closing-Tonalitaet ist "darf bedenkenlos probieren".
  */
 export function reasoningForMatch(
   target: { acidity: number | null; body: number | null; sweetness: number | null; bitterness: number | null; complexity: number | null },
@@ -511,15 +514,41 @@ export function reasoningForMatch(
     { label: "Bitterkeit", a: coffee.bitterness ?? 3, b: target.bitterness ?? 3 },
     { label: "Komplexität", a: coffee.complexity ?? 3, b: target.complexity ?? 3 },
   ];
-  // Grösster Unterschied zwischen Coffee und Typ
-  const sorted = [...axes].sort((x, y) => Math.abs(y.a - y.b) - Math.abs(x.a - x.b));
+  const sorted = [...axes].sort(
+    (x, y) => Math.abs(y.a - y.b) - Math.abs(x.a - x.b)
+  );
   const top = sorted[0];
+  const second = sorted[1];
+
   if (Math.abs(top.a - top.b) === 0) {
-    return { headline: "Volltreffer", detail: "Profil deckt sich exakt mit deinem Geschmackstyp." };
+    return {
+      headline: "Volltreffer",
+      detail:
+        "Dieses Profil deckt sich exakt mit deinem Geschmackstyp — du darfst ihn bedenkenlos probieren.",
+    };
   }
+
   const direction = top.a > top.b ? "Mehr" : "Weniger";
+  const label = top.label.toLowerCase();
+
+  // Erster Satz: Hauptdifferenz positiv formulieren.
+  let detail =
+    top.a > top.b
+      ? `Etwas mehr ${label} als dein Match — wenn du gelegentlich kraeftigere Akzente magst, wird er dich abholen.`
+      : `Etwas weniger ${label} als dein Match — wenn du auch mal ein ruhigeres Profil schaetzt, perfekt fuer dich.`;
+
+  // Zweiter Satz: nur wenn eine zweite Achse signifikant abweicht (>=1
+  // SCA-Punkt) und dem Closing nicht widerspricht.
+  if (second && Math.abs(second.a - second.b) >= 1) {
+    const secondLabel = second.label.toLowerCase();
+    const secondMore = second.a > second.b;
+    detail += ` Dazu kommt ${secondMore ? "etwas mehr" : "etwas weniger"} ${secondLabel} — sonst sehr nah an deinem Profil, du darfst ihn bedenkenlos probieren.`;
+  } else {
+    detail += " Sonst sehr nah an deinem Profil — du darfst ihn bedenkenlos probieren.";
+  }
+
   return {
     headline: `${direction} ${top.label}`,
-    detail: `Dieser Kaffee hat ${top.label.toLowerCase()} ${top.a} / 5 — dein Typ tendiert zu ${top.b} / 5.`,
+    detail,
   };
 }

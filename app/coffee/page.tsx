@@ -66,7 +66,7 @@ export default async function CoffeesOverviewPage() {
               src={LOGO}
             />
           </Link>
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
         </div>
       </footer>
     </div>
