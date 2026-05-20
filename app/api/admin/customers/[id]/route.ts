@@ -72,8 +72,17 @@ export async function PATCH(
   return NextResponse.json({ ok: true });
 }
 
-// Soft-Delete + DSGVO-Anonymisierung (gleiche Logik wie das
-// User-Self-Delete in /api/account/delete).
+// Soft-Delete + DSGVO-Anonymisierung. IDENTISCH zum User-Self-Delete in
+// /api/account/delete — sonst entsteht ein inkonsistenter Zustand:
+// anonymisierte customers-Zeile, aber auth.users + auth_user_id-Link
+// bleiben → User kann sich mit altem Login anmelden (kaputtes Profil)
+// und seine Email ist fuer Neu-Registrierung blockiert.
+//
+// Reihenfolge KRITISCH wegen ON DELETE CASCADE auf customers.auth_user_id:
+//   1) auth_user_id = null setzen (sonst nimmt der Auth-User-Delete die
+//      customers-Zeile + Bestellungen per Cascade mit)
+//   2) Adressen loeschen
+//   3) auth.users-Eintrag loeschen → Email frei + alter Login tot
 export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
@@ -86,14 +95,34 @@ export async function DELETE(
   const { id } = await ctx.params;
   const svc = createServiceClient();
 
-  // Anonymisieren — Email/Name werden mit Platzhalter ueberschrieben,
-  // deleted_at gesetzt. Bestellungen bleiben fuer Buchhaltung erhalten,
-  // sind aber nur ueber id verknuepft (kein Klartext-Name mehr).
+  // Customer + auth_user_id + Felder fuer Resend-Opt-Out laden.
+  const { data: customer } = await svc
+    .from("customers")
+    .select("id, auth_user_id, email, first_name, last_name")
+    .eq("id", id)
+    .maybeSingle();
+  if (!customer) {
+    return NextResponse.json({ error: "customer_not_found" }, { status: 404 });
+  }
+
+  // 1) Resend-Opt-Out (best effort).
+  try {
+    const { syncResendNewsletterOptIn } = await import("@/lib/email/audience");
+    await syncResendNewsletterOptIn(customer.email, false, {
+      firstName: customer.first_name ?? null,
+      lastName: customer.last_name ?? null,
+    });
+  } catch (e) {
+    console.error("[api/admin/customers DELETE] Resend opt-out failed", e);
+  }
+
+  // 2) Anonymisieren + auth_user_id loesen (Cascade-Schutz).
   const now = new Date().toISOString();
-  const anonEmail = `deleted-${id.slice(0, 8)}@coffeeselection.local`;
+  const anonEmail = `deleted-${id}@coffeeselection.invalid`;
   const { error } = await svc
     .from("customers")
     .update({
+      auth_user_id: null,
       deleted_at: now,
       email: anonEmail,
       first_name: null,
@@ -107,5 +136,25 @@ export async function DELETE(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
+
+  // 3) Adressen loeschen (Snapshot bleibt auf der Order erhalten).
+  await svc.from("customer_addresses").delete().eq("customer_id", id);
+
+  // 4) Auth-User loeschen → Email frei fuer Neu-Registrierung + alter
+  //    Login funktioniert nicht mehr. Soft-failen wenn kein auth_user_id
+  //    (z.B. Gast-Customer ohne Login).
+  if (customer.auth_user_id) {
+    const { error: delAuthErr } = await svc.auth.admin.deleteUser(
+      customer.auth_user_id
+    );
+    if (delAuthErr) {
+      console.error(
+        "[api/admin/customers DELETE] auth.admin.deleteUser failed",
+        delAuthErr
+      );
+      // Nicht fatal — customers-Zeile ist schon anonymisiert + entkoppelt.
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }
