@@ -82,12 +82,20 @@ export default async function AdminRoastersPage() {
             {totalOrders} Bestellungen insgesamt.
           </p>
         </div>
-        <Link
-          href="/admin/roasters/new"
-          className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
-        >
-          + Neue Rösterei
-        </Link>
+        <div className="flex gap-2 flex-wrap">
+          <Link
+            href="/admin/roasters/payouts"
+            className="border border-primary text-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+          >
+            Auszahlungs-Report
+          </Link>
+          <Link
+            href="/admin/roasters/new"
+            className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
+          >
+            + Neue Rösterei
+          </Link>
+        </div>
       </div>
 
       {/* KPI-Header */}

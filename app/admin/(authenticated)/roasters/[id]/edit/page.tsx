@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
 import RoasterForm from "@/components/roaster-form/RoasterForm";
 import { emptyRoasterForm, type RoasterFormState } from "@/lib/roaster/form";
+import RoasterPayoutForm from "./RoasterPayoutForm";
 
 export const metadata: Metadata = {
   title: "Admin · Rösterei bearbeiten — Coffee Selection",
@@ -24,6 +25,16 @@ export default async function AdminEditRoasterPage({
     .is("deleted_at", null)
     .single();
   if (error || !r) notFound();
+
+  // Payout-Stammdaten (eigene Tabelle, 1:1 zu roaster). Kann null sein
+  // wenn fuer diesen Roester noch nie erfasst.
+  const { data: payout } = await sb
+    .from("roasters_payout")
+    .select(
+      "bank_account_holder, iban, bic, bank_name, payout_method, payout_currency, payout_threshold_chf, commission_pct, contract_start_on, contract_end_on, contract_notes"
+    )
+    .eq("roaster_id", id)
+    .maybeSingle();
 
   const initial: RoasterFormState = {
     ...emptyRoasterForm(),
@@ -73,6 +84,45 @@ export default async function AdminEditRoasterPage({
         submitMethod="PATCH"
         afterSaveHref="/admin/roasters"
       />
+
+      {/* Payout-Stammdaten — separates Panel, schreibt auf roasters_payout.
+          Vertraulich (kein Read-Zugriff fuer anon/authenticated via RLS). */}
+      <div className="mt-12 max-w-3xl">
+        <h2 className="text-2xl text-primary uppercase tracking-tight font-headline font-bold mb-2">
+          Auszahlungs-Daten
+        </h2>
+        <p className="text-on-surface-variant text-sm mb-6">
+          Bankverbindung + Vertragsdaten für die monatliche Wholesale-Auszahlung
+          (Reseller-Modell). Vertraulich — nur im Admin sichtbar. Erscheint im{" "}
+          <Link href="/admin/roasters/payouts" className="text-tertiary underline">
+            Auszahlungs-Report
+          </Link>
+          .
+        </p>
+        <RoasterPayoutForm
+          roasterId={id}
+          initial={{
+            bank_account_holder: payout?.bank_account_holder ?? "",
+            iban: payout?.iban ?? "",
+            bic: payout?.bic ?? "",
+            bank_name: payout?.bank_name ?? "",
+            payout_method:
+              (payout?.payout_method as string) ?? "bank_transfer",
+            payout_currency: payout?.payout_currency ?? "CHF",
+            payout_threshold_chf:
+              payout?.payout_threshold_chf != null
+                ? Number(payout.payout_threshold_chf)
+                : 0,
+            commission_pct:
+              payout?.commission_pct != null
+                ? Number(payout.commission_pct)
+                : null,
+            contract_start_on: payout?.contract_start_on ?? "",
+            contract_end_on: payout?.contract_end_on ?? "",
+            contract_notes: payout?.contract_notes ?? "",
+          }}
+        />
+      </div>
     </>
   );
 }
