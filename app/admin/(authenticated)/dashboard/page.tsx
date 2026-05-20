@@ -142,7 +142,7 @@ export default async function AdminDashboardPage({
     svc.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
     svc.from("subscriptions").select("created_at").gte("created_at", since),
     svc.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "cancelled"),
-    svc.from("subscriptions").select("canceled_at").not("canceled_at", "is", null).gte("canceled_at", since),
+    svc.from("subscriptions").select("cancelled_at").not("cancelled_at", "is", null).gte("cancelled_at", since),
     svc
       .from("orders")
       .select(
@@ -189,8 +189,8 @@ export default async function AdminDashboardPage({
     (r) => r.created_at, () => 1, buckets
   );
   const churnTrend = aggregateByBucket(
-    (churnedRows ?? []) as { canceled_at: string }[],
-    (r) => r.canceled_at, () => 1, buckets
+    (churnedRows ?? []) as { cancelled_at: string }[],
+    (r) => r.cancelled_at, () => 1, buckets
   );
   const newsletterTrend = aggregateByBucket(
     (newsletterRows ?? []) as { created_at: string }[],

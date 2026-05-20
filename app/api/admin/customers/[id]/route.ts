@@ -78,11 +78,11 @@ export async function PATCH(
 // bleiben → User kann sich mit altem Login anmelden (kaputtes Profil)
 // und seine Email ist fuer Neu-Registrierung blockiert.
 //
-// Reihenfolge KRITISCH wegen ON DELETE CASCADE auf customers.auth_user_id:
-//   1) auth_user_id = null setzen (sonst nimmt der Auth-User-Delete die
-//      customers-Zeile + Bestellungen per Cascade mit)
-//   2) Adressen loeschen
-//   3) auth.users-Eintrag loeschen → Email frei + alter Login tot
+// Reihenfolge: customers.auth_user_id ist ON DELETE SET NULL (Migration
+// 20260515180000), d.h. ein Auth-User-Delete wuerde den FK ohnehin nullen
+// statt die Zeile zu loeschen. Wir nullen ihn trotzdem explizit (deutlicher
+// + unabhaengig von FK-Verhalten), anonymisieren, loeschen Adressen, dann
+// den auth.users-Eintrag → Email frei + alter Login tot.
 export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
