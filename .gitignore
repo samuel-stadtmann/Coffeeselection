@@ -35,6 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Generierte Dokumente (Quelle ist TESTING.md, jederzeit regenerierbar)
+*.docx
+
 # Playwright
 /playwright/.auth/
 /playwright-report/
