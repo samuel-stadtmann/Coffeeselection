@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
   const { data: coffees, error: coffeesErr } = await svc
     .from("coffees")
     .select(
-      "id, name, price_chf, wholesale_price_chf, weight_g, status, stock_status, roaster:roasters(name), roast_level"
+      "id, name, price_chf, wholesale_price_chf, weight_g, status, stock_status, roaster_id, roaster:roasters(name), roast_level"
     )
     .in("id", coffeeIds);
 
@@ -350,6 +350,7 @@ export async function POST(req: NextRequest) {
       coffee_id: item.coffee_id,
       coffee_name_snapshot: c.name,
       roaster_name_snapshot: c.roaster_name,
+      roaster_id: (c as { roaster_id?: string | null }).roaster_id ?? null,
       roast_level_snapshot: c.roast_level ?? null,
       quantity: item.quantity,
       weight_g: item.weight_g,

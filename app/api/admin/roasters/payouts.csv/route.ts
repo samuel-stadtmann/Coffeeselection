@@ -44,11 +44,14 @@ export async function GET(req: NextRequest) {
   const win = monthWindow(new URL(req.url).searchParams.get("month"));
   const svc = createServiceClient();
 
+  // Snapshot-basiert: order_items.roaster_id + roaster_name_snapshot halten
+  // den Roester ZUM VERKAUFSZEITPUNKT fest (Migration 20260521020000), damit
+  // historische Auszahlungen bei spaeterem Roester-Wechsel korrekt bleiben.
   const { data: itemsRaw, error } = await svc
     .from("order_items")
     .select(
       `quantity, unit_price_chf, wholesale_price_chf,
-       coffee:coffees(id, roaster:roasters(id, name)),
+       roaster_id, roaster_name_snapshot,
        order:orders!inner(status, paid_at)`
     )
     .gte("order.paid_at", win.startIso)
@@ -62,10 +65,8 @@ export async function GET(req: NextRequest) {
     quantity: number;
     unit_price_chf: number;
     wholesale_price_chf: number | null;
-    coffee:
-      | { id: string; roaster: { id: string; name: string } | { id: string; name: string }[] | null }
-      | { id: string; roaster: { id: string; name: string } | { id: string; name: string }[] | null }[]
-      | null;
+    roaster_id: string | null;
+    roaster_name_snapshot: string | null;
   };
   const items = (itemsRaw ?? []) as unknown as ItemRow[];
 
@@ -74,15 +75,9 @@ export async function GET(req: NextRequest) {
     { name: string; items: number; wholesale: number; retail: number }
   >();
   for (const it of items) {
-    const coffee = Array.isArray(it.coffee) ? it.coffee[0] : it.coffee;
-    const roaster = coffee
-      ? Array.isArray(coffee.roaster)
-        ? coffee.roaster[0]
-        : coffee.roaster
-      : null;
-    if (!roaster) continue;
-    const cur = agg.get(roaster.id) ?? {
-      name: roaster.name,
+    if (!it.roaster_id) continue;
+    const cur = agg.get(it.roaster_id) ?? {
+      name: it.roaster_name_snapshot ?? "—",
       items: 0,
       wholesale: 0,
       retail: 0,
@@ -92,7 +87,7 @@ export async function GET(req: NextRequest) {
     cur.wholesale +=
       (it.wholesale_price_chf == null ? 0 : Number(it.wholesale_price_chf)) * qty;
     cur.retail += Number(it.unit_price_chf) * qty;
-    agg.set(roaster.id, cur);
+    agg.set(it.roaster_id, cur);
   }
 
   const roasterIds = Array.from(agg.keys());

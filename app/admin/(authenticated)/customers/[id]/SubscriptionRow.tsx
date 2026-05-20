@@ -131,13 +131,18 @@ export default function SubscriptionRow({ sub }: { sub: Sub }) {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {!isCancelled && !editing && (
+          {isPaused && !editing && (
             <button
               onClick={() => setEditing(true)}
               className="bg-primary text-on-primary px-3 py-1.5 font-headline font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-all"
             >
               Bearbeiten
             </button>
+          )}
+          {!isCancelled && !isPaused && !editing && (
+            <span className="text-[10px] text-on-surface-variant leading-snug max-w-[14rem]">
+              Zum Bearbeiten zuerst pausieren.
+            </span>
           )}
           {!isCancelled && !editing && (
             <>
