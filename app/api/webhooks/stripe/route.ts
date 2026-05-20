@@ -423,12 +423,13 @@ async function handlePaymentSucceeded(
         .map((i) => i.coffee_id as string)
         .filter(Boolean);
       if (initialCoffeeIds.length > 0) {
-        await svc.from("subscription_deliveries").insert(
+        await svc.from("subscription_deliveries").upsert(
           initialCoffeeIds.map((coffee_id) => ({
             subscription_id: subscriptionUuid,
             order_id: order.id,
             coffee_id,
-          }))
+          })),
+          { onConflict: "subscription_id,order_id,coffee_id", ignoreDuplicates: true }
         );
       }
     } catch (e) {
@@ -1009,12 +1010,13 @@ async function handleInvoicePaid(
   // Insert (kein Upsert noetig, mehrfache Calls wuerden mit Stripe-Retry
   // ohnehin am payments-stripe_event_id frueher abgefangen).
   try {
-    await svc.from("subscription_deliveries").insert(
+    await svc.from("subscription_deliveries").upsert(
       orderItemsToInsert.map((oi) => ({
         subscription_id: ourSub.id,
         order_id: order.id,
         coffee_id: oi.coffee_id,
-      }))
+      })),
+      { onConflict: "subscription_id,order_id,coffee_id", ignoreDuplicates: true }
     );
   } catch (e) {
     console.error("[webhooks/stripe] subscription_deliveries log failed", e);

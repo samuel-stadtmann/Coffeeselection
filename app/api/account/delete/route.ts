@@ -11,9 +11,10 @@ import { syncResendNewsletterOptIn } from "@/lib/email/audience";
  *   - Customer-Adressen werden geloescht (Snapshot bleibt auf der Order)
  *   - Order-Historie BLEIBT — wichtig fuer CH-Buchhaltung (10 Jahre)
  *   - Auth-User wird via auth.admin.deleteUser entfernt → User kann sich
- *     nicht mehr einloggen. Wegen ON DELETE CASCADE auf customers.auth_user_id
- *     setzen wir den FK vorher auf NULL, damit der Customer-Datensatz
- *     stehen bleibt.
+ *     nicht mehr einloggen. customers.auth_user_id ist ON DELETE SET NULL
+ *     (Migration 20260515180000); wir nullen den FK trotzdem explizit
+ *     vorher, unabhaengig vom FK-Verhalten — der Customer-Datensatz bleibt
+ *     so oder so stehen.
  *   - Resend wird benachrichtigt: Newsletter-Opt-Out
  */
 export async function POST() {
