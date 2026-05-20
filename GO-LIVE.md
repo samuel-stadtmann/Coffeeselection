@@ -184,52 +184,43 @@ Aktuell nutzt der Match-Score eine reine Manhattan-Distanz auf 5 Sensorik-Achsen
 - [x] MVP-Variante live: `min(100, num_ratings_given * 10 + profile_confidence * 50)` rendert als Progress-Bar mit Label ("Sehr ausgereift" / "Solide" / "Aufbau-Phase" / "Frisch") auf `/account/taste-profile`. Quiz-Confidence + Ratings-Count werden transparent darunter angezeigt.
 - [ ] **Spaeter optional**: Snapshot-Tabelle mit monatlichen Eintraegen für die 6-12-Monats-Spark-Bars-Visualisierung. Aktuell nur Status quo, keine Zeitreihe.
 
-### P6 Schritt 2 — Stripe Connect für Marketplace-Splits (Backlog, vor Bauen klären)
+### Geschäftsmodell: RESELLER (entschieden 2026-05) — ✅ Tooling gebaut
 
-Heute fliesst jede Customer-Zahlung 1:1 auf das Coffee-Selection-Stripe-Konto.
-Margen vs. Wholesale werden NUR via `order_items.wholesale_price_chf` für
-internes Reporting berechnet (P6 Schritt 1) — Auszahlungen an Röster passieren
-manuell ausserhalb von Stripe.
+**Entscheidung:** Coffee Selection fährt das **Reseller-Modell** (Eigenhändler),
+nicht Marktplatz. Heisst:
+- Coffee Selection kauft beim Röster ein (Wholesale) und verkauft im eigenen
+  Namen an den Kunden (Retail).
+- Rechnung an Kunde kommt von Coffee Selection, Coffee Selection schuldet die
+  volle MwSt, zieht die Vorsteuer aus dem Wholesale-Einkauf ab.
+- Der volle Zahlbetrag landet auf dem Coffee-Selection-Stripe-Konto.
+- Röster werden **monatlich gegen Lieferanten-Rechnung** per Banküberweisung
+  bezahlt — ausserhalb von Stripe.
 
-Schritt 2 wäre, das auf **Stripe Connect Destination Charges** umzustellen,
-damit pro Order der Wholesale-Anteil automatisch an den jeweiligen Röster
-ausgezahlt wird und Coffee Selection nur die Marge auf dem eigenen Konto behält.
+**→ Stripe Connect wird NICHT gebraucht.** Die früher hier dokumentierte
+Marketplace-/Destination-Charge-Variante ist damit vom Tisch.
 
-**Architektur (Vorschlag — zu verifizieren bevor wir bauen):**
-- Jeder Röster onboarded sich via Stripe Connect Express → `roasters.stripe_account_id`
-- Bei `checkout.session.create` für Single-Roaster-Orders: Destination-Charge
-  mit `application_fee_amount = total_chf - sum(wholesale_price_chf)` und
-  `transfer_data.destination = roaster.stripe_account_id`
-- Bei Multi-Roaster-Orders (Cart mit Coffees verschiedener Röster): Stripe
-  unterstützt das nicht direkt → nach Payment-Success per `stripe.transfers.create`
-  pro Röster den Wholesale-Anteil auszahlen
-- Bei Renewals (Subscriptions): gleiche Logik im `invoice.payment_succeeded`-Webhook
+**Gebautes Tooling (Reseller):**
+- [x] `coffees.wholesale_price_chf` Snapshot pro `order_items` beim Bestellen
+- [x] Monatlicher Röster-Auszahlungs-Report `/admin/roasters/payouts` (Wholesale
+      pro Röster + Marge + Bankdaten) + CSV-Export für die Buchhaltung
+- [x] Payout-Stammdaten pro Röster (`roasters_payout`: IBAN, BIC, Bank,
+      Schwelle, Vertrag) editierbar auf `/admin/roasters/[id]/edit`
+- [x] Marge-Report im Admin-Dashboard
 
-**Offene Fragen (vor Implementierung von User klären lassen):**
-- [ ] **Stripe-Gebühren auf welche Seite?** (Coffee Selection trägt die 2.9% +
-      30 Rp je Transaktion komplett, oder Röster anteilig?)
-- [ ] **MwSt-Verteilung**: Wer ist Steuerschuldner gegenüber dem Endkunden —
-      Coffee Selection (Reseller-Modell) oder der Röster (Marketplace-Modell)?
-      → Beeinflusst Stripe-Tax-Konfiguration und Konfigurations-Required-Felder
-      beim Connect-Onboarding (TIN/UID-Pflicht).
-- [ ] **Mindest-Auszahlungsschwelle pro Röster** (sonst zu viele kleine
-      Transfers; üblich: weekly batch ab CHF 50)
-- [ ] **Refund-Handling**: Bei Customer-Refund müssen wir den Transfer ggf.
-      `reverse_transfer=true` setzen — d.h. Geld vom Röster zurückholen.
-      Operativ ok oder Streitpotenzial?
-- [ ] **Vertragliche Grundlage**: Röster muss Connect-AGB akzeptieren — neue
-      Klausel im bestehenden Röster-Vertrag oder separates Onboarding-Dokument?
-- [ ] **Auszahlungs-Currency**: Stripe Connect rechnet pro Account in einer
-      Currency. CHF für alle Schweizer Röster ok; falls EU-Röster dazukommen,
-      separate Logik.
-- [ ] **Reporting für Röster**: Eigene `/roaster/payouts`-Page mit Verlauf
-      (ähnlich `/roaster/orders`) oder reichen Stripe-Dashboard-Mails?
-- [ ] **Live-Switch**: bestehende Subscriptions müssten umgehängt werden →
-      Stripe-Subscription mit `application_fee_percent` nachträglich editieren,
-      oder neue Subscription erzeugen und alte canceln?
+**Operativer Monats-Ablauf:**
+1. Monatsende → `/admin/roasters/payouts` öffnen, Monat wählen, CSV exportieren
+2. Röster-Lieferanten-Rechnung über Wholesale-Total erfassen
+3. Überweisung an hinterlegte IBAN
+4. Vorsteuer aus der MwSt-Rechnung verbuchen
 
-**Aufwand-Einschätzung** (grob, nach Klärung): 2-3 Wochen Bau + Test, plus
-Onboarding-Kommunikation an die bestehenden 4 Röster.
+**Pflicht-Stammdaten pro Röster:** legal_name, CH-UID (`vat_number`), IBAN,
+Konto-Inhaber, Bank-Name (BIC nur bei Auslandsbank). Pro Coffee:
+`wholesale_price_chf` muss gepflegt sein, sonst zählt der Coffee mit 0.
+
+> Falls ihr je auf Marktplatz wechselt (Röster verkauft direkt, ihr nehmt
+> Provision), braucht's Stripe Connect Destination Charges. Die Architektur-
+> Notiz dazu ist aus der Git-Historie rekonstruierbar (PR #80) — nicht
+> aktueller Plan.
 
 ### Empfehlungs-Begründungen dynamisch aus DB — ✅ erledigt
 - [x] `/recommendation/alternatives` ruft `reasoningForMatch(userProfile1to5, coffee)` aus `lib/db/recommendations.ts` auf und rendert headline + detail dynamisch aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee.
