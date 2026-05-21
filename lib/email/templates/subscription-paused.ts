@@ -27,7 +27,7 @@ export function subscriptionPausedEmail(
   const layoutProps: LayoutProps = {
     preview: "Pause aktiv. Keine weiteren Abbuchungen bis du fortsetzt.",
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#2D1810;">
+      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Pause an ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 16px 0;">

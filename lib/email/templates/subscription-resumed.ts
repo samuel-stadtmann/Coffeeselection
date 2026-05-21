@@ -35,7 +35,7 @@ export function subscriptionResumedEmail(
   const layoutProps: LayoutProps = {
     preview: "Dein Abo ist wieder aktiv. Naechste Lieferung kommt automatisch.",
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#2D1810;">
+      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Willkommen zurueck ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 16px 0;">
@@ -43,7 +43,7 @@ export function subscriptionResumedEmail(
         wieder aktiv. Die naechsten Lieferungen kommen automatisch im
         gewohnten Intervall.
       </p>
-      <p style="margin:0 0 24px 0;font-size:13px;color:#8A7560;">
+      <p style="margin:0 0 24px 0;font-size:13px;color:#6D5244;">
         ${nextChargeText}
       </p>
     `,

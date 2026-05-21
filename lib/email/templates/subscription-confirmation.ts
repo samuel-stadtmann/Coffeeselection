@@ -61,7 +61,7 @@ export function subscriptionConfirmationEmail(
   const layoutProps: LayoutProps = {
     preview: `Dein ${props.coffeeName}-Abo ist aktiv. Erste Lieferung roestfrisch in den naechsten Tagen.`,
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#2D1810;">
+      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Willkommen ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 24px 0;">
@@ -72,16 +72,16 @@ export function subscriptionConfirmationEmail(
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;background:#F9F5F0;">
         <tr>
           <td style="padding:20px;">
-            <div style="font-family:'Georgia',serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;color:#C8A064;margin-bottom:8px;">
+            <div style="font-family:'Georgia',serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;color:#D4A017;margin-bottom:8px;">
               Dein Abo
             </div>
-            <div style="font-family:'Georgia',serif;font-weight:700;font-size:18px;color:#2D1810;">
+            <div style="font-family:'Georgia',serif;font-weight:700;font-size:18px;color:#4D2C19;">
               ${escapeHtml(props.coffeeName)}
             </div>
-            <div style="font-size:13px;color:#8A7560;margin-top:4px;">
+            <div style="font-size:13px;color:#6D5244;margin-top:4px;">
               ${escapeHtml(props.roasterName)} · ${props.weightG}g · ${props.quantity}× pro Lieferung
             </div>
-            <div style="font-size:13px;color:#8A7560;margin-top:4px;">
+            <div style="font-size:13px;color:#6D5244;margin-top:4px;">
               ${escapeHtml(intervalLabel)}
             </div>
           </td>
@@ -98,26 +98,26 @@ export function subscriptionConfirmationEmail(
           <td align="right">${props.shippingPerDeliveryChf === 0 ? "Gratis" : formatChf(props.shippingPerDeliveryChf)}</td>
         </tr>
         <tr style="font-weight:700;font-size:16px;">
-          <td style="padding-top:12px;border-top:1px solid #efeae3;">Total pro Lieferung</td>
-          <td align="right" style="padding-top:12px;border-top:1px solid #efeae3;">${formatChf(props.totalPerDeliveryChf)}</td>
+          <td style="padding-top:12px;border-top:1px solid #E9DFD4;">Total pro Lieferung</td>
+          <td align="right" style="padding-top:12px;border-top:1px solid #E9DFD4;">${formatChf(props.totalPerDeliveryChf)}</td>
         </tr>
       </table>
 
-      <p style="margin:0 0 8px 0;font-size:13px;color:#8A7560;">
+      <p style="margin:0 0 8px 0;font-size:13px;color:#6D5244;">
         ${nextChargeText}
       </p>
 
-      <h2 style="font-family:'Georgia',serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#2D1810;">
+      <h2 style="font-family:'Georgia',serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#4D2C19;">
         Lieferung an
       </h2>
-      <p style="margin:0 0 24px 0;color:#3D2A1F;font-size:14px;line-height:1.5;">
+      <p style="margin:0 0 24px 0;color:#4D2C19;font-size:14px;line-height:1.5;">
         ${escapeHtml(addr.recipientName)}<br>
         ${escapeHtml(addr.street)}${addr.streetAdditional ? "<br>" + escapeHtml(addr.streetAdditional) : ""}<br>
         ${escapeHtml(addr.postalCode)} ${escapeHtml(addr.city)}<br>
         ${escapeHtml(addr.country)}
       </p>
 
-      <p style="margin:0 0 8px 0;font-size:13px;color:#8A7560;line-height:1.6;">
+      <p style="margin:0 0 8px 0;font-size:13px;color:#6D5244;line-height:1.6;">
         Pausieren, Intervall aendern oder kuendigen — jederzeit ohne Mindestlaufzeit.
         Du verwaltest dein Abo in deinem Konto.
       </p>

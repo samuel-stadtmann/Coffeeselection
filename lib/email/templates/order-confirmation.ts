@@ -55,13 +55,13 @@ export function orderConfirmationEmail(props: OrderConfirmationProps): {
     .map(
       (it) => `
         <tr>
-          <td style="padding:12px 0;border-bottom:1px solid #efeae3;">
+          <td style="padding:12px 0;border-bottom:1px solid #E9DFD4;">
             <div style="font-weight:700;">${escapeHtml(it.coffeeName)}</div>
-            <div style="font-size:13px;color:#8A7560;margin-top:2px;">
+            <div style="font-size:13px;color:#6D5244;margin-top:2px;">
               ${escapeHtml(it.roasterName)} · ${it.weightG}g · ${it.quantity}×
             </div>
           </td>
-          <td align="right" style="padding:12px 0;border-bottom:1px solid #efeae3;white-space:nowrap;vertical-align:top;">
+          <td align="right" style="padding:12px 0;border-bottom:1px solid #E9DFD4;white-space:nowrap;vertical-align:top;">
             ${formatChf(it.lineTotalChf)}
           </td>
         </tr>`
@@ -77,7 +77,7 @@ export function orderConfirmationEmail(props: OrderConfirmationProps): {
   const layoutProps: LayoutProps = {
     preview: `Danke fuer deine Bestellung ${props.orderNumber}. Roestfrisch in 2-5 Werktagen.`,
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#2D1810;">
+      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Hallo ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 24px 0;">
@@ -92,13 +92,13 @@ export function orderConfirmationEmail(props: OrderConfirmationProps): {
         <tr><td>Zwischensumme</td><td align="right">${formatChf(props.subtotalChf)}</td></tr>
         <tr><td>Versand</td><td align="right">${props.shippingChf === 0 ? "Gratis" : formatChf(props.shippingChf)}</td></tr>
         ${taxRow}
-        <tr style="font-weight:700;font-size:16px;"><td style="padding-top:12px;border-top:1px solid #efeae3;">Total</td><td align="right" style="padding-top:12px;border-top:1px solid #efeae3;">${formatChf(props.totalChf)}</td></tr>
+        <tr style="font-weight:700;font-size:16px;"><td style="padding-top:12px;border-top:1px solid #E9DFD4;">Total</td><td align="right" style="padding-top:12px;border-top:1px solid #E9DFD4;">${formatChf(props.totalChf)}</td></tr>
       </table>
 
-      <h2 style="font-family:'Georgia',serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#2D1810;">
+      <h2 style="font-family:'Georgia',serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#4D2C19;">
         Lieferung an
       </h2>
-      <p style="margin:0;color:#3D2A1F;font-size:14px;line-height:1.5;">
+      <p style="margin:0;color:#4D2C19;font-size:14px;line-height:1.5;">
         ${escapeHtml(addr.recipientName)}<br>
         ${escapeHtml(addr.street)}${addr.streetAdditional ? "<br>" + escapeHtml(addr.streetAdditional) : ""}<br>
         ${escapeHtml(addr.postalCode)} ${escapeHtml(addr.city)}<br>

@@ -42,9 +42,9 @@ export type RatingReminderProps = {
   siteUrl: string;
 };
 
-const COLOR_TERTIARY = "#C8A064";
-const COLOR_PRIMARY = "#2D1810";
-const COLOR_MUTED = "#8A7560";
+const COLOR_TERTIARY = "#D4A017";
+const COLOR_PRIMARY = "#4D2C19";
+const COLOR_MUTED = "#6D5244";
 
 function starRow(token: string, siteUrl: string): string {
   return Array.from({ length: 5 }, (_, i) => {

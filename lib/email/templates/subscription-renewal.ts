@@ -45,7 +45,7 @@ export function subscriptionRenewalEmail(
   const layoutProps: LayoutProps = {
     preview: `Dein ${props.coffeeName} wird gerade geroestet. Kommt in 2-5 Werktagen an.`,
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#2D1810;">
+      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Hallo ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 24px 0;">
@@ -56,16 +56,16 @@ export function subscriptionRenewalEmail(
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;background:#F9F5F0;">
         <tr>
           <td style="padding:20px;">
-            <div style="font-family:'Georgia',serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;color:#C8A064;margin-bottom:8px;">
+            <div style="font-family:'Georgia',serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;color:#D4A017;margin-bottom:8px;">
               Lieferung ${escapeHtml(props.orderNumber)}
             </div>
-            <div style="font-family:'Georgia',serif;font-weight:700;font-size:18px;color:#2D1810;">
+            <div style="font-family:'Georgia',serif;font-weight:700;font-size:18px;color:#4D2C19;">
               ${escapeHtml(props.coffeeName)}
             </div>
-            <div style="font-size:13px;color:#8A7560;margin-top:4px;">
+            <div style="font-size:13px;color:#6D5244;margin-top:4px;">
               ${escapeHtml(props.roasterName)} · ${props.weightG}g · ${props.quantity}×
             </div>
-            <div style="font-size:14px;color:#2D1810;margin-top:12px;font-weight:700;">
+            <div style="font-size:14px;color:#4D2C19;margin-top:12px;font-weight:700;">
               ${formatChf(props.totalChf)} eingezogen
             </div>
           </td>
@@ -74,11 +74,11 @@ export function subscriptionRenewalEmail(
 
       ${
         nextChargeText
-          ? `<p style="margin:0 0 8px 0;font-size:13px;color:#8A7560;">${nextChargeText}</p>`
+          ? `<p style="margin:0 0 8px 0;font-size:13px;color:#6D5244;">${nextChargeText}</p>`
           : ""
       }
 
-      <p style="margin:24px 0 0 0;font-size:13px;color:#8A7560;line-height:1.6;">
+      <p style="margin:24px 0 0 0;font-size:13px;color:#6D5244;line-height:1.6;">
         Pause einlegen oder Intervall aendern? Alles ohne Mindestlaufzeit in
         deinem Konto.
       </p>
