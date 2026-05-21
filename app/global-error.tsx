@@ -1,22 +1,11 @@
 "use client";
 
 // React Root-Error-Boundary. Faengt Errors die so frueh im Render-Tree
-// passieren, dass nicht mal app/layout.tsx mehr greift. Pflicht-Datei
-// fuer Sentry-Next.js-Setup im App-Router.
+// passieren, dass nicht mal app/layout.tsx mehr greift.
 
-import * as Sentry from "@sentry/nextjs";
 import NextError from "next/error";
-import { useEffect } from "react";
 
-export default function GlobalError({
-  error,
-}: {
-  error: Error & { digest?: string };
-}) {
-  useEffect(() => {
-    Sentry.captureException(error);
-  }, [error]);
-
+export default function GlobalError() {
   return (
     <html lang="de">
       <body>

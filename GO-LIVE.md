@@ -107,7 +107,7 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
 ## Analytics & Monitoring
 
 - [ ] Google Analytics / Plausible Tracking-ID einbauen.
-- [x] Sentry: `@sentry/nextjs` installiert + `sentry.client/server/edge.config.ts` + `withSentryConfig`-Wrapper in `next.config.ts`. Aktiviert sich wenn `NEXT_PUBLIC_SENTRY_DSN` als Vercel-Env-Var gesetzt ist; sonst no-op. Optional `SENTRY_ORG` + `SENTRY_PROJECT` + `SENTRY_AUTH_TOKEN` für Source-Map-Upload.
+- [ ] Error-Monitoring: aktuell keines aktiv. Sentry wurde wegen Performance-Overhead (Client-JS, Session Replay, Tracing) komplett entfernt. Bei Bedarf später ein leichtgewichtigeres Monitoring evaluieren.
 - [x] Vercel Analytics: `@vercel/analytics` installiert + `<Analytics />` in `app/layout.tsx`. Aktiviert sich automatisch auf Vercel Production+Preview, im Vercel-Dashboard Analytics-Tab einschalten.
 
 ## SEO

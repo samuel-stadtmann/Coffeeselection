@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { syncResendNewsletterOptIn } from "@/lib/email/audience";
+import { createServiceClient } from "@/lib/supabase/service";
 
 /**
  * POST /api/newsletter/subscribe
@@ -62,6 +63,20 @@ export async function POST(req: NextRequest) {
       { error: "sync_failed", details: result.reason },
       { status: 500 }
     );
+  }
+
+  // Falls die E-Mail bereits zu einem Kunden gehoert: DB-Flag mitziehen, sonst
+  // driften customers.marketing_opt_in (Settings-Toggle, DSGVO-Nachweis) und
+  // die Resend-Audience auseinander.
+  try {
+    const svc = createServiceClient();
+    await svc
+      .from("customers")
+      .update({ marketing_opt_in: true })
+      .eq("email", email)
+      .eq("marketing_opt_in", false);
+  } catch (err) {
+    console.warn("[api/newsletter/subscribe] customers opt-in sync failed", err);
   }
 
   return NextResponse.json({ success: true });

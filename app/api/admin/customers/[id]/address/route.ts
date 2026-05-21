@@ -72,7 +72,8 @@ export async function PUT(
     const { error } = await svc
       .from("customer_addresses")
       .update(addrPayload)
-      .eq("id", id);
+      .eq("id", id)
+      .eq("customer_id", customerId);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

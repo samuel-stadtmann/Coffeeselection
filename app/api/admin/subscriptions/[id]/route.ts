@@ -114,32 +114,29 @@ export async function PATCH(
     // Ersten subscription_items-Eintrag updaten (Phase 1B: max 1 Coffee).
     const { data: items } = await svc
       .from("subscription_items")
-      .select("id")
+      .select("id, quantity, weight_g")
       .eq("subscription_id", subUuid)
       .order("sort_order", { ascending: true })
       .limit(1);
-    const itemId = items?.[0]?.id;
-    if (itemId) {
+    const item = items?.[0];
+    if (item) {
       const { error } = await svc
         .from("subscription_items")
         .update(itemPatch)
-        .eq("id", itemId);
+        .eq("id", item.id);
       if (error) {
         return NextResponse.json(
           { error: "item_update_failed", details: error.message },
           { status: 400 }
         );
       }
-    }
-    // Falls quantity/weight geaendert: auch quantity_g_per_delivery
-    // auf subscriptions nachfuehren (Reporting-Snapshot).
-    if (parsed.data.quantity != null && parsed.data.weight_g != null) {
+      // quantity_g_per_delivery immer nachfuehren — auch wenn nur EINE der
+      // beiden Dimensionen geaendert wurde, sonst driftet der Snapshot.
+      const newQuantity = parsed.data.quantity ?? Number(item.quantity);
+      const newWeight = parsed.data.weight_g ?? Number(item.weight_g);
       await svc
         .from("subscriptions")
-        .update({
-          quantity_g_per_delivery:
-            parsed.data.quantity * parsed.data.weight_g,
-        })
+        .update({ quantity_g_per_delivery: newQuantity * newWeight })
         .eq("id", subUuid);
     }
   }

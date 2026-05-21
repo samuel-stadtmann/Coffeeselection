@@ -141,8 +141,20 @@ export async function POST(req: NextRequest) {
 
       case "checkout.session.expired": {
         const session = event.data.object as { id: string };
+        // Reservierte Guthaben-Holds dieser (nie bezahlten) Order freigeben.
+        const { data: expiredOrder } = await svc
+          .from("orders")
+          .select("id")
+          .eq("stripe_checkout_session_id", session.id)
+          .maybeSingle();
+        if (expiredOrder) {
+          const { releaseOrderCreditReservation } = await import(
+            "@/lib/db/rewards"
+          );
+          await releaseOrderCreditReservation(svc, expiredOrder.id);
+        }
         console.log(
-          `[webhooks/stripe] session ${session.id} expired — order stays pending`
+          `[webhooks/stripe] session ${session.id} expired — order stays pending, Guthaben-Reservierung freigegeben`
         );
         return NextResponse.json({ received: true, action: "session_expired" });
       }
@@ -286,6 +298,17 @@ async function handlePaymentSucceeded(
     ? Number((session.total_details.amount_tax / 100).toFixed(2))
     : 0;
 
+  // Sanity-Check: der von Stripe eingezogene Betrag sollte exakt unserem
+  // beim Order-Create berechneten total_chf entsprechen (subtotal + shipping
+  // - discount). Wir ueberschreiben total_chf NICHT mit dem Stripe-Wert,
+  // sonst stimmt die Summe subtotal/shipping/discount/total in Mail + UI
+  // nicht mehr (Rappen-Rundung). Bei echter Abweichung loggen wir laut.
+  if (Math.abs(amountTotalChf - Number(order.total_chf)) > 0.01) {
+    console.error(
+      `[webhooks/stripe] ⚠ order ${order.id}: Stripe-Betrag CHF ${amountTotalChf} ≠ order.total_chf CHF ${order.total_chf} — bitte pruefen`
+    );
+  }
+
   // Order auf 'paid' setzen — nur wenn noch 'pending' ist (verhindert
   // unbeabsichtigtes Zurueckdrehen).
   if (order.status === "pending") {
@@ -326,9 +349,6 @@ async function handlePaymentSucceeded(
         // Stripe Tax (wenn aktiv) liefert tax-betrag → schreiben.
         // Bei deaktivierter automatic_tax bleibt amountTaxChf = 0.
         tax_chf: amountTaxChf,
-        // total_chf neu setzen mit dem WIRKLICH gezahlten Betrag von Stripe
-        // (sollte mit unserem Provisional uebereinstimmen, aber sicher ist sicher).
-        total_chf: amountTotalChf,
         // Bei one-time: charge.receipt_url. Bei subscription: bleibt null
         // bis invoice.payment_succeeded mit hosted_invoice_url kommt.
         ...(receiptUrl ? { stripe_invoice_url: receiptUrl } : {}),
@@ -563,6 +583,9 @@ async function handlePaymentFailed(
         cancelled_at: new Date().toISOString(),
       })
       .eq("id", order.id);
+    // Guthaben-Reservierung freigeben — Zahlung kam nicht zustande.
+    const { releaseOrderCreditReservation } = await import("@/lib/db/rewards");
+    await releaseOrderCreditReservation(svc, order.id);
   }
 
   console.log(
@@ -749,7 +772,7 @@ async function handleInvoicePaid(
   // Unsere Subscription via stripe_subscription_id finden
   const { data: ourSub, error: subErr } = await svc
     .from("subscriptions")
-    .select("id, customer_id, shipping_address_id, billing_address_id, price_chf_per_delivery, shipping_chf, interval_weeks, status, discount_percent, discovery_mode")
+    .select("id, customer_id, shipping_address_id, billing_address_id, price_chf_per_delivery, shipping_chf, interval_weeks, status, discount_percent, discovery_mode, total_deliveries")
     .eq("stripe_subscription_id", invoice.subscription)
     .maybeSingle();
 
@@ -855,6 +878,26 @@ async function handleInvoicePaid(
     }
   }
 
+  // Discovery-Abo, aber kein gueltiger JIT-Pick (RPC-Fehler, leeres Ergebnis
+  // oder Geschmackstyp fehlt): wir fallen auf den Initial-Coffee aus
+  // subscription_items zurueck. Dieser ist NICHT auf status='active'/Stock
+  // revalidiert und kann derselbe Bean wie zuletzt sein. Wir liefern trotzdem
+  // (Stripe hat bereits abgebucht), loggen aber laut fuer manuelles Eingreifen.
+  if (ourSub.discovery_mode && renewalCoffeeOverride == null) {
+    console.error(
+      `[webhooks/stripe] ⚠ discovery renewal ohne JIT-Pick fuer subscription ${ourSub.id} — Fallback auf Initial-Coffee (nicht revalidiert). Bitte Katalog/Geschmackstyp pruefen.`
+    );
+  }
+
+  // Kundensprache fuer die Renewal-Order (statt fest de-CH).
+  const { data: renewalCustomer } = await svc
+    .from("customers")
+    .select("language")
+    .eq("id", ourSub.customer_id)
+    .maybeSingle();
+  const renewalLanguage =
+    (renewalCustomer?.language as string | null) ?? "de-CH";
+
   // Shipping-Adresse aus subscription (vom Initial-Snapshot)
   const { data: shipAddr } = await svc
     .from("customer_addresses")
@@ -891,7 +934,7 @@ async function handleInvoicePaid(
       discount_chf: 0,
       tax_chf: 0,
       total_chf: totalChf,
-      language: "de-CH", // Renewal: kein Customer-Sprachen-Update, default
+      language: renewalLanguage,
       stripe_payment_intent_id: invoice.payment_intent,
       stripe_invoice_url: invoice.hosted_invoice_url,
     })
@@ -1028,6 +1071,26 @@ async function handleInvoicePaid(
     );
   } catch (e) {
     console.error("[webhooks/stripe] subscription_deliveries log failed", e);
+  }
+
+  // Lieferzaehler nachfuehren — sonst zeigt das Konto dauerhaft "Noch keine
+  // Lieferung erhalten" und ein leeres naechstes Lieferdatum. last_delivery_on
+  // = heute, next_delivery_on = heute + interval_weeks Wochen.
+  try {
+    const today = new Date();
+    const next = new Date(today);
+    next.setUTCDate(next.getUTCDate() + ourSub.interval_weeks * 7);
+    const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
+    await svc
+      .from("subscriptions")
+      .update({
+        total_deliveries: (ourSub.total_deliveries ?? 0) + 1,
+        last_delivery_on: toDateStr(today),
+        next_delivery_on: toDateStr(next),
+      })
+      .eq("id", ourSub.id);
+  } catch (e) {
+    console.error("[webhooks/stripe] delivery-counter update failed", e);
   }
 
   console.log(

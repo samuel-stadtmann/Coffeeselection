@@ -20,6 +20,9 @@ export async function PATCH(
 ) {
   const admin = await getAdminUser();
   if (!admin) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await refreshAdminReauthCookie())) {
+    return NextResponse.json({ error: "reauth_required" }, { status: 401 });
+  }
   const { id } = await ctx.params;
 
   const body = await req.json().catch(() => null);
@@ -38,7 +41,6 @@ export async function PATCH(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
-  await refreshAdminReauthCookie();
   return NextResponse.json({ ok: true });
 }
 
@@ -48,6 +50,9 @@ export async function DELETE(
 ) {
   const admin = await getAdminUser();
   if (!admin) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await refreshAdminReauthCookie())) {
+    return NextResponse.json({ error: "reauth_required" }, { status: 401 });
+  }
   const { id } = await ctx.params;
 
   const svc = createServiceClient();
@@ -75,6 +80,5 @@ export async function DELETE(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
-  await refreshAdminReauthCookie();
   return NextResponse.json({ ok: true });
 }

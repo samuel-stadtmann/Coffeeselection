@@ -612,6 +612,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ---- 9.5) Guthaben reservieren --------------------------------------------
+  // Erst HIER (nach allen Cleanup-/Delete-Pfaden oben), damit eine Reservierung
+  // nie zu einer verwaisten customer_credits-Zeile fuehrt (order_id ist
+  // ON DELETE SET NULL). Der Hold senkt den Saldo sofort → eine zweite
+  // parallele pending-Order kann dasselbe Guthaben nicht doppelt anwenden.
+  if (appliedCreditChf > 0) {
+    const { reserveOrderCredit } = await import("@/lib/db/rewards");
+    await reserveOrderCredit(svc, order.id, customerId, appliedCreditChf);
+  }
+
   // ---- 10) Erfolgs-Response -------------------------------------------------
   return NextResponse.json({
     success: true,
