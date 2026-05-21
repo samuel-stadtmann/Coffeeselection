@@ -110,11 +110,11 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
 - [ ] Error-Monitoring: aktuell keines aktiv. Sentry wurde wegen Performance-Overhead (Client-JS, Session Replay, Tracing) komplett entfernt. Bei Bedarf später ein leichtgewichtigeres Monitoring evaluieren.
 - [x] Vercel Analytics: `@vercel/analytics` installiert + `<Analytics />` in `app/layout.tsx`. Aktiviert sich automatisch auf Vercel Production+Preview, im Vercel-Dashboard Analytics-Tab einschalten.
 
-## SEO
+## SEO — ✅ erledigt
 
-- [ ] `app/sitemap.ts` mit finalen Routen.
-- [ ] `app/robots.ts` von `noindex` auf `index, follow` umstellen.
-- [ ] OpenGraph-Bilder pro wichtiger Page.
+- [x] `app/sitemap.ts` mit finalen Routen (statisch + dynamische Coffee-/Roaster-/City-/Compare-/Article-Slugs aus DB).
+- [x] `app/robots.ts` erlaubt Index der Public-Pages, blockt Admin/Account/Checkout/Roaster/API. `noindex` nur via `NEXT_PUBLIC_DISALLOW_INDEXING=1` (Staging).
+- [x] OpenGraph-Metadata in `layout.tsx` (global) + Coffee-/Compare-/Learn-Detail-Pages.
 - [x] Strukturierte Daten — Schema.org Organization ✅ (global in `layout.tsx`), Product ✅ (Coffee-Detail-Page), BlogPosting ✅ (Article-Detail-Page).
 
 ## Content
@@ -128,39 +128,33 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
 
 - [ ] Mock-Daten in Account-Pages durch echte DB-Queries ersetzen (Phase 2 der Supabase-Anbindung).
 
-## Phase A — Empfehlungs-Maschine (höchste Priorität, kritisch für Produkterlebnis)
+## Phase A — Empfehlungs-Maschine — ✅ erledigt (abgelöst durch pgvector-RPC + Lern-Worker)
 
-Aktuell sind alle "Empfehlungen" Mock-Daten oder Platzhalter. Phase A löst das vollständig:
+> **Stand 2026-05-21:** Dieser Block war ursprünglich der "alles ist Mock"-Plan.
+> Er ist mittlerweile vollständig durch die Postgres-Pipeline
+> `rank_coffees_for_customer` (Hartfilter-Cascade, 7-Dim-Scoring, pgvector-
+> Vektor-Similarity, MMR-Diversität, `explain_coffee_match`) + den 15-Min-
+> Lern-Worker `process_pending_ratings` (Embedding-Drift, Aroma-Sentiment,
+> Reklassifikation) ersetzt. Siehe `docs/PRE_GO_LIVE.md` P1 (✅). Die alten
+> Checkboxen sind hier nur noch zur Nachvollziehbarkeit als erledigt markiert.
 
 ### A.1 Quiz-Scoring → echtes `taste_type_id`
-- [ ] Quiz-Antworten in `quiz_responses` persistieren (12 Fragen × User)
-- [ ] Score pro Geschmackstyp berechnen via `quiz_scoring` + `taste_type_max_scores`
-- [ ] Best-Match in `customers.taste_type_id` + `customers.secondary_type` + `customers.confidence` schreiben
-- [ ] Aktuell: `match-result` schreibt Platzhalter `taste_type_id=2` — muss durch echte Quiz-Auswertung ersetzt werden
+- [x] Quiz-Antworten persistiert, Score je Geschmackstyp berechnet, Best-Match + Secondary + Confidence in `customers` geschrieben (`lib/db/quiz.ts`). Kein Platzhalter `taste_type_id=2` mehr.
 
 ### A.2 Coffee-Empfehlungen pro User (via pgvector)
-- [ ] Beim Quiz-Ende: Initial-`taste_embedding` für User aus Antworten erzeugen
-- [ ] Match-Result-Page: Top-N Coffees nach Distanz `customers.taste_embedding <=> coffees.flavor_embedding`
-- [ ] Aktuell: Yirgacheffe ist hardcoded — muss durch echten Vector-Match ersetzt werden
+- [x] Initial-`taste_embedding` beim Quiz-Ende, Top-N via `customers.taste_embedding <=> coffees.flavor_embedding` in `rank_coffees_for_customer`. Kein hardcoded Yirgacheffe mehr.
 
-### A.3 Coffee ↔ Taste-Type Mapping (`/taste-types/[slug]` Pages)
-- [ ] Auf jeder Geschmackstyp-Seite: echte Coffees aus DB, die zu diesem Typ passen
-- [ ] Variante 1 (manuell): neue Tabelle `coffee_taste_types` (n:m via Pflege)
-- [ ] Variante 2 (auto): pro Geschmackstyp Centroid-Embedding berechnen, Coffees mit `flavor_embedding` Distanz < Threshold
-- [ ] **Wichtig**: Aktuell zeigen diese Seiten erfundene Mock-Coffees aus `lib/taste-types.ts` — User hat explizit verlangt, dass das in Phase A vollständig ersetzt wird
+### A.3 Coffee ↔ Taste-Type Mapping (`/taste-types/[slug]`)
+- [x] Echte DB-Coffees pro Typ via `getCoffeesForTasteType` (Type-Centroid-Embedding + Sensorik). Keine Mock-Coffees aus `lib/taste-types.ts` (Datei gelöscht).
 
 ### A.4 Recommendation-Alternatives (`/recommendation/alternatives`)
-- [ ] Heute: liest aus `lib/taste-types.ts` mit Profil-Distanz-Berechnung im Code
-- [ ] Soll: liest aus DB via Embedding-Distanz, mit echter Begründung aus Profil-Diff zwischen User und Coffee
+- [x] Liest aus DB via Embedding/Sensorik-Distanz, Begründung aus Profil-Diff (`reasoningForMatch`).
 
 ### A.5 Feedback-Loop (Playbook Kap. 6)
-- [ ] `/account/rate/[orderId]` schreibt heute kein Rating in DB — muss `coffee_ratings`-Insert machen
-- [ ] Background-Worker (Edge Function + pg_cron alle 15 Min) verarbeitet `processed_at IS NULL`
-- [ ] Profil-Vektor-Drift: `update_customer_embedding(...)` mit adaptiver Lernrate
-- [ ] Aroma-Tag-Sentiment in `customer_aroma_preferences` upserten
+- [x] Rating-Insert in `coffee_ratings`, 15-Min-pg_cron-Worker `process_pending_ratings`, Embedding-Drift (`drift_customer_embedding`), Aroma-Sentiment-Upsert in `customer_aroma_preferences`.
 
 ### A.6 Reklassifikations-Cron
-- [ ] Täglicher Job: User mit ≥5 Ratings → Distance zu Type-Centroids berechnen → bei klarem Wechsel Email senden ("Geschmack hat sich entwickelt — Quiz neu machen?")
+- [x] Täglicher Job `suggest-aroma-reclassification` (Migration `20260519100000`) + `send-reclassification-emails`.
 
 ### A.7 Cleanup: Mock-Datenquellen entfernen — ✅ erledigt
 - [x] `lib/coffees.ts`, `lib/roasters.ts`, `lib/taste-types.ts` existieren nicht mehr — DB-Layer unter `lib/db/*.ts` ist Source-of-Truth.
@@ -172,11 +166,11 @@ Aktuell nutzt der Match-Score eine reine Manhattan-Distanz auf 5 Sensorik-Achsen
 
 **Schrittweise Verbesserung nach Launch — sortiert nach Impact / Aufwand:**
 
-- [ ] **Aroma-Familien-Match einbauen** (einfach, sofort spürbar): Coffee bekommt Bonus-Punkte pro übereinstimmender Aroma-Familie zwischen `coffees.aroma_families` und `taste_types.aroma_families`. z.B. +5% pro Treffer.
-- [ ] **Roast-Level als 6. Achse einbauen** (trivial): `coffees.roast_level` ↔ `taste_types.roast_level` zur Manhattan-Distanz dazuzählen.
-- [ ] **Achsen-Gewichtung** (mittel): Säure & Körper stärker gewichten als Komplexität, weil sie wahrnehmungsnäher sind. Gewichte konfigurierbar in `algorithm_config`-Tabelle hinterlegen.
-- [ ] **pgvector-Embedding-Match** (mittel, grosser Sprung): Cosine-Similarity zwischen `customers.taste_embedding` und `coffees.flavor_embedding`. Setzt voraus dass User-Embeddings generiert werden via OpenAI (heute null) — Phase A.5 Voraussetzung.
-- [ ] **Hybrid-Score** (komplex, finaler Schliff): Kombination aus Embedding-Cosine + Sensorik-Distanz + Aroma-Overlap + Tag-Sentiment, gewichtet nach Daten-Reife des Users (mehr Ratings → mehr Embedding-Gewicht). Folgt Playbook Kap. 5 ("Pre-Score + MMR für Diversität").
+- [x] **Aroma-Familien-Match** — `aromaOverlapBonus` in `lib/db/recommendations.ts`: +5% pro Treffer zwischen `coffees.aroma_families` und `taste_types.aroma_families`, gedeckelt auf 1.0 (JS-Hybrid-Pfad). *Offen: prüfen ob die RPC `compute_scoring_score` denselben Bonus enthält — sonst greift er für eingeloggte Customer nicht.*
+- [x] **Roast-Level als 6. Achse** — `roastNum()` + `weights.roast_level` in `manhattan()`; `taste_types.roast_level` seeded (Migration `20260515190000`).
+- [x] **Achsen-Gewichtung** — `loadMatchWeights()` liest `algorithm_config.match_weights`; Default Säure/Körper 1.5 > Komplexität 0.7. In der DB pro Key editierbar.
+- [x] **pgvector-Embedding-Match** — Cosine-Sim `customers.taste_embedding ↔ coffees.flavor_embedding`, hybrid kombiniert (0.611 Sensorik / 0.389 Vektor).
+- [ ] **Hybrid-Score — Daten-Reife-Gewichtung** (komplex, finaler Schliff): Die Basis (Embedding + Sensorik + Aroma) ist da, aber die Gewichte sind **fix** (0.611/0.389). Offen ist die *adaptive* Gewichtung nach User-Daten-Reife (mehr Ratings → mehr Embedding-Gewicht) + explizites Tag-Sentiment im Final-Score. Siehe Erklärung unten.
 
 **Wichtig:** Solange wir auf der reinen Sensorik-Distanz bleiben, ist der Score sehr nachvollziehbar und manuell auditierbar. Der Wechsel zu Embeddings macht's mächtiger, aber weniger erklärbar — Trade-off bewusst entscheiden.
 
@@ -225,5 +219,5 @@ Konto-Inhaber, Bank-Name (BIC nur bei Auslandsbank). Pro Coffee:
 ### Empfehlungs-Begründungen dynamisch aus DB — ✅ erledigt
 - [x] `/recommendation/alternatives` ruft `reasoningForMatch(userProfile1to5, coffee)` aus `lib/db/recommendations.ts` auf und rendert headline + detail dynamisch aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee.
 - [x] Tasting-Summary wird als sekundaerer Geschmacks-Satz darunter angezeigt, Fallback auf Aroma-Familien wenn beides fehlt.
-- [ ] Korrekte Implementation: Diff zwischen **User-Geschmackstyp-Profil** und **Coffee-Profil** rechnen (nicht Nachbar-Type vs Coffee), Top-1 oder Top-2 Achsen-Differenzen positiv formulieren, mit "darf bedenkenlos probieren" als Closing.
-- [ ] Optional: pro Coffee 1–2 statt nur 1 Begründungssatz — falls mehrere Achsen relevant differenzieren.
+- [x] Korrekte Implementation: Diff zwischen **User-Geschmackstyp-Profil** und **Coffee-Profil** (5 Achsen), Top-1/Top-2 Achsen-Differenzen positiv formuliert, "darf bedenkenlos probieren" als Closing. (`reasoningForMatch`, Volltreffer-Sonderfall bei Diff 0.)
+- [x] Pro Coffee 1–2 Begründungssätze — zweiter Satz nur wenn eine zweite Achse ≥1 SCA-Punkt abweicht.
