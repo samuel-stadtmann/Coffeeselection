@@ -73,8 +73,8 @@ function buildEmailBody(c: PendingRow): { subject: string; text: string; html: s
   const SITE = Deno.env.get("SITE_URL")?.replace(/\/$/, "") ?? "https://coffeeselection.ch";
   const html = `<!doctype html>
 <html lang="de">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Coffee Selection</title></head>
-<body style="margin:0;padding:0;background:#F9F5F0;font-family:'Helvetica',Arial,sans-serif;color:#4D2C19;">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Coffee Selection</title><link href="https://fonts.googleapis.com/css2?family=Merriweather&family=Montserrat:wght@700&display=swap" rel="stylesheet"></head>
+<body style="margin:0;padding:0;background:#F9F5F0;font-family:'Merriweather',Georgia,'Times New Roman',serif;color:#4D2C19;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F9F5F0;">
     <tr><td align="center" style="padding:32px 16px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;">
@@ -84,13 +84,13 @@ function buildEmailBody(c: PendingRow): { subject: string; text: string; html: s
           <div style="font-size:11px;color:#6D5244;margin-top:8px;letter-spacing:0.1em;">Spezialitaetenkaffee aus der Schweiz</div>
         </td></tr>
         <tr><td style="padding:32px;font-size:15px;line-height:1.6;color:#4D2C19;">
-          <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">${greeting}</h1>
+          <h1 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">${greeting}</h1>
           <p style="margin:0 0 16px 0;">wir haben anhand deiner letzten Bewertungen festgestellt, dass sich dein Kaffeegeschmack möglicherweise weiterentwickelt hat.</p>
           <p style="margin:0 0 16px 0;">Vom <strong>${currentName}</strong> hin zu einem Profil mit dem Charakter <strong>"${suggestedName}"</strong>${suggestedHint}.</p>
           <p style="margin:0 0 8px 0;">Magst du das Quiz nochmal machen? Es dauert 2 Minuten.</p>
         </td></tr>
         <tr><td style="padding:8px 0 8px 0;text-align:center;">
-          <a href="${SITE}/quiz/start" style="display:inline-block;padding:14px 36px;background:#4D2C19;color:#F9F5F0;font-family:'Georgia',serif;font-weight:700;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;border-radius:4px;">Quiz starten</a>
+          <a href="${SITE}/quiz/start" style="display:inline-block;padding:14px 36px;background:#4D2C19;color:#F9F5F0;font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;border-radius:4px;">Quiz starten</a>
         </td></tr>
         <tr><td style="padding:8px 32px 0 32px;font-size:15px;line-height:1.6;color:#4D2C19;">
           <p style="margin:0;">Oder wir behalten dein aktuelles Profil — du entscheidest.</p>

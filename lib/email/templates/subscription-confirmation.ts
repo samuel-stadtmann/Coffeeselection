@@ -61,7 +61,7 @@ export function subscriptionConfirmationEmail(
   const layoutProps: LayoutProps = {
     preview: `Dein ${props.coffeeName}-Abo ist aktiv. Erste Lieferung roestfrisch in den naechsten Tagen.`,
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
+      <h1 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Willkommen ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 24px 0;">
@@ -72,10 +72,10 @@ export function subscriptionConfirmationEmail(
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0;background:#F9F5F0;">
         <tr>
           <td style="padding:20px;">
-            <div style="font-family:'Georgia',serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;color:#D4A017;margin-bottom:8px;">
+            <div style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.3em;color:#D4A017;margin-bottom:8px;">
               Dein Abo
             </div>
-            <div style="font-family:'Georgia',serif;font-weight:700;font-size:18px;color:#4D2C19;">
+            <div style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:18px;color:#4D2C19;">
               ${escapeHtml(props.coffeeName)}
             </div>
             <div style="font-size:13px;color:#6D5244;margin-top:4px;">
@@ -107,7 +107,7 @@ export function subscriptionConfirmationEmail(
         ${nextChargeText}
       </p>
 
-      <h2 style="font-family:'Georgia',serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#4D2C19;">
+      <h2 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#4D2C19;">
         Lieferung an
       </h2>
       <p style="margin:0 0 24px 0;color:#4D2C19;font-size:14px;line-height:1.5;">

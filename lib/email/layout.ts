@@ -52,8 +52,8 @@ export const EMAIL_COLORS = {
 
 /** Wiederverwendbare Heading-Styles (gleicher Look in allen Mails). */
 export const EMAIL_STYLES = {
-  h1: `font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:${COLOR_PRIMARY};`,
-  h2: `font-family:'Georgia',serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:${COLOR_PRIMARY};`,
+  h1: `font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:${COLOR_PRIMARY};`,
+  h2: `font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:${COLOR_PRIMARY};`,
 } as const;
 
 /** Absolute Basis-URL fuer gehostete Assets (Logo) + Footer-Links. */
@@ -73,7 +73,7 @@ export function layout(props: LayoutProps): string {
         <tr>
           <td style="padding:24px 0 8px 0;text-align:center;">
             <a href="${escapeHtml(props.ctaHref)}"
-               style="display:inline-block;padding:14px 36px;background:${COLOR_PRIMARY};color:${COLOR_ON_PRIMARY};font-family:'Georgia',serif;font-weight:700;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;border-radius:4px;">
+               style="display:inline-block;padding:14px 36px;background:${COLOR_PRIMARY};color:${COLOR_ON_PRIMARY};font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;border-radius:4px;">
               ${escapeHtml(props.ctaLabel)}
             </a>
           </td>
@@ -86,8 +86,10 @@ export function layout(props: LayoutProps): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Coffee Selection</title>
+  <!-- Brand-Fonts; Clients die das ignorieren fallen auf die Stacks unten zurueck. -->
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather&family=Montserrat:wght@700&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background:${COLOR_SURFACE};font-family:'Helvetica',Arial,sans-serif;color:${COLOR_TEXT};">
+<body style="margin:0;padding:0;background:${COLOR_SURFACE};font-family:'Merriweather',Georgia,'Times New Roman',serif;color:${COLOR_TEXT};">
   <!-- Hidden Preview-Text fuer Inbox -->
   <div style="display:none;font-size:1px;color:${COLOR_SURFACE};line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
     ${escapeHtml(props.preview)}

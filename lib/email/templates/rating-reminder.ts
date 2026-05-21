@@ -81,7 +81,7 @@ export function ratingReminderEmail(props: RatingReminderProps): {
                     : ""
                 }
                 <td style="vertical-align:top;">
-                  <div style="font-family:'Georgia',serif;font-weight:700;font-size:16px;color:${COLOR_PRIMARY};">
+                  <div style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:16px;color:${COLOR_PRIMARY};">
                     ${escapeHtml(c.coffeeName)}
                   </div>
                   <div style="font-size:12px;color:${COLOR_MUTED};margin-top:2px;">
@@ -116,7 +116,7 @@ export function ratingReminderEmail(props: RatingReminderProps): {
   const layoutProps: LayoutProps = {
     preview: `Bewerte deine Bestellung ${props.orderNumber} — 1 Klick reicht. Jede Bewertung macht deine naechsten Empfehlungen besser.`,
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:${COLOR_PRIMARY};">
+      <h1 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:${COLOR_PRIMARY};">
         Hallo ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 16px 0;">

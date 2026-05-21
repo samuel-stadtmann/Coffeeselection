@@ -77,7 +77,7 @@ export function orderConfirmationEmail(props: OrderConfirmationProps): {
   const layoutProps: LayoutProps = {
     preview: `Danke fuer deine Bestellung ${props.orderNumber}. Roestfrisch in 2-5 Werktagen.`,
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
+      <h1 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Hallo ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 24px 0;">
@@ -95,7 +95,7 @@ export function orderConfirmationEmail(props: OrderConfirmationProps): {
         <tr style="font-weight:700;font-size:16px;"><td style="padding-top:12px;border-top:1px solid #E9DFD4;">Total</td><td align="right" style="padding-top:12px;border-top:1px solid #E9DFD4;">${formatChf(props.totalChf)}</td></tr>
       </table>
 
-      <h2 style="font-family:'Georgia',serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#4D2C19;">
+      <h2 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.2em;margin:24px 0 8px 0;color:#4D2C19;">
         Lieferung an
       </h2>
       <p style="margin:0;color:#4D2C19;font-size:14px;line-height:1.5;">

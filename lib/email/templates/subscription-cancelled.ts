@@ -27,7 +27,7 @@ export function subscriptionCancelledEmail(
   const layoutProps: LayoutProps = {
     preview: "Dein Abo wurde gekuendigt. Keine weiteren Abbuchungen.",
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
+      <h1 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Schade ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 16px 0;">
