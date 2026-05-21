@@ -76,6 +76,10 @@ export function SuccessClient({
       if (Date.now() - start > POLL_TIMEOUT_MS) {
         setPolling(false);
         setTimedOut(true);
+        // Zahlung wurde an Stripe uebergeben (sonst kein Redirect hierher);
+        // der Webhook ist nur langsam. Cart leeren, damit der Kunde seine
+        // bereits bestellten Items nicht erneut im Warenkorb sieht.
+        clearCart();
         return;
       }
       try {
@@ -104,7 +108,7 @@ export function SuccessClient({
       active = false;
       clearTimeout(t);
     };
-  }, [polling, sessionId]);
+  }, [polling, sessionId, clearCart]);
 
   if (order.status === "paid") {
     return (

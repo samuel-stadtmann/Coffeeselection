@@ -149,11 +149,14 @@ export async function processOrderEarnings(
     .maybeSingle();
   if (!order || order.status !== "paid") return;
 
-  // Idempotenz: hat diese Order bereits Earnings/Redemptions?
+  // Idempotenz: hat diese Order bereits Earnings/Redemptions? Eine reine
+  // Reservierung (order_reservation, beim Order-Create gebucht) zaehlt NICHT
+  // als verarbeitet — die wird hier erst finalisiert.
   const { count: alreadyProcessed } = await svc
     .from("customer_credits")
     .select("id", { count: "exact", head: true })
-    .eq("order_id", orderId);
+    .eq("order_id", orderId)
+    .neq("reason", "order_reservation");
   if ((alreadyProcessed ?? 0) > 0) {
     console.log(`[earnings] order ${orderId} already processed, skip`);
     return;
@@ -165,33 +168,51 @@ export async function processOrderEarnings(
   // promo-Discount = discount_chf - applied_credit_chf (Code-Anteil).
   const promoDiscount = Math.max(0, discountChf - appliedCreditChf);
 
-  // 0) Balance-Redemption: wenn der Customer Guthaben angewendet hat,
-  //    buchen wir das als negativen customer_credits-Eintrag mit
-  //    reason=order_redemption. Saldo geht damit runter.
-  //    Schutz gegen Doppelausgabe: das Guthaben wird erst HIER (bei Zahlung)
-  //    abgebucht, nicht beim Order-Create. Zwei parallele pending-Orders
-  //    koennten beide dasselbe Guthaben angewendet haben. Wir deckeln die
-  //    Buchung daher auf das aktuell verfuegbare Guthaben, damit der Saldo
-  //    nie negativ wird.
+  // 0) Balance-Redemption finalisieren: das Guthaben wird bereits beim
+  //    Order-Create als negative "order_reservation"-Zeile gebucht (Hold),
+  //    damit eine zweite parallele pending-Order denselben Saldo nicht noch
+  //    einmal anwenden kann. Hier bei Payment-Success machen wir aus der
+  //    Reservierung die endgueltige Redemption.
   if (appliedCreditChf > 0) {
-    const { data: bal } = await svc.rpc("customer_credit_balance", {
-      p_customer_id: customerId,
-    });
-    const available = Math.max(0, Number(bal ?? 0));
-    const effectiveCredit = Number(Math.min(appliedCreditChf, available).toFixed(2));
-    if (effectiveCredit < appliedCreditChf) {
-      console.warn(
-        `[earnings] order ${orderId}: applied credit CHF ${appliedCreditChf} > verfuegbar CHF ${available} — gedeckelt auf ${effectiveCredit} (moegliche Doppelanwendung)`
-      );
-    }
-    if (effectiveCredit > 0) {
-      await svc.from("customer_credits").insert({
-        customer_id: customerId,
-        amount_chf: -effectiveCredit,
-        reason: "order_redemption",
-        order_id: orderId,
-        description: `Guthaben auf Bestellung angewendet`,
+    const { data: reservation } = await svc
+      .from("customer_credits")
+      .select("id")
+      .eq("order_id", orderId)
+      .eq("reason", "order_reservation")
+      .maybeSingle();
+    if (reservation) {
+      await svc
+        .from("customer_credits")
+        .update({
+          reason: "order_redemption",
+          description: "Guthaben auf Bestellung angewendet",
+        })
+        .eq("id", reservation.id);
+    } else {
+      // Fallback (Alt-Orders ohne Reservierung): jetzt buchen, auf das
+      // aktuell verfuegbare Guthaben gedeckelt, damit der Saldo nicht
+      // negativ wird.
+      const { data: bal } = await svc.rpc("customer_credit_balance", {
+        p_customer_id: customerId,
       });
+      const available = Math.max(0, Number(bal ?? 0));
+      const effectiveCredit = Number(
+        Math.min(appliedCreditChf, available).toFixed(2)
+      );
+      if (effectiveCredit < appliedCreditChf) {
+        console.warn(
+          `[earnings] order ${orderId}: applied credit CHF ${appliedCreditChf} > verfuegbar CHF ${available} — gedeckelt auf ${effectiveCredit}`
+        );
+      }
+      if (effectiveCredit > 0) {
+        await svc.from("customer_credits").insert({
+          customer_id: customerId,
+          amount_chf: -effectiveCredit,
+          reason: "order_redemption",
+          order_id: orderId,
+          description: `Guthaben auf Bestellung angewendet`,
+        });
+      }
     }
   }
 
@@ -290,6 +311,52 @@ export async function processOrderEarnings(
       order_id: orderId,
       description: `Treuebonus für ${paidOrderCount}. Bestellung`,
     });
+  }
+}
+
+/**
+ * Reserviert (haelt) angewandtes Guthaben beim Order-Create als negative
+ * customer_credits-Zeile (reason=order_reservation). Dadurch sinkt der Saldo
+ * sofort, sodass eine zweite parallele pending-Order dasselbe Guthaben nicht
+ * noch einmal anwenden kann. Wird bei Payment-Success in processOrderEarnings
+ * zu order_redemption finalisiert oder bei Abbruch/Ablauf via
+ * releaseOrderCreditReservation wieder freigegeben.
+ */
+export async function reserveOrderCredit(
+  svc: SupabaseClient,
+  orderId: string,
+  customerId: string,
+  amountChf: number
+) {
+  if (amountChf <= 0) return;
+  await svc.from("customer_credits").insert({
+    customer_id: customerId,
+    amount_chf: -Number(amountChf.toFixed(2)),
+    reason: "order_reservation",
+    order_id: orderId,
+    description: "Guthaben für Bestellung reserviert",
+  });
+}
+
+/**
+ * Gibt eine noch nicht finalisierte Guthaben-Reservierung wieder frei
+ * (Order abgelaufen/abgebrochen, nie bezahlt). Loescht NUR order_reservation-
+ * Zeilen — bereits finalisierte Redemptions bleiben unberuehrt.
+ */
+export async function releaseOrderCreditReservation(
+  svc: SupabaseClient,
+  orderId: string
+) {
+  const { error } = await svc
+    .from("customer_credits")
+    .delete()
+    .eq("order_id", orderId)
+    .eq("reason", "order_reservation");
+  if (error) {
+    console.error(
+      `[earnings] release reservation for order ${orderId} failed`,
+      error
+    );
   }
 }
 
