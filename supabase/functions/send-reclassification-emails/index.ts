@@ -67,24 +67,43 @@ function buildEmailBody(c: PendingRow): { subject: string; text: string; html: s
     `Coffee Selection`,
   ].join("\n");
 
-  const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
-      <p>${greeting}</p>
-      <p>wir haben anhand deiner letzten Bewertungen festgestellt, dass sich dein
-      Kaffeegeschmack möglicherweise weiterentwickelt hat.</p>
-      <p>Vom <strong>${currentName}</strong> hin zu einem Profil mit dem Charakter
-      <strong>"${suggestedName}"</strong>${suggestedHint}.</p>
-      <p>Magst du das Quiz nochmal machen? Es dauert 2 Minuten.</p>
-      <p>
-        <a href="https://coffeeselection.ch/quiz/start"
-           style="display:inline-block;background:#1a1a1a;color:#fff;padding:12px 24px;text-decoration:none;font-weight:bold;letter-spacing:0.05em;text-transform:uppercase;font-size:12px;">
-          Quiz starten
-        </a>
-      </p>
-      <p>Oder wir behalten dein aktuelles Profil — du entscheidest.</p>
-      <p style="margin-top:32px;color:#888;font-size:12px;">Herzlich,<br/>Coffee Selection</p>
-    </div>
-  `.trim();
+  // Markenlayout inline (Edge Function kann lib/email nicht importieren) —
+  // gleiche Tokens wie lib/email/layout.ts: primary #4D2C19, gold #D4A017,
+  // surface #F9F5F0, muted #6D5244, border #E9DFD4.
+  const SITE = Deno.env.get("SITE_URL")?.replace(/\/$/, "") ?? "https://coffeeselection.ch";
+  const html = `<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Coffee Selection</title><link href="https://fonts.googleapis.com/css2?family=Merriweather&family=Montserrat:wght@700&display=swap" rel="stylesheet"></head>
+<body style="margin:0;padding:0;background:#F9F5F0;font-family:'Merriweather',Georgia,'Times New Roman',serif;color:#4D2C19;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F9F5F0;">
+    <tr><td align="center" style="padding:32px 16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;">
+        <tr><td style="height:4px;background:#D4A017;font-size:0;line-height:0;">&nbsp;</td></tr>
+        <tr><td style="padding:28px 32px 20px 32px;border-bottom:1px solid #E9DFD4;">
+          <img src="${SITE}/logo.png" width="180" alt="Coffee Selection" style="display:block;border:0;outline:none;text-decoration:none;height:auto;max-height:44px;width:auto;max-width:220px;">
+          <div style="font-size:11px;color:#6D5244;margin-top:8px;letter-spacing:0.1em;">Spezialitaetenkaffee aus der Schweiz</div>
+        </td></tr>
+        <tr><td style="padding:32px;font-size:15px;line-height:1.6;color:#4D2C19;">
+          <h1 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">${greeting}</h1>
+          <p style="margin:0 0 16px 0;">wir haben anhand deiner letzten Bewertungen festgestellt, dass sich dein Kaffeegeschmack möglicherweise weiterentwickelt hat.</p>
+          <p style="margin:0 0 16px 0;">Vom <strong>${currentName}</strong> hin zu einem Profil mit dem Charakter <strong>"${suggestedName}"</strong>${suggestedHint}.</p>
+          <p style="margin:0 0 8px 0;">Magst du das Quiz nochmal machen? Es dauert 2 Minuten.</p>
+        </td></tr>
+        <tr><td style="padding:8px 0 8px 0;text-align:center;">
+          <a href="${SITE}/quiz/start" style="display:inline-block;padding:14px 36px;background:#4D2C19;color:#F9F5F0;font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;border-radius:4px;">Quiz starten</a>
+        </td></tr>
+        <tr><td style="padding:8px 32px 0 32px;font-size:15px;line-height:1.6;color:#4D2C19;">
+          <p style="margin:0;">Oder wir behalten dein aktuelles Profil — du entscheidest.</p>
+        </td></tr>
+        <tr><td style="padding:24px 32px 32px 32px;border-top:1px solid #E9DFD4;font-size:11px;color:#6D5244;line-height:1.5;margin-top:24px;">
+          <p style="margin:0 0 8px 0;">Coffee Selection · Schweiz · <a href="${SITE}" style="color:#6D5244;text-decoration:underline;">coffeeselection.ch</a></p>
+          <p style="margin:0;">Fragen? Antworte einfach auf diese Mail.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 
   return { subject, text, html };
 }

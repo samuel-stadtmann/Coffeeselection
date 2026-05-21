@@ -27,7 +27,7 @@ export function subscriptionCancelledEmail(
   const layoutProps: LayoutProps = {
     preview: "Dein Abo wurde gekuendigt. Keine weiteren Abbuchungen.",
     content: `
-      <h1 style="font-family:'Georgia',serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#2D1810;">
+      <h1 style="font-family:'Montserrat',Arial,Helvetica,sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.02em;margin:0 0 8px 0;color:#4D2C19;">
         Schade ${escapeHtml(props.recipientName)},
       </h1>
       <p style="margin:0 0 16px 0;">
@@ -39,7 +39,7 @@ export function subscriptionCancelledEmail(
         Wenn du irgendwann zurueckmoechtest — der Shop ist offen, und das
         Lieblingsabo ist nur einen Klick entfernt.
       </p>
-      <p style="margin:24px 0 0 0;font-size:13px;color:#8A7560;line-height:1.6;font-style:italic;">
+      <p style="margin:24px 0 0 0;font-size:13px;color:#6D5244;line-height:1.6;font-style:italic;">
         Falls du gefeedback geben moechtest, warum es nicht gepasst hat — antworte
         einfach auf diese Mail. Wir lesen jede Nachricht.
       </p>
