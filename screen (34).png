@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Coffee Selection | Taste Profile Quiz</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Noto+Serif:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "on-primary-fixed-variant": "#623e2a",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#ddd9d5",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e6e2dd",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#2a1d00",
+                        "on-tertiary-fixed": "#261a00",
+                        "on-secondary-fixed-variant": "#4e4634",
+                        "on-background": "#1c1c19",
+                        "secondary-container": "#ebdec6",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#453100",
+                        "secondary-fixed": "#eee1c9",
+                        "surface-bright": "#fdf9f4",
+                        "tertiary-fixed-dim": "#f6be39",
+                        "secondary-fixed-dim": "#d1c5ae",
+                        "primary-fixed": "#ffdbca",
+                        "primary-fixed-dim": "#f0bba0",
+                        "surface-container": "#f1ede8",
+                        "tertiary-fixed": "#ffdfa0",
+                        "surface-container-high": "#ebe8e3",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#f7f3ee",
+                        "inverse-on-surface": "#f4f0eb",
+                        "surface": "#fdf9f4",
+                        "on-surface-variant": "#51443e",
+                        "surface-container-highest": "#e6e2dd",
+                        "on-surface": "#1c1c19",
+                        "inverse-surface": "#31302d",
+                        "primary-container": "#4d2c19",
+                        "outline": "#83746d",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#7d553f",
+                        "secondary": "#665d4b",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#341706",
+                        "outline-variant": "#d5c3bb",
+                        "on-secondary-container": "#6b624f",
+                        "on-tertiary-container": "#c79501",
+                        "on-primary-fixed": "#301404",
+                        "background": "#F9F5F0",
+                        "on-primary-container": "#c29279",
+                        "inverse-primary": "#f0bba0",
+                        "on-secondary-fixed": "#211b0c"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Noto Serif"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+    </style>
+</head>
+<body class="bg-[#F9F5F0] text-on-surface font-body antialiased">
+<!-- Navigation Shell (Updated to match SCREEN_99 style) -->
+<header class="fixed top-0 w-full z-50 bg-[#F9F5F0]/85 backdrop-blur-xl border-b border-outline-variant/10 transition-all duration-300">
+<nav class="flex justify-between items-center max-w-7xl mx-auto px-8 py-4 w-full">
+<div class="flex items-center space-x-2">
+<img alt="Coffee Selection Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+<span class="text-2xl font-bold tracking-tight text-primary font-headline">Coffee Selection</span>
+</div>
+<div class="hidden md:flex items-center space-x-10">
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Our Roasts</a>
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Subscriptions</a>
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Origins</a>
+<a class="text-tertiary-fixed-dim border-b-2 border-tertiary-fixed-dim pb-1 font-label text-[10px] tracking-widest uppercase" href="#">The Ritual</a>
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Brewing Guides</a>
+</div>
+<div class="flex items-center space-x-6">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">shopping_bag</span>
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">person</span>
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-6 py-2 text-[10px] uppercase tracking-widest font-label font-bold rounded-lg shadow-sm hover:opacity-90 transition-all">
+                Subscribe
+            </button>
+</div>
+</nav>
+</header>
+<main class="min-h-screen pt-32 pb-24 px-6 md:px-12 flex flex-col items-center">
+<!-- Progress Indicator -->
+<div class="w-full max-w-3xl mb-16">
+<div class="flex justify-between items-end mb-4">
+<span class="font-label text-xs font-bold tracking-[0.2em] text-primary/50 uppercase">Taste Profile</span>
+<span class="font-label text-xs font-bold text-tertiary-fixed-dim">14% Complete</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim transition-all duration-1000 ease-out" style="width: 14%;"></div>
+</div>
+</div>
+<!-- Question Header -->
+<div class="max-w-4xl text-center mb-16">
+<h1 class="font-headline text-4xl md:text-5xl font-bold text-primary mb-6 tracking-tight">Welche Geschmacksrichtung bevorzugst du?</h1>
+<p class="text-on-surface-variant font-body text-lg max-w-2xl mx-auto">Wähle die Aromen, die deinen Morgen perfekt machen. Dein persönlicher Sommelier filtert daraus die ideale Röstung.</p>
+</div>
+<!-- Answer Grid: Bento-Inspired Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
+<!-- Option 1 -->
+<button class="group relative flex flex-col items-start p-8 bg-surface-container-low hover:bg-surface-container transition-colors duration-300 text-left border border-transparent hover:border-outline-variant">
+<div class="mb-8 p-3 bg-surface-container-lowest rounded-lg group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-3xl text-on-primary-container group-hover:text-primary-fixed" data-icon="local_florist">local_florist</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-primary mb-2">Fruchtig &amp; floral</h3>
+<p class="text-on-surface-variant font-body leading-relaxed">Helle Röstungen mit lebendiger Säure, Noten von Zitrusfrüchten, Beeren oder Jasmin.</p>
+<div class="mt-8 h-[2px] w-0 group-hover:w-full bg-tertiary-fixed-dim transition-all duration-500"></div>
+</button>
+<!-- Option 2 -->
+<button class="group relative flex flex-col items-start p-8 bg-surface-container-low hover:bg-surface-container transition-colors duration-300 text-left border border-transparent hover:border-outline-variant">
+<div class="mb-8 p-3 bg-surface-container-lowest rounded-lg group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-3xl text-on-primary-container group-hover:text-primary-fixed" data-icon="bakery_dining">bakery_dining</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-primary mb-2">Schokoladig &amp; nussig</h3>
+<p class="text-on-surface-variant font-body leading-relaxed">Ausgewogene Klassiker mit samtigem Körper und Nuancen von Kakao oder gerösteten Haselnüssen.</p>
+<div class="mt-8 h-[2px] w-0 group-hover:w-full bg-tertiary-fixed-dim transition-all duration-500"></div>
+</button>
+<!-- Option 3 -->
+<button class="group relative flex flex-col items-start p-8 bg-surface-container-low hover:bg-surface-container transition-colors duration-300 text-left border border-transparent hover:border-outline-variant">
+<div class="mb-8 p-3 bg-surface-container-lowest rounded-lg group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-3xl text-on-primary-container group-hover:text-primary-fixed" data-icon="icecream">icecream</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-primary mb-2">Karamell &amp; süss</h3>
+<p class="text-on-surface-variant font-body leading-relaxed">Mittlere Röstungen mit intensiver Süße, die an Rohrzucker, Toffee oder Vanille erinnern.</p>
+<div class="mt-8 h-[2px] w-0 group-hover:w-full bg-tertiary-fixed-dim transition-all duration-500"></div>
+</button>
+<!-- Option 4 -->
+<button class="group relative flex flex-col items-start p-8 bg-surface-container-low hover:bg-surface-container transition-colors duration-300 text-left border border-transparent hover:border-outline-variant">
+<div class="mb-8 p-3 bg-surface-container-lowest rounded-lg group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-3xl text-on-primary-container group-hover:text-primary-fixed" data-icon="fireplace">fireplace</span>
+</div>
+<h3 class="font-headline text-xl font-bold text-primary mb-2">Kräftig &amp; würzig</h3>
+<p class="text-on-surface-variant font-body leading-relaxed">Dunkle Röstungen mit viel Körper, rauchigen Akzenten und Anklängen von schwarzem Pfeffer.</p>
+<div class="mt-8 h-[2px] w-0 group-hover:w-full bg-tertiary-fixed-dim transition-all duration-500"></div>
+</button>
+</div>
+<!-- Footer Control Area -->
+<div class="mt-20 flex flex-col items-center gap-6">
+<button class="px-12 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-label font-bold text-sm tracking-widest uppercase rounded shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:opacity-50" disabled="">
+            Nächster Schritt
+        </button>
+<button class="text-primary/60 font-label text-xs uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+            Zurück zur Übersicht
+        </button>
+</div>
+</main>
+<!-- Side Decoration -->
+<div class="hidden xl:block fixed left-12 top-1/2 -translate-y-1/2 vertical-text">
+<span class="font-label text-[10px] tracking-[0.4em] uppercase text-primary/30 whitespace-nowrap -rotate-90 origin-left">
+        Crafting the perfect ritual — Editorial Coffee Discovery
+    </span>
+</div>
+<footer class="w-full py-12 px-8 mt-auto bg-[#F9F5F0] border-t border-outline-variant/20">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<span class="font-body text-sm text-on-surface-variant italic">© 2024 Coffee Selection. Crafted for the Editorial Sommelier.</span>
+<div class="flex gap-8">
+<a class="font-label text-xs uppercase tracking-widest text-primary/50 hover:text-tertiary-fixed-dim transition-colors" href="#">Privacy Policy</a>
+<a class="font-label text-xs uppercase tracking-widest text-primary/50 hover:text-tertiary-fixed-dim transition-colors" href="#">Shipping</a>
+<a class="font-label text-xs uppercase tracking-widest text-primary/50 hover:text-tertiary-fixed-dim transition-colors" href="#">Terms</a>
+</div>
+</div>
+</footer>
+</body></html>

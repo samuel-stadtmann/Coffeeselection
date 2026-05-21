@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed": "#261a00",
+                    "primary": "#341706",
+                    "on-primary-container": "#c29279",
+                    "on-secondary-fixed": "#211b0c",
+                    "on-primary-fixed": "#301404",
+                    "on-error-container": "#93000a",
+                    "on-secondary-container": "#6b624f",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e6e2dd",
+                    "on-background": "#1c1c19",
+                    "surface-dim": "#ddd9d5",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "secondary-container": "#ebdec6",
+                    "primary-container": "#4d2c19",
+                    "on-primary-fixed-variant": "#623e2a",
+                    "primary-fixed": "#ffdbca",
+                    "surface-container-low": "#f7f3ee",
+                    "secondary": "#665d4b",
+                    "tertiary": "#2a1d00",
+                    "inverse-primary": "#f0bba0",
+                    "surface-container": "#f1ede8",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#fdf9f4",
+                    "tertiary-fixed": "#ffdfa0",
+                    "background": "#F9F5F0",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#f6be39",
+                    "on-surface": "#1c1c19",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "inverse-on-surface": "#f4f0eb",
+                    "inverse-surface": "#31302d",
+                    "outline": "#83746d",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#d5c3bb",
+                    "secondary-fixed": "#eee1c9",
+                    "surface-tint": "#7d553f",
+                    "on-surface-variant": "#51443e",
+                    "surface-container-highest": "#e6e2dd",
+                    "secondary-fixed-dim": "#d1c5ae",
+                    "on-secondary-fixed-variant": "#4e4634",
+                    "tertiary-container": "#453100",
+                    "surface-container-high": "#ebe8e3",
+                    "surface-bright": "#fdf9f4",
+                    "primary-fixed-dim": "#f0bba0",
+                    "on-tertiary-container": "#c79501"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Noto Serif"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-hero-gradient {
+            background: linear-gradient(135deg, #341706 0%, #4D2C19 100%);
+        }
+        body {
+            background-color: #F9F5F0;
+            color: #1c1c19;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-secondary-container bg-[#F9F5F0]">
+<div class="flex min-h-screen bg-[#F9F5F0]">
+<!-- SideNavBar (Hidden based on new top nav style from SCREEN_99) -->
+<aside class="hidden md:flex flex-col py-6 px-4 h-screen w-64 bg-[#F9F5F0] border-r border-[#d5c3bb]/20 sticky top-0">
+<div class="mb-10 px-2">
+<img alt="The Alpine Roast Logo" class="h-12 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+<div class="mt-4">
+<h2 class="font-headline font-bold text-[#341706]">B2B Portal</h2>
+<p class="font-label uppercase tracking-widest text-xs text-[#1c1c19]/50">Alpine Roaster Hub</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 py-3 px-4 transition-all duration-300 bg-[#f1ede8] text-[#341706] font-bold border-l-4 border-[#341706]" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label uppercase tracking-widest text-xs">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 transition-all duration-300 text-[#1c1c19]/50 hover:bg-[#e6e2dd]" href="#">
+<span class="material-symbols-outlined">package_2</span>
+<span class="font-label uppercase tracking-widest text-xs">Orders</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 transition-all duration-300 text-[#1c1c19]/50 hover:bg-[#e6e2dd]" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label uppercase tracking-widest text-xs">Subscription</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 transition-all duration-300 text-[#1c1c19]/50 hover:bg-[#e6e2dd]" href="#">
+<span class="material-symbols-outlined">psychology_alt</span>
+<span class="font-label uppercase tracking-widest text-xs">Taste Profile</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 transition-all duration-300 text-[#1c1c19]/50 hover:bg-[#e6e2dd]" href="#">
+<span class="material-symbols-outlined">recommend</span>
+<span class="font-label uppercase tracking-widest text-xs">Recommendations</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 transition-all duration-300 text-[#1c1c19]/50 hover:bg-[#e6e2dd]" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label uppercase tracking-widest text-xs">Referrals</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/20 space-y-1">
+<a class="flex items-center gap-3 py-2 px-4 transition-all duration-300 text-[#1c1c19]/50 hover:bg-[#e6e2dd]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label uppercase tracking-widest text-xs">Settings</span>
+</a>
+<a class="flex items-center gap-3 py-2 px-4 transition-all duration-300 text-[#1c1c19]/50 hover:bg-[#e6e2dd]" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label uppercase tracking-widest text-xs">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 min-w-0 bg-[#F9F5F0] pb-24 md:pb-12 overflow-x-hidden">
+<!-- TopAppBar (Updated to match SCREEN_99 style) -->
+<header class="fixed top-0 w-full z-50 bg-[#F9F5F0]/85 backdrop-blur-md h-20 transition-all duration-300 border-b border-[#d5c3bb]/10">
+<nav class="flex justify-between items-center max-w-7xl mx-auto px-8 h-full w-full">
+<div class="flex items-center space-x-3">
+<img alt="The Alpine Roast Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+<span class="text-2xl font-bold tracking-tight text-[#4D2C19] font-headline hidden md:inline">The Alpine Roast</span>
+</div>
+<div class="hidden lg:flex items-center space-x-8">
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase font-bold" href="#">Our Roasts</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase font-bold" href="#">Subscriptions</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase font-bold" href="#">Origins</a>
+<a class="text-[#D4A017] border-b-2 border-[#D4A017] pb-1 font-label text-[10px] tracking-widest uppercase font-bold" href="#">The Ritual</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase font-bold" href="#">Brewing Guides</a>
+</div>
+<div class="flex items-center space-x-6">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors" title="Shopping Bag">shopping_bag</span>
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors" title="Profile">person</span>
+<button class="hidden md:block bg-[#341706] text-white px-6 py-2.5 text-[10px] uppercase tracking-widest font-label font-bold rounded-sm shadow-sm hover:opacity-90 transition-all">
+                    Subscribe
+                </button>
+<div class="md:hidden">
+<span class="material-symbols-outlined text-primary">menu</span>
+</div>
+</div>
+</nav>
+</header>
+<!-- Dashboard Content Container -->
+<div class="max-w-[1280px] mx-auto px-6 pt-32 space-y-12">
+<!-- Hero Bento Grid -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Next Delivery Hero Card -->
+<div class="lg:col-span-8 bg-hero-gradient rounded-lg p-8 md:p-12 text-on-primary flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
+<div class="z-10 space-y-6">
+<div>
+<span class="font-label uppercase tracking-widest text-xs opacity-70">Next Dispatch</span>
+<h1 class="text-4xl md:text-5xl font-headline font-bold mt-2">October 24th</h1>
+</div>
+<div class="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-lg w-fit">
+<span class="material-symbols-outlined">coffee</span>
+<div>
+<p class="font-label text-xs uppercase opacity-70">Curated Choice</p>
+<p class="font-headline font-bold">Sumatra Gayo Highlands</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-4 pt-4">
+<button class="bg-surface text-primary px-6 py-3 rounded-lg font-label font-bold text-sm uppercase tracking-wider hover:opacity-90 transition-all">Manage Delivery</button>
+<button class="bg-transparent border border-white/30 text-white px-6 py-3 rounded-lg font-label font-bold text-sm uppercase tracking-wider hover:bg-white/10 transition-all">Skip this Month</button>
+</div>
+</div>
+<div class="mt-8 md:mt-0 md:absolute md:-right-4 md:bottom-0 z-0 opacity-40 md:opacity-100">
+<img alt="Coffee beans" class="w-64 h-auto object-cover" data-alt="macro close-up of dark oily roasted coffee beans spilling from a burlap sack, warm moody lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEeP0i8YnMIO5JnIjJAIrsrSqTPz0gwuMPxVs0GrgNfrWUxqGiw5O7-XxKSlDhyLA6c9FdsHmxApFoQ-Gh2Dy9uMYu_MYwAKvbXqwoDJhN1b6ymyinz3DWMVQGI7-W8o6ibA3UqQx4_dYp0zwtHdp1yvZhqmfPCxFTgzVLZv-bqhDOqitfKk64yoAsDLzTTcsWQNCzv4SE--ZRLqZWPCh1BaqxOIUosbr2gKCU2kiG_AcoNfIHtpzZ2DlPdBnYqEz3mw2MK2RR_A"/>
+</div>
+</div>
+<!-- Active Subscription Stats -->
+<div class="lg:col-span-4 flex flex-col gap-8">
+<div class="bg-surface-container-low p-8 rounded-lg flex-1">
+<h3 class="font-headline font-bold text-xl mb-6">Active Subscription</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center pb-4 border-b border-outline-variant/20">
+<span class="font-label text-xs uppercase text-on-surface-variant">Tier</span>
+<span class="font-bold">Explorer Plan</span>
+</div>
+<div class="flex justify-between items-center pb-4 border-b border-outline-variant/20">
+<span class="font-label text-xs uppercase text-on-surface-variant">Frequency</span>
+<span class="font-bold">Bi-Weekly</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-label text-xs uppercase text-on-surface-variant">Next Bill</span>
+<span class="font-bold">CHF 34.00</span>
+</div>
+</div>
+<button class="w-full mt-8 text-primary font-label font-bold text-xs uppercase tracking-widest border-b border-primary w-fit pb-1 hover:opacity-60 transition-all">Edit Preferences</button>
+</div>
+</div>
+</section>
+<!-- Middle Content Row: Taste Profile & Quick Reorder -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Taste Profile Visualization -->
+<div class="lg:col-span-7 bg-surface-container p-8 rounded-lg">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h3 class="font-headline font-bold text-2xl">Your Taste Profile</h3>
+<p class="font-body italic text-on-surface-variant">Curated based on 12 recent ratings</p>
+</div>
+<span class="material-symbols-outlined text-tertiary-fixed-dim scale-150" style="font-variation-settings: 'FILL' 1;">psychology_alt</span>
+</div>
+<div class="space-y-8">
+<!-- Origin Gauge Signature Component -->
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label text-xs uppercase tracking-widest">Roast Depth</span>
+<span class="font-headline font-bold text-xs">MEDIUM-DARK</span>
+</div>
+<div class="h-2 w-full bg-secondary-container rounded-full relative">
+<div class="absolute top-0 left-0 h-full w-[75%] bg-primary rounded-full"></div>
+<div class="absolute top-1/2 left-[75%] -translate-y-1/2 w-4 h-4 bg-tertiary-fixed-dim rounded-full shadow-md"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label text-xs uppercase tracking-widest">Acidity</span>
+<span class="font-headline font-bold text-xs">LOW &amp; SILKY</span>
+</div>
+<div class="h-2 w-full bg-secondary-container rounded-full relative">
+<div class="absolute top-0 left-0 h-full w-[30%] bg-primary rounded-full"></div>
+<div class="absolute top-1/2 left-[30%] -translate-y-1/2 w-4 h-4 bg-tertiary-fixed-dim rounded-full shadow-md"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label text-xs uppercase tracking-widest">Body</span>
+<span class="font-headline font-bold text-xs">FULL BODIED</span>
+</div>
+<div class="h-2 w-full bg-secondary-container rounded-full relative">
+<div class="absolute top-0 left-0 h-full w-[90%] bg-primary rounded-full"></div>
+<div class="absolute top-1/2 left-[90%] -translate-y-1/2 w-4 h-4 bg-tertiary-fixed-dim rounded-full shadow-md"></div>
+</div>
+</div>
+</div>
+<div class="mt-12 flex flex-wrap gap-3">
+<span class="px-4 py-2 bg-surface-container-highest rounded-lg text-xs font-label font-bold uppercase tracking-widest">Dark Chocolate</span>
+<span class="px-4 py-2 bg-surface-container-highest rounded-lg text-xs font-label font-bold uppercase tracking-widest">Hazelnut</span>
+<span class="px-4 py-2 bg-surface-container-highest rounded-lg text-xs font-label font-bold uppercase tracking-widest">Stone Fruit</span>
+</div>
+</div>
+<!-- Quick Reorder Section -->
+<div class="lg:col-span-5 bg-surface-container-low p-8 rounded-lg">
+<h3 class="font-headline font-bold text-2xl mb-8">Quick Reorder</h3>
+<div class="space-y-6">
+<div class="flex items-center gap-4 group">
+<div class="h-20 w-20 bg-surface-container rounded-lg overflow-hidden shrink-0">
+<img alt="Coffee bag" class="h-full w-full object-cover group-hover:scale-105 transition-transform" data-alt="minimalist white coffee bag packaging with geometric patterns on a neutral beige background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDj2PtWY_yoA88zbEcI3bv3CcrCv_VzYj9PPb8MfnBpxt06wu12rQYx8GSE-F7LuuoKkXhwMdHNuCGmpB9c0wI8UU2d8svvzv7u1YmYbjwbanTEY9FVY7X22SA6Ys4GDaucAWmzX_gTtYh3nZAHivrmXrKpJNGTFDVJ5WDQWTvYFDibD8FDnb5dUwogxI4HJUajcP7w916L8pOhhRbHEjpBdv7FZlnxTCr7_MfCjPMCuHws_Xuz0KxfxmPOLk8Tvmvagn6FhFSiRQ"/>
+</div>
+<div class="flex-1">
+<h4 class="font-headline font-bold">Ethiopia Yirgacheffe</h4>
+<p class="text-sm font-body text-on-surface-variant">250g • Whole Bean</p>
+<p class="text-sm font-bold mt-1">CHF 18.00</p>
+</div>
+<button class="p-2 bg-primary text-white rounded-lg hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="flex items-center gap-4 group">
+<div class="h-20 w-20 bg-surface-container rounded-lg overflow-hidden shrink-0">
+<img alt="Coffee bag" class="h-full w-full object-cover group-hover:scale-105 transition-transform" data-alt="dark coffee packaging with elegant gold lettering on a light wood surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmsG3NAoF5Uaag-FfsshPPRqPWV_JsnrGzNlHbzuPhuVedQF3BCvGop81vMTLg2V45BOiJCQ22YjaePP5T2pnzzpjzqzeHpRAIqpWwAH0i5jJX0UZR1W9299GApQ2rumaKqpHPncYwj8VunxPBWIOC5ZsyinABc5HYtIEQe_96d8UIRq093Jhvm7x5F3mFygzkUI-Otj0H7xQs2RoJb7OgGMrPPyF6F7aRwcTWi8JWn3Kc2rCsqbJUtW1Ji-xv2FaMKb9fbBFGSA"/>
+</div>
+<div class="flex-1">
+<h4 class="font-headline font-bold">Brazil Santos Gold</h4>
+<p class="text-sm font-body text-on-surface-variant">500g • Espresso Grind</p>
+<p class="text-sm font-bold mt-1">CHF 26.00</p>
+</div>
+<button class="p-2 bg-primary text-white rounded-lg hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<button class="w-full mt-10 py-3 bg-secondary text-white font-label font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-on-secondary-container transition-all">View Full Catalog</button>
+</div>
+</section>
+<!-- Referral Banner (Asymmetric Layout) -->
+<section class="bg-surface-container-highest p-8 md:p-12 rounded-lg flex flex-col md:flex-row items-center gap-8 border-l-[12px] border-tertiary-fixed-dim">
+<div class="flex-1 space-y-4 text-center md:text-left">
+<span class="font-label font-bold text-xs uppercase tracking-[0.2em] text-primary/60">Community Rewards</span>
+<h2 class="text-3xl md:text-4xl font-headline font-bold text-primary">Give CHF 10, Get CHF 10</h2>
+<p class="font-body text-lg max-w-xl">Share the Alpine Roast experience with your friends. They get a discount on their first bag, and you get credit for your next delivery.</p>
+</div>
+<div class="shrink-0 w-full md:w-auto">
+<div class="flex bg-surface rounded-lg p-2 shadow-sm">
+<input class="bg-transparent border-none focus:ring-0 font-label font-bold text-sm tracking-widest px-4 w-full md:w-64" readonly="" type="text" value="ALPINE-FRIEND-2024"/>
+<button class="bg-primary text-white px-6 py-2 rounded-lg font-label font-bold text-xs uppercase tracking-widest">Copy Code</button>
+</div>
+</div>
+</section>
+<!-- Favorites & Rating History (Grid) -->
+<section>
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="font-headline font-bold text-2xl">Favorites &amp; Rating History</h3>
+<p class="font-body text-on-surface-variant mt-1">Your journey through the world's best origins.</p>
+</div>
+<a class="text-primary font-label font-bold text-xs uppercase tracking-widest border-b border-primary pb-1" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Discovery Card 1 -->
+<div class="bg-surface-container-low p-6 rounded-lg group">
+<div class="aspect-square bg-surface rounded-lg mb-6 overflow-hidden relative">
+<img alt="Guatemala Beans" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" data-alt="vibrant photo of green coffee berries and roasted beans on a woven basket in a sunlit Guatemalan farm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDinkYvvtCLBubg-hFUVZmz1zop0UpL4lRzNxnj-nP5m93gWMwEgqLH0Z-4_Zo080RldqVcobOAjeziy1u0WsvBM3BH81VFu9iQysZsbsohLs2V9DzSSlex_5og8-Wj8hIzz_e4F3BXsh6UCqaTWf6_MXRVoIrtKtr9DzNm-YgSb2VD47FguUhKXX3IQ6b82Zz84LkLfKAOyTGZ3XNxJ-J6KsvWxw6-5Jsng2P4LhhEIouHIeevX0srD2sjkhLzmMJETBobsXKkIA"/>
+<div class="absolute top-4 right-4 h-10 w-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-tertiary-fixed-dim">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Guatemala • Antigua</span>
+<h4 class="font-headline font-bold text-lg mt-1 mb-3">La Flor del Café</h4>
+<div class="flex gap-1 text-tertiary-fixed-dim">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<!-- Discovery Card 2 -->
+<div class="bg-surface-container-low p-6 rounded-lg group">
+<div class="aspect-square bg-surface rounded-lg mb-6 overflow-hidden relative">
+<img alt="Kenya Beans" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" data-alt="artistic pour over coffee brewing setup with steam rising and rich brown coffee liquid flowing into a glass carafe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCES2wKvkeAv74fk0NWbSpexzzGKTyXwH_QL-XswGasaqxJABfaAPnYjtygCwuJNXAFOXTjDiGM1zcNyLvTAgqaS5myh4SOiMjAdcYvU5gsNG-EaodFK16RyHCPTV02-YsGGAQTKTl5H-D9UwE3Qpl18-AvR4vnKOL1Lm43XJTksFxoLzYJibguFBTu43V2vgqVD9Rr8_GbJxuHIqS3UpDQkj9tI5EQewEbE9RP_w00jUaE6KvzkaOrjK2CwaDjiVoPm00RW_u9FQ"/>
+<div class="absolute top-4 right-4 h-10 w-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-primary/20">
+<span class="material-symbols-outlined">favorite</span>
+</div>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Kenya • Nyeri</span>
+<h4 class="font-headline font-bold text-lg mt-1 mb-3">Karogoto Factory</h4>
+<div class="flex gap-1 text-tertiary-fixed-dim">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0;">star</span>
+</div>
+</div>
+<!-- Discovery Card 3 -->
+<div class="bg-surface-container-low p-6 rounded-lg group">
+<div class="aspect-square bg-surface rounded-lg mb-6 overflow-hidden relative">
+<img alt="Colombia Beans" class="w-10/12 h-10/12 object-cover group-hover:rotate-3 transition-all duration-500 mx-auto mt-4" data-alt="elegant dark matte coffee bag with gold foil topography lines on a minimalist slate background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwop8xUHiTZGmBNMdBz_Cf3F41MEgFc7uPVOB7QCmr9Xp7OqaSDD0gdaZEfxrdhfnNWQs7o2UG8U8EiXUoM6-NzfofQGQdKzJX6-y78cH2w7jDIFwkLvR_cy7SgplMNUppZ7r2ea6FW5HkAOWJEA7EQNxx-ia9uXOkihC3w0oo9mZLlRYWdjTufK7f2vMvk6LfwxTtpg_NloY5boJ0wRhLL5Pc-I-MPOu-1R-nFgyJiSRgu1Dhs0NSqCcqvZALQDIluF_ezzBi1A"/>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Colombia • Huila</span>
+<h4 class="font-headline font-bold text-lg mt-1 mb-3">Finca El Diviso</h4>
+<div class="flex gap-1 text-tertiary-fixed-dim">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<!-- Discovery Card 4 -->
+<div class="bg-surface-container-low p-6 rounded-lg group">
+<div class="aspect-square bg-surface rounded-lg mb-6 overflow-hidden relative">
+<img alt="Rwanda Beans" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" data-alt="close up of roasted coffee beans on a rustic wooden table with soft morning sunlight filtering through a window" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCArzQWxvl9mM2Zn3ibZDvC_dX-URX2NRnCpxq5FrXDiKuZwyRXhzMdcHidXkoh8DGtHTnToynXgEGH7or5M-Ontu38gmlvLNE_qCHQOa0TUybSLv52hZiro_ezaCgA6Bho5-4Vzeqjl3ApFQ_QOLHm_5S7v2Nkzqe33L3y39fo9etPJDfwCDcXHXQLMg3XNNnkyZ38z-3BQkWRjkZDGOIG0dsI6RZBmEez1RXwJay0zKGmaFZvlDqKegaRxYR3SYfqNQ3MY10Dow"/>
+</div>
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Rwanda • Rusizi</span>
+<h4 class="font-headline font-bold text-lg mt-1 mb-3">Gasharu Estate</h4>
+<div class="flex gap-1 text-tertiary-fixed-dim">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Shared Component Execution - Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-[#F9F5F0] border-t border-[#d5c3bb]/20 shadow-[0_-4px_20px_rgba(77,44,25,0.04)] flex justify-around items-center h-16 pb-safe">
+<a class="flex flex-col items-center text-[#341706] active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label text-[10px] font-bold uppercase tracking-widest">Home</span>
+</a>
+<a class="flex flex-col items-center text-[#1c1c19]/40 active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label text-[10px] font-bold uppercase tracking-widest">Orders</span>
+</a>
+<a class="flex flex-col items-center text-[#1c1c19]/40 active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label text-[10px] font-bold uppercase tracking-widest">Subscriptions</span>
+</a>
+<a class="flex flex-col items-center text-[#1c1c19]/40 active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">psychology_alt</span>
+<span class="font-label text-[10px] font-bold uppercase tracking-widest">Taste Profile</span>
+</a>
+</nav>
+</body></html>

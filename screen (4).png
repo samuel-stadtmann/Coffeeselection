@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Noto+Serif:wght@400;700&amp;family=Montserrat:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#f0bba0",
+              "surface-tint": "#7d553f",
+              "on-background": "#1c1c19",
+              "surface-container": "#f1ede8",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#f7f3ee",
+              "on-surface": "#1c1c19",
+              "secondary-fixed-dim": "#d1c5ae",
+              "tertiary-fixed-dim": "#f6be39",
+              "outline": "#83746d",
+              "on-secondary": "#ffffff",
+              "tertiary": "#2a1d00",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "on-tertiary-container": "#c79501",
+              "on-primary-fixed-variant": "#623e2a",
+              "error-container": "#ffdad6",
+              "background": "#F9F5F0",
+              "on-secondary-fixed": "#211b0c",
+              "primary-fixed": "#ffdbca",
+              "inverse-primary": "#f0bba0",
+              "secondary-container": "#ebdec6",
+              "on-primary-fixed": "#301404",
+              "secondary-fixed": "#eee1c9",
+              "surface-dim": "#ddd9d5",
+              "surface-bright": "#fdf9f4",
+              "inverse-on-surface": "#f4f0eb",
+              "primary-container": "#4d2c19",
+              "on-secondary-container": "#6b624f",
+              "secondary": "#665d4b",
+              "tertiary-container": "#453100",
+              "on-tertiary-fixed": "#261a00",
+              "surface": "#F9F5F0",
+              "on-primary": "#ffffff",
+              "tertiary-fixed": "#ffdfa0",
+              "surface-variant": "#e6e2dd",
+              "surface-container-high": "#ebe8e3",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#51443e",
+              "on-primary-container": "#c29279",
+              "surface-container-lowest": "#ffffff",
+              "inverse-surface": "#31302d",
+              "primary": "#341706",
+              "outline-variant": "#d5c3bb",
+              "on-secondary-fixed-variant": "#4e4634",
+              "on-error-container": "#93000a",
+              "surface-container-highest": "#e6e2dd",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Noto Serif"],
+              "label": ["Montserrat", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Noto Serif', serif; background-color: #F9F5F0; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F9F5F0] text-on-background min-h-screen flex flex-col">
+<!-- Top Navigation Header Unification -->
+<header class="fixed top-0 w-full z-50 bg-[#F9F5F0]/85 backdrop-blur-xl transition-all duration-300">
+<nav class="flex justify-between items-center max-w-7xl mx-auto px-8 py-4 w-full">
+<div class="flex items-center space-x-2">
+<img alt="The Alpine Roast Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+<span class="text-2xl font-bold tracking-tight text-primary font-headline">The Alpine Roast</span>
+</div>
+<div class="hidden md:flex items-center space-x-10">
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Our Roasts</a>
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Subscriptions</a>
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Origins</a>
+<a class="text-tertiary-fixed-dim border-b-2 border-tertiary-fixed-dim pb-1 font-label text-[10px] tracking-widest uppercase" href="#">The Ritual</a>
+<a class="text-primary hover:text-tertiary-fixed-dim transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Brewing Guides</a>
+</div>
+<div class="flex items-center space-x-6">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors" title="Shopping Bag">shopping_bag</span>
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors" title="Profile">person</span>
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-6 py-2 text-[10px] uppercase tracking-widest font-label font-bold rounded-lg shadow-sm hover:opacity-90 transition-all">
+                    Subscribe
+                </button>
+</div>
+</nav>
+</header>
+<div class="pt-32">
+<!-- Progress Tracker -->
+<div class="max-w-xl mx-auto w-full px-8 mb-16">
+<div class="flex justify-between items-end mb-3">
+<span class="font-headline text-[10px] font-bold tracking-[0.15em] text-primary/60 uppercase">Discovery Journey</span>
+<span class="font-headline text-[10px] font-bold text-primary uppercase">28% Complete</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-highest overflow-hidden">
+<div class="h-full bg-tertiary-fixed-dim transition-all duration-700 ease-out" style="width: 28%"></div>
+</div>
+</div>
+<!-- Main Quiz Canvas -->
+<main class="flex-grow flex flex-col items-center px-8">
+<div class="max-w-3xl w-full">
+<!-- Question Header -->
+<div class="mb-12 text-center md:text-left">
+<span class="font-headline text-xs font-bold text-tertiary-container/70 tracking-widest uppercase mb-4 block">Question 02</span>
+<h1 class="font-headline text-4xl md:text-5xl font-bold text-primary leading-tight tracking-tight">Wie intensiv magst du deinen Kaffee?</h1>
+</div>
+<!-- Intensity Options Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-20">
+<!-- Option: Mild -->
+<button class="group relative flex flex-col p-8 bg-surface-container-lowest text-left transition-all duration-300 hover:bg-surface-container focus:ring-1 focus:ring-tertiary-fixed-dim outline-none border-b-2 border-transparent active:scale-[0.98]">
+<div class="flex justify-between items-start mb-8">
+<span class="material-symbols-outlined text-primary-container opacity-40 group-hover:opacity-100 transition-opacity" data-icon="light_mode">light_mode</span>
+<div class="h-1 w-8 bg-surface-container-highest">
+<div class="h-full bg-tertiary-fixed-dim w-1/4"></div>
+</div>
+</div>
+<span class="font-headline text-lg font-bold text-primary mb-2">Mild</span>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed">Feine Nuancen, sanfter Körper und wenig Bitterstoffe. Perfekt für den puren Genuss.</p>
+</button>
+<!-- Option: Balanced (Active Simulation) -->
+<button class="group relative flex flex-col p-8 bg-surface-container text-left transition-all duration-300 ring-1 ring-tertiary-fixed-dim border-b-2 border-tertiary-fixed-dim outline-none active:scale-[0.98]">
+<div class="flex justify-between items-start mb-8">
+<span class="material-symbols-outlined text-primary-container" data-icon="balance" style="font-variation-settings: 'FILL' 1;">balance</span>
+<div class="h-1 w-8 bg-surface-container-highest">
+<div class="h-full bg-tertiary-fixed-dim w-2/4"></div>
+</div>
+</div>
+<span class="font-headline text-lg font-bold text-primary mb-2">Balanced</span>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed">Die goldene Mitte. Harmonisches Zusammenspiel von Säure, Süße und Röstnote.</p>
+</button>
+<!-- Option: Intensiv -->
+<button class="group relative flex flex-col p-8 bg-surface-container-lowest text-left transition-all duration-300 hover:bg-surface-container focus:ring-1 focus:ring-tertiary-fixed-dim outline-none border-b-2 border-transparent active:scale-[0.98]">
+<div class="flex justify-between items-start mb-8">
+<span class="material-symbols-outlined text-primary-container opacity-40 group-hover:opacity-100 transition-opacity" data-icon="bolt">bolt</span>
+<div class="h-1 w-8 bg-surface-container-highest">
+<div class="h-full bg-tertiary-fixed-dim w-3/4"></div>
+</div>
+</div>
+<span class="font-headline text-lg font-bold text-primary mb-2">Intensiv</span>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed">Kräftige Röstung mit deutlichem Charakter. Ideal für Milchkreationen wie Cappuccino.</p>
+</button>
+<!-- Option: Sehr kräftig -->
+<button class="group relative flex flex-col p-8 bg-surface-container-lowest text-left transition-all duration-300 hover:bg-surface-container focus:ring-1 focus:ring-tertiary-fixed-dim outline-none border-b-2 border-transparent active:scale-[0.98]">
+<div class="flex justify-between items-start mb-8">
+<span class="material-symbols-outlined text-primary-container opacity-40 group-hover:opacity-100 transition-opacity" data-icon="coffee_maker">coffee_maker</span>
+<div class="h-1 w-8 bg-surface-container-highest">
+<div class="h-full bg-tertiary-fixed-dim w-full"></div>
+</div>
+</div>
+<span class="font-headline text-lg font-bold text-primary mb-2">Sehr kräftig</span>
+<p class="text-sm text-on-surface-variant font-body leading-relaxed">Dunkel, ölig, vollmundig. Ein Espresso-Erlebnis mit langanhaltendem Nachgeschmack.</p>
+</button>
+</div>
+<!-- Action Footer -->
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 pb-24">
+<button class="group flex items-center gap-2 text-primary/60 hover:text-primary transition-colors py-4 px-6 order-2 md:order-1">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+<span class="font-headline text-xs font-bold tracking-widest uppercase">Zurück</span>
+</button>
+<button class="w-full md:w-auto bg-gradient-to-br from-primary to-primary-container text-on-primary px-12 py-5 rounded-lg shadow-[0_12px_40px_rgba(77,44,25,0.15)] hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-4 order-1 md:order-2">
+<span class="font-headline text-xs font-bold tracking-[0.2em] uppercase">Weiter</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+<!-- Minimal Footer (Identity Only) -->
+<footer class="w-full py-12 px-8 bg-surface-container-low mt-auto">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="font-body text-xs text-on-surface-variant/60">© 2024 The Alpine Roast. Crafted for the Editorial Sommelier.</p>
+<div class="flex gap-8">
+<span class="font-headline text-[10px] font-bold tracking-widest text-primary/40 uppercase">Origin Focus</span>
+<span class="font-headline text-[10px] font-bold tracking-widest text-primary/40 uppercase">Swiss Precision</span>
+<span class="font-headline text-[10px] font-bold tracking-widest text-primary/40 uppercase">Direct Trade</span>
+</div>
+</div>
+</footer>
+</body></html>

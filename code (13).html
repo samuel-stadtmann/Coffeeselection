@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="light" lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#f0bba0",
+              "surface-tint": "#7d553f",
+              "on-background": "#1c1c19",
+              "surface-container": "#f1ede8",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#f7f3ee",
+              "on-surface": "#1c1c19",
+              "secondary-fixed-dim": "#d1c5ae",
+              "tertiary-fixed-dim": "#f6be39",
+              "outline": "#83746d",
+              "on-secondary": "#ffffff",
+              "tertiary": "#2a1d00",
+              "on-tertiary-fixed-variant": "#5c4300",
+              "on-tertiary-container": "#c79501",
+              "on-primary-fixed-variant": "#623e2a",
+              "error-container": "#ffdad6",
+              "background": "#F9F5F0",
+              "on-secondary-fixed": "#211b0c",
+              "primary-fixed": "#ffdbca",
+              "inverse-primary": "#f0bba0",
+              "secondary-container": "#ebdec6",
+              "on-primary-fixed": "#301404",
+              "secondary-fixed": "#eee1c9",
+              "surface-dim": "#ddd9d5",
+              "surface-bright": "#F9F5F0",
+              "inverse-on-surface": "#f4f0eb",
+              "primary-container": "#4d2c19",
+              "on-secondary-container": "#6b624f",
+              "secondary": "#665d4b",
+              "tertiary-container": "#453100",
+              "on-tertiary-fixed": "#261a00",
+              "surface": "#F9F5F0",
+              "on-primary": "#ffffff",
+              "tertiary-fixed": "#ffdfa0",
+              "surface-variant": "#e6e2dd",
+              "surface-container-high": "#ebe8e3",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#51443e",
+              "on-primary-container": "#c29279",
+              "surface-container-lowest": "#ffffff",
+              "inverse-surface": "#31302d",
+              "primary": "#341706",
+              "outline-variant": "#d5c3bb",
+              "on-secondary-fixed-variant": "#4e4634",
+              "on-error-container": "#93000a",
+              "surface-container-highest": "#e6e2dd",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Noto Serif"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-asymmetry {
+            grid-template-columns: repeat(12, 1fr);
+        }
+    </style>
+</head>
+<body class="bg-[#F9F5F0] text-on-background font-body selection:bg-tertiary-fixed-dim selection:text-tertiary-container">
+<!-- TopNavBar: Unified with SCREEN_99 style -->
+<header class="fixed top-0 w-full z-50 bg-[#F9F5F0]/85 backdrop-blur-xl transition-all duration-300">
+<nav class="flex justify-between items-center max-w-7xl mx-auto px-8 py-4 w-full">
+<div class="flex items-center space-x-2">
+<img alt="The Alpine Roast Logo" class="h-10 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0ugRAZCM5SrJlTMIN7z42waIBG1Z8FZXVL7I1jEs-qU7hjDq2N4ASNwSOMdu4FxkKIR6nAf7UHqU4I5npEIsgw4WyFaG_X0AvkIU8rg3pRcmeltA1SpP899XgzcISHOfRlrw_k_4ZYukIwg0aligXWGGqD038An-_vkqeA_ZHI7OHWQbsx0-j9e0tiNHSo5NxEhtY92n1Q3ru4hQzh2N8yqdZo5AVo_-H7JmcjukXCnPovA2aviwacHe25OXcmGwWbDZo5Eu1lxp"/>
+<span class="text-2xl font-bold tracking-tight text-[#4D2C19] font-headline">The Alpine Roast</span>
+</div>
+<div class="hidden md:flex items-center space-x-10">
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Our Roasts</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Subscriptions</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Origins</a>
+<a class="text-[#D4A017] border-b-2 border-[#D4A017] pb-1 font-label text-[10px] tracking-widest uppercase" href="#">The Ritual</a>
+<a class="text-[#4D2C19] hover:text-[#D4A017] transition-colors font-label text-[10px] tracking-widest uppercase" href="#">Brewing Guides</a>
+</div>
+<div class="flex items-center space-x-6">
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">shopping_bag</span>
+<span class="material-symbols-outlined text-primary text-2xl cursor-pointer hover:text-tertiary-fixed-dim transition-colors">person</span>
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-6 py-2 text-[10px] uppercase tracking-widest font-label font-bold rounded-lg shadow-sm hover:opacity-90 transition-all">
+                Subscribe
+            </button>
+</div>
+</nav>
+</header>
+<main class="min-h-screen pt-32 pb-24 px-8 max-w-7xl mx-auto">
+<!-- Progress Indicator -->
+<div class="max-w-3xl mx-auto mb-16">
+<div class="flex justify-between items-end mb-4">
+<span class="font-label text-[10px] tracking-[0.2em] text-on-surface-variant uppercase font-bold">Ihre Reise • 85%</span>
+<span class="font-body italic text-sm text-primary">Fast am Ziel</span>
+</div>
+<div class="h-[2px] w-full bg-surface-container-highest">
+<div class="h-full bg-tertiary-fixed-dim transition-all duration-700 ease-in-out" style="width: 85%;"></div>
+</div>
+</div>
+<div class="grid editorial-asymmetry gap-12 items-center">
+<!-- Left: Content & Question -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-8">
+<header class="space-y-6">
+<span class="font-label text-xs tracking-widest text-primary uppercase font-bold">Experimentierfreude</span>
+<h1 class="font-headline text-4xl md:text-5xl font-bold text-primary leading-[1.1] tracking-tight">
+                    Möchtest du Neues entdecken?
+                </h1>
+<p class="font-body text-lg text-on-surface-variant leading-relaxed max-w-md">
+                    Manche suchen die beruhigende Vertrautheit eines täglichen Klassikers, andere jagen nach der nächsten sensorischen Überraschung.
+                </p>
+</header>
+<!-- Interactive Scale Selector -->
+<div class="flex flex-col gap-4">
+<!-- Option 1: Immer Neues -->
+<button class="group relative flex items-center justify-between p-8 bg-surface-container-low hover:bg-surface-container transition-all duration-300 text-left border-l-4 border-transparent hover:border-tertiary-fixed-dim">
+<div class="flex flex-col gap-1">
+<span class="font-headline font-bold text-lg text-primary">Immer Neues</span>
+<span class="font-body text-sm text-on-surface-variant italic">Ich liebe die Abwechslung und suche ständig nach neuen Aromen.</span>
+</div>
+<span class="material-symbols-outlined text-primary-fixed-dim group-hover:text-tertiary-fixed-dim transition-colors" data-icon="explore">explore</span>
+</button>
+<!-- Option 2: Mischung -->
+<button class="group relative flex items-center justify-between p-8 bg-surface-container hover:bg-surface-container-high transition-all duration-300 text-left border-l-4 border-tertiary-fixed-dim">
+<div class="flex flex-col gap-1">
+<span class="font-headline font-bold text-lg text-primary">Mischung aus Bekannt &amp; Neu</span>
+<span class="font-body text-sm text-on-surface-variant italic">Eine solide Basis mit gelegentlichen Ausflügen in ferne Ursprünge.</span>
+</div>
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="balance" style="font-variation-settings: 'FILL' 1;">balance</span>
+</button>
+<!-- Option 3: Konstant -->
+<button class="group relative flex items-center justify-between p-8 bg-surface-container-low hover:bg-surface-container transition-all duration-300 text-left border-l-4 border-transparent hover:border-tertiary-fixed-dim">
+<div class="flex flex-col gap-1">
+<span class="font-headline font-bold text-lg text-primary">Lieber konstant</span>
+<span class="font-body text-sm text-on-surface-variant italic">Wenn ich meinen Favoriten gefunden habe, bleibe ich ihm treu.</span>
+</div>
+<span class="material-symbols-outlined text-primary-fixed-dim group-hover:text-tertiary-fixed-dim transition-colors" data-icon="anchor">anchor</span>
+</button>
+</div>
+<div class="pt-4 flex items-center gap-6">
+<button class="flex items-center gap-2 text-primary font-label text-xs tracking-widest font-bold uppercase group">
+<span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform" data-icon="arrow_back">arrow_back</span>
+                    Zurück
+                </button>
+</div>
+</div>
+<!-- Right: Editorial Visual -->
+<div class="col-span-12 lg:col-span-7 relative">
+<div class="aspect-[4/5] bg-surface-container overflow-hidden rounded-lg shadow-[0_20px_50px_rgba(77,44,25,0.08)]">
+<img alt="Premium Coffee Brewing" class="w-full h-full object-cover grayscale-[20%] hover:scale-105 transition-transform duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK9e34RH1LEh4J8WJkh0ecnRo6gZgg2sQ33wRmdtKDQyopTnXv65f5b_82qcLNYccRN5ktgEEJI11u-e8AUeNfdqQWeJRDekNgbe-c9qmOHZR1K4mu52BFaEQzSds6zNH2Qrb5AHGi-Q_NxBOhsGliNx6Z8PRZV6T_cqC19iNXNbqxYDPOcPMhndmPUYxbE8qFtjsRcQY3bLRvAKrER8-XrbYsA0mqkgc3xJn7m6JhF-u-5PEGKndWIERMHa6zDJkr87Pfldp6uw"/>
+</div>
+<!-- Asymmetric Floating Detail Card -->
+<div class="absolute -bottom-10 -left-10 hidden lg:block bg-[#F9F5F0] p-8 max-w-xs shadow-[0_12px_40px_rgba(77,44,25,0.06)] border-t border-l border-surface-container">
+<div class="flex flex-col gap-4">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-4xl" data-icon="temp_preferences_custom">temp_preferences_custom</span>
+<h3 class="font-headline font-bold text-primary">Das Sommelier-Prinzip</h3>
+<p class="font-body text-sm text-on-surface-variant leading-relaxed">
+                        Wir kuratieren unsere Auswahl nach Ihrem Entdeckergeist. Ob mutige Einzellagen oder harmonische Hausmischungen.
+                    </p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer: Updated to consistent background -->
+<footer class="w-full pt-24 pb-12 bg-[#F9F5F0] border-t border-surface-container">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-7xl mx-auto px-8">
+<div class="col-span-1 md:col-span-2">
+<div class="text-2xl font-black text-[#341706] mb-4 font-headline uppercase tracking-tighter">The Alpine Roast</div>
+<p class="font-body text-[#4D2C19]/60 max-w-sm mb-6">
+                © 2024 The Alpine Roast. Crafted for the Editorial Sommelier.
+            </p>
+</div>
+<div class="flex flex-col gap-4">
+<span class="font-label text-[10px] tracking-[0.3em] text-[#341706] uppercase font-bold">Entdecken</span>
+<nav class="flex flex-col gap-2">
+<a class="font-body text-sm text-[#4D2C19]/60 hover:text-[#f6be39] transition-colors" href="#">Sustainability</a>
+<a class="font-body text-sm text-[#4D2C19]/60 hover:text-[#f6be39] transition-colors" href="#">Direct Trade</a>
+<a class="font-body text-sm text-[#4D2C19]/60 hover:text-[#f6be39] transition-colors" href="#">Brew Guides</a>
+</nav>
+</div>
+<div class="flex flex-col gap-4">
+<span class="font-label text-[10px] tracking-[0.3em] text-[#341706] uppercase font-bold">Rechtliches</span>
+<nav class="flex flex-col gap-2">
+<a class="font-body text-sm text-[#4D2C19]/60 hover:text-[#f6be39] transition-colors" href="#">Privacy Policy</a>
+<a class="font-body text-sm text-[#4D2C19]/60 hover:text-[#f6be39] transition-colors" href="#">Wholesale</a>
+<a class="font-body text-sm text-[#4D2C19]/60 hover:text-[#f6be39] transition-colors" href="#">Careers</a>
+</nav>
+</div>
+</div>
+</footer>
+</body></html>
