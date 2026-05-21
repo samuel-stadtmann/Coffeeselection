@@ -63,6 +63,36 @@ export async function PATCH(
 
   const svc = createServiceClient();
 
+  // Abo-Anpassung (Intervall/Menge/Gewicht) nur im pausierten Zustand zulassen
+  // (Variante A): ein aktives Abo muss erst pausiert werden, damit keine
+  // laufende Lieferung mitten im Zyklus umkonfiguriert wird.
+  {
+    const { data: subRow, error: statusErr } = await svc
+      .from("subscriptions")
+      .select("status")
+      .eq("id", subUuid)
+      .maybeSingle();
+    if (statusErr) {
+      return NextResponse.json(
+        { error: "lookup_failed", details: statusErr.message },
+        { status: 400 }
+      );
+    }
+    if (!subRow) {
+      return NextResponse.json({ error: "not_found" }, { status: 404 });
+    }
+    if (subRow.status !== "paused") {
+      return NextResponse.json(
+        {
+          error: "not_paused",
+          details:
+            "Abo muss pausiert sein, um Intervall/Menge/Gewicht zu ändern.",
+        },
+        { status: 409 }
+      );
+    }
+  }
+
   // Intervall geht auf subscriptions, qty/weight auf subscription_items.
   if (parsed.data.interval_weeks != null) {
     const { error } = await svc

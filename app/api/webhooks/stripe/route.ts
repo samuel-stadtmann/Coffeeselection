@@ -768,7 +768,7 @@ async function handleInvoicePaid(
   // der Coffee weiter unten ersetzt, Quantity/Gewicht bleiben.
   const { data: subItems, error: siErr } = await svc
     .from("subscription_items")
-    .select("coffee_id, quantity, weight_g, coffee:coffees(name, roast_level, wholesale_price_chf, roaster:roasters(name))")
+    .select("coffee_id, quantity, weight_g, coffee:coffees(name, roast_level, wholesale_price_chf, roaster_id, roaster:roasters(name))")
     .eq("subscription_id", ourSub.id);
 
   if (siErr || !subItems || subItems.length === 0) {
@@ -788,6 +788,7 @@ async function handleInvoicePaid(
     roast_level: string | null;
     wholesale_price_chf: number | null;
     roaster_name: string;
+    roaster_id: string | null;
   } | null = null;
   if (ourSub.discovery_mode) {
     const { data: customer } = await svc
@@ -823,7 +824,7 @@ async function handleInvoicePaid(
           const { data: coffeeDetail } = await svc
             .from("coffees")
             .select(
-              "id, name, roast_level, wholesale_price_chf, roaster:roasters(name)"
+              "id, name, roast_level, wholesale_price_chf, roaster_id, roaster:roasters(name)"
             )
             .eq("id", pick.id)
             .maybeSingle();
@@ -840,6 +841,8 @@ async function handleInvoicePaid(
                   ? null
                   : Number(coffeeDetail.wholesale_price_chf),
               roaster_name: roaster?.name ?? "",
+              roaster_id:
+                (coffeeDetail as { roaster_id?: string | null }).roaster_id ?? null,
             };
           }
         }
@@ -922,6 +925,7 @@ async function handleInvoicePaid(
       name: string;
       roast_level: string | null;
       wholesale_price_chf: number | null;
+      roaster_id: string | null;
       roaster: { name: string } | null;
     } | null;
     // P2: bei Discovery ersetzen wir coffee_id + Snapshots durch den
@@ -940,6 +944,9 @@ async function handleInvoicePaid(
     const roastLevel = useOverride
       ? renewalCoffeeOverride!.roast_level
       : coffeeRel?.roast_level ?? null;
+    const roasterId = useOverride
+      ? renewalCoffeeOverride!.roaster_id
+      : coffeeRel?.roaster_id ?? null;
     // P6 Schritt 1: Wholesale-Preis auf order_items snapshoten, skaliert
     // auf die tatsaechliche bag-Groesse (subscription_items.weight_g).
     const wholesaleBase = useOverride
@@ -954,6 +961,7 @@ async function handleInvoicePaid(
       coffee_id: coffeeId,
       coffee_name_snapshot: coffeeName,
       roaster_name_snapshot: roasterName,
+      roaster_id: roasterId,
       roast_level_snapshot: roastLevel,
       quantity: si.quantity,
       weight_g: si.weight_g,
