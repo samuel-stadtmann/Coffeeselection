@@ -42,7 +42,9 @@ Optimierung in P10 beobachtet.
 sequenziellen Vektor-Vergleich. Bei <300 Coffees ist das schneller als
 jeder Index, ab 1.000+ wird's spuerbar.
 
-**Fix.** HNSW-Index auf `coffees.flavor_embedding`:
+**Fix.** HNSW-Index auf `coffees.flavor_embedding` — Script liegt bereit
+unter `supabase/manual/hnsw_flavor_embedding_index.sql` (bewusst NICHT in
+`migrations/`, damit es `supabase db push` auf Free nicht bricht):
 
 ```sql
 create index coffees_flavor_embedding_hnsw_idx
