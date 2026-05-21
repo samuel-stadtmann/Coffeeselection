@@ -749,7 +749,7 @@ async function handleInvoicePaid(
   // Unsere Subscription via stripe_subscription_id finden
   const { data: ourSub, error: subErr } = await svc
     .from("subscriptions")
-    .select("id, customer_id, shipping_address_id, billing_address_id, price_chf_per_delivery, shipping_chf, interval_weeks, status, discount_percent, discovery_mode")
+    .select("id, customer_id, shipping_address_id, billing_address_id, price_chf_per_delivery, shipping_chf, interval_weeks, status, discount_percent, discovery_mode, total_deliveries")
     .eq("stripe_subscription_id", invoice.subscription)
     .maybeSingle();
 
@@ -853,6 +853,17 @@ async function handleInvoicePaid(
         );
       }
     }
+  }
+
+  // Discovery-Abo, aber kein gueltiger JIT-Pick (RPC-Fehler, leeres Ergebnis
+  // oder Geschmackstyp fehlt): wir fallen auf den Initial-Coffee aus
+  // subscription_items zurueck. Dieser ist NICHT auf status='active'/Stock
+  // revalidiert und kann derselbe Bean wie zuletzt sein. Wir liefern trotzdem
+  // (Stripe hat bereits abgebucht), loggen aber laut fuer manuelles Eingreifen.
+  if (ourSub.discovery_mode && renewalCoffeeOverride == null) {
+    console.error(
+      `[webhooks/stripe] ⚠ discovery renewal ohne JIT-Pick fuer subscription ${ourSub.id} — Fallback auf Initial-Coffee (nicht revalidiert). Bitte Katalog/Geschmackstyp pruefen.`
+    );
   }
 
   // Shipping-Adresse aus subscription (vom Initial-Snapshot)
@@ -1028,6 +1039,26 @@ async function handleInvoicePaid(
     );
   } catch (e) {
     console.error("[webhooks/stripe] subscription_deliveries log failed", e);
+  }
+
+  // Lieferzaehler nachfuehren — sonst zeigt das Konto dauerhaft "Noch keine
+  // Lieferung erhalten" und ein leeres naechstes Lieferdatum. last_delivery_on
+  // = heute, next_delivery_on = heute + interval_weeks Wochen.
+  try {
+    const today = new Date();
+    const next = new Date(today);
+    next.setUTCDate(next.getUTCDate() + ourSub.interval_weeks * 7);
+    const toDateStr = (d: Date) => d.toISOString().slice(0, 10);
+    await svc
+      .from("subscriptions")
+      .update({
+        total_deliveries: (ourSub.total_deliveries ?? 0) + 1,
+        last_delivery_on: toDateStr(today),
+        next_delivery_on: toDateStr(next),
+      })
+      .eq("id", ourSub.id);
+  } catch (e) {
+    console.error("[webhooks/stripe] delivery-counter update failed", e);
   }
 
   console.log(

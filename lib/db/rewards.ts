@@ -168,14 +168,31 @@ export async function processOrderEarnings(
   // 0) Balance-Redemption: wenn der Customer Guthaben angewendet hat,
   //    buchen wir das als negativen customer_credits-Eintrag mit
   //    reason=order_redemption. Saldo geht damit runter.
+  //    Schutz gegen Doppelausgabe: das Guthaben wird erst HIER (bei Zahlung)
+  //    abgebucht, nicht beim Order-Create. Zwei parallele pending-Orders
+  //    koennten beide dasselbe Guthaben angewendet haben. Wir deckeln die
+  //    Buchung daher auf das aktuell verfuegbare Guthaben, damit der Saldo
+  //    nie negativ wird.
   if (appliedCreditChf > 0) {
-    await svc.from("customer_credits").insert({
-      customer_id: customerId,
-      amount_chf: -appliedCreditChf,
-      reason: "order_redemption",
-      order_id: orderId,
-      description: `Guthaben auf Bestellung angewendet`,
+    const { data: bal } = await svc.rpc("customer_credit_balance", {
+      p_customer_id: customerId,
     });
+    const available = Math.max(0, Number(bal ?? 0));
+    const effectiveCredit = Number(Math.min(appliedCreditChf, available).toFixed(2));
+    if (effectiveCredit < appliedCreditChf) {
+      console.warn(
+        `[earnings] order ${orderId}: applied credit CHF ${appliedCreditChf} > verfuegbar CHF ${available} — gedeckelt auf ${effectiveCredit} (moegliche Doppelanwendung)`
+      );
+    }
+    if (effectiveCredit > 0) {
+      await svc.from("customer_credits").insert({
+        customer_id: customerId,
+        amount_chf: -effectiveCredit,
+        reason: "order_redemption",
+        order_id: orderId,
+        description: `Guthaben auf Bestellung angewendet`,
+      });
+    }
   }
 
   // 1) Promo-Code-Verarbeitung (nutzt promoDiscount, nicht discountChf,

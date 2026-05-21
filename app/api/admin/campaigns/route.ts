@@ -19,6 +19,9 @@ const BodySchema = z.object({
 export async function POST(req: NextRequest) {
   const admin = await getAdminUser();
   if (!admin) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await refreshAdminReauthCookie())) {
+    return NextResponse.json({ error: "reauth_required" }, { status: 401 });
+  }
 
   const body = await req.json().catch(() => null);
   const parsed = BodySchema.safeParse(body);
@@ -52,6 +55,5 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  await refreshAdminReauthCookie();
   return NextResponse.json({ ok: true, id: data?.id });
 }

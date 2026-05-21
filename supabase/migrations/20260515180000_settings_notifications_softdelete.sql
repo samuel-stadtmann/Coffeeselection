@@ -10,9 +10,10 @@
 -- 2) customers.deleted_at  — Soft-Delete-Marker. Wenn gesetzt, ist der
 --    Customer fuer die App "geloescht" (Anonymisiert in App-Logik), aber
 --    Order-Historie bleibt fuer Buchhaltung/Steueramt erhalten.
---    Auth-User wird im Delete-Endpoint via auth.admin.deleteUser entfernt
---    (auth.users -> ON DELETE CASCADE auf customers.auth_user_id, deshalb
---    setzen wir den FK *vor* der eigentlichen Loeschung auf NULL).
+--    Auth-User wird im Delete-Endpoint via auth.admin.deleteUser entfernt.
+--    customers.auth_user_id ist ON DELETE SET NULL (siehe unten), d.h. beim
+--    Loeschen des Auth-Users wird der FK automatisch auf NULL gesetzt; der
+--    anonymisierte customers-Datensatz (Order-Historie) bleibt erhalten.
 
 alter table public.customers
   add column if not exists notify_shipping       boolean not null default true,
