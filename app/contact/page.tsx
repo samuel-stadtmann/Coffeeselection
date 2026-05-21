@@ -2,214 +2,194 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Nav from "@/components/Nav";
-import MobileNav from "@/components/MobileNav";
-import Footer from "@/components/Footer";
+import SiteHeader from "@/components/SiteHeader";
+import AdminFooterLink from "@/components/AdminFooterLink";
+
+const LOGO = "/logo.png";
+
+type State = "idle" | "sending" | "success" | "error";
 
 export default function ContactPage() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    betreff: "",
-    nachricht: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [betreff, setBetreff] = useState("");
+  const [nachricht, setNachricht] = useState("");
+  // Honeypot — versteckt vor Usern, befuellt von Spambots
+  const [website, setWebsite] = useState("");
+  const [state, setState] = useState<State>("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
-
-  function handleSubmit(e: React.FormEvent) {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-  }
+    if (state === "sending") return;
+    setState("sending");
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, betreff, nachricht, website }),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        setErrorMsg(
+          j.error === "invalid_body"
+            ? "Bitte alle Felder korrekt ausfüllen."
+            : "Konnte gerade nicht senden — bitte später nochmal versuchen."
+        );
+        setState("error");
+        return;
+      }
+      setState("success");
+      setName("");
+      setEmail("");
+      setBetreff("");
+      setNachricht("");
+    } catch {
+      setErrorMsg("Konnte gerade nicht senden — bitte später nochmal versuchen.");
+      setState("error");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#fdf9f4]">
-      <Nav />
-      <MobileNav />
+    <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
+      <SiteHeader />
 
-      {/* Hero */}
-      <section className="pt-24 pb-0 max-w-5xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-          <div className="flex flex-col justify-center">
-            <p className="font-sans text-[#795900] font-semibold uppercase tracking-widest text-sm mb-3">
-              Wir sind für Sie da
-            </p>
-            <h1 className="font-serif text-4xl md:text-5xl text-[#341706] leading-tight mb-6">
-              Kontaktiere unseren Concierge
-            </h1>
-            <p className="font-sans text-[#51443e] text-lg leading-relaxed">
-              Unser persönlicher Kaffee-Concierge beantwortet alle Ihre Fragen — von der
-              Bestellung bis zur perfekten Zubereitung.
-            </p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="rounded-2xl overflow-hidden aspect-[4/3]">
-              <img
-                src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&q=80"
-                alt="Coffee concierge"
-                className="w-full h-full object-cover"
-              />
+      <main className="pt-20 md:pt-24">
+        <section className="max-w-3xl mx-auto px-6 md:px-8 py-12 md:py-20">
+          <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-4 block">
+            Kontakt
+          </span>
+          <h1 className="text-4xl md:text-5xl text-primary leading-[1.05] mb-6 font-headline font-bold uppercase tracking-tight">
+            Lust auf einen Kaffee mit uns?
+          </h1>
+          <p className="text-lg text-on-surface-variant leading-relaxed mb-12">
+            Schreib uns über das Formular — wir antworten innerhalb von
+            48 Stunden. Du kannst uns auch direkt eine Mail schicken an{" "}
+            <a
+              href="mailto:hello@coffeeselection.ch"
+              className="text-tertiary hover:text-primary underline"
+            >
+              hello@coffeeselection.ch
+            </a>
+            .
+          </p>
+
+          {state === "success" ? (
+            <div className="bg-white p-8 md:p-12 shadow-sm border-l-4 border-tertiary">
+              <span className="material-symbols-outlined text-tertiary text-5xl mb-4 block">
+                check_circle
+              </span>
+              <h2 className="text-2xl text-primary font-headline font-bold uppercase tracking-tight mb-4">
+                Vielen Dank!
+              </h2>
+              <p className="text-on-surface-variant mb-6">
+                Wir haben deine Nachricht erhalten und melden uns schnellstmöglich.
+              </p>
+              <Link
+                href="/"
+                className="inline-block bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
+              >
+                Zurück zur Startseite
+              </Link>
             </div>
-            <div className="rounded-2xl overflow-hidden aspect-[4/2]">
-              <img
-                src="https://images.unsplash.com/photo-1507133750040-4a8f57021571?w=800&q=80"
-                alt="Coffee preparation"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="max-w-5xl mx-auto px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Contact info */}
-          <div>
-            <h2 className="font-serif text-2xl text-[#341706] mb-8">
-              So erreichen Sie uns
-            </h2>
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#341706]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-[#341706] text-xl">
-                    location_on
-                  </span>
-                </div>
+          ) : (
+            <form onSubmit={submit} className="bg-white p-6 md:p-8 shadow-sm space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="font-sans font-semibold text-[#341706] mb-1">Zürich</p>
-                  <p className="font-sans text-[#51443e]">Bahnhofstrasse 12</p>
-                  <p className="font-sans text-[#51443e]">8001 Zürich, Schweiz</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#341706]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-[#341706] text-xl">
-                    email
-                  </span>
-                </div>
-                <div>
-                  <p className="font-sans font-semibold text-[#341706] mb-1">E-Mail</p>
-                  <a
-                    href="mailto:concierge@digital-sommelier.com"
-                    className="font-sans text-[#795900] hover:underline"
-                  >
-                    concierge@digital-sommelier.com
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-[#341706]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-[#341706] text-xl">
-                    phone
-                  </span>
-                </div>
-                <div>
-                  <p className="font-sans font-semibold text-[#341706] mb-1">Telefon</p>
-                  <a
-                    href="tel:+41441234567"
-                    className="font-sans text-[#795900] hover:underline"
-                  >
-                    +41 44 123 45 67
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact form */}
-          <div>
-            <h2 className="font-serif text-2xl text-[#341706] mb-8">
-              Nachricht senden
-            </h2>
-            {submitted ? (
-              <div className="bg-white rounded-2xl border border-[#d5c3bb]/40 p-10 text-center">
-                <span className="material-symbols-outlined text-[#795900] text-5xl mb-4 block">
-                  check_circle
-                </span>
-                <h3 className="font-serif text-xl text-[#341706] mb-2">
-                  Nachricht erhalten!
-                </h3>
-                <p className="font-sans text-[#51443e]">
-                  Wir melden uns innerhalb von 24 Stunden bei Ihnen.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label className="block font-sans text-sm font-semibold text-[#341706] mb-2">
-                    Name
+                  <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                    Name *
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
                     required
-                    placeholder="Ihr vollständiger Name"
-                    className="w-full border border-[#d5c3bb] rounded-xl px-4 py-3 font-sans text-[#341706] bg-white placeholder:text-[#51443e]/50 focus:outline-none focus:border-[#795900] transition-colors"
+                    autoComplete="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
                   />
                 </div>
                 <div>
-                  <label className="block font-sans text-sm font-semibold text-[#341706] mb-2">
-                    E-Mail
+                  <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                    E-Mail *
                   </label>
                   <input
                     type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
                     required
-                    placeholder="ihre@email.com"
-                    className="w-full border border-[#d5c3bb] rounded-xl px-4 py-3 font-sans text-[#341706] bg-white placeholder:text-[#51443e]/50 focus:outline-none focus:border-[#795900] transition-colors"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
                   />
                 </div>
-                <div>
-                  <label className="block font-sans text-sm font-semibold text-[#341706] mb-2">
-                    Betreff
-                  </label>
-                  <input
-                    type="text"
-                    name="betreff"
-                    value={form.betreff}
-                    onChange={handleChange}
-                    required
-                    placeholder="Worum geht es?"
-                    className="w-full border border-[#d5c3bb] rounded-xl px-4 py-3 font-sans text-[#341706] bg-white placeholder:text-[#51443e]/50 focus:outline-none focus:border-[#795900] transition-colors"
-                  />
+              </div>
+              <div>
+                <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                  Betreff *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={betreff}
+                  onChange={(e) => setBetreff(e.target.value)}
+                  className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
+                />
+              </div>
+              <div>
+                <label className="font-headline text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold block mb-2">
+                  Nachricht *
+                </label>
+                <textarea
+                  required
+                  minLength={5}
+                  rows={5}
+                  value={nachricht}
+                  onChange={(e) => setNachricht(e.target.value)}
+                  className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base resize-none"
+                />
+              </div>
+              {/* Honeypot — versteckt vor Usern, von Spambots befuellt. */}
+              <input
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                className="sr-only"
+                aria-hidden="true"
+                name="website"
+              />
+              {state === "error" && errorMsg && (
+                <div className="bg-rose-50 border-l-4 border-rose-400 p-3 text-sm text-rose-900">
+                  {errorMsg}
                 </div>
-                <div>
-                  <label className="block font-sans text-sm font-semibold text-[#341706] mb-2">
-                    Nachricht
-                  </label>
-                  <textarea
-                    name="nachricht"
-                    value={form.nachricht}
-                    onChange={handleChange}
-                    required
-                    rows={5}
-                    placeholder="Ihre Nachricht an uns..."
-                    className="w-full border border-[#d5c3bb] rounded-xl px-4 py-3 font-sans text-[#341706] bg-white placeholder:text-[#51443e]/50 focus:outline-none focus:border-[#795900] transition-colors resize-none"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-[#341706] text-white font-sans font-semibold py-4 rounded-xl hover:bg-[#795900] transition-colors text-base"
-                >
-                  Nachricht senden
-                </button>
-              </form>
-            )}
+              )}
+              <button
+                type="submit"
+                disabled={state === "sending"}
+                className="w-full bg-primary text-on-primary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+              >
+                {state === "sending" ? "Wird gesendet…" : "Nachricht senden"}
+              </button>
+            </form>
+          )}
+        </section>
+      </main>
+
+      <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
+          <Link href="/" className="flex items-center">
+            <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
+          </Link>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
+            <Link href="/privacy" className="hover:text-tertiary transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-tertiary transition-colors">Terms</Link>
+            <Link href="/roaster/login" className="hover:text-tertiary transition-colors">Röster-Portal</Link>
+            <AdminFooterLink />
           </div>
         </div>
-      </section>
-
-      <Footer />
+      </footer>
     </div>
   );
 }

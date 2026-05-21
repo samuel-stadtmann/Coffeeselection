@@ -2,6 +2,16 @@
 
 Diese Liste enthält alles, was vor dem Production-Launch von Development/Test- auf Production-Werte umgestellt werden muss.
 
+## 🚨 Offene Punkte zum Fertigstellen (Pre-Go-Live)
+
+- [ ] **Google Analytics 4 Setup fertigstellen**
+  - Property + Web-Stream für `coffeeselection.ch` anlegen (teilweise erledigt)
+  - **Measurement-ID** (Format `G-XXXXXXXXXX`) als Vercel Env-Var `NEXT_PUBLIC_GA_MEASUREMENT_ID` setzen (Production + Preview)
+  - **Enhanced Measurement** aktivieren (Scrolls, Outbound-Clicks, Form-Submissions)
+  - **Conversion-Events** markieren in GA4 Admin → Events → Mark as Conversion: `quiz_complete`, `newsletter_subscribe`, `purchase`
+  - **Funnel Exploration** anlegen unter Explore → New: page_view `/` → `quiz_complete` → `add_to_cart` → `begin_checkout` → `purchase`
+  - Verify: Inkognito-Tab → Network-Tab → `gtag/js?id=G-XXX` lädt → in GA4 Realtime sichtbar
+
 ## Deploy-Workflow (Stand 2026-05-09)
 
 - **Production Branch in Vercel**: `main` — Vercel baut diesen Branch automatisch.
@@ -20,8 +30,8 @@ Läuft **Postgres-seitig** via `pg_cron` — unabhängig von Vercel:
 
 Pre-Launch-TODOs:
 
-- [ ] **Aroma-basierte Reklassifikation** (anderer Trigger als der existierende "no"-Counter): über Aroma-Sentiment-Score per Geschmackstyp. Nach OpenAI-Integration (M5b) elegant via Embedding-Centroids; bis dahin als zweiter pg_cron-Job mit stündlichem/täglichem Score-Vergleich falls gewünscht.
-- [ ] **M5b — Embedding-Drift**: braucht OpenAI-Integration. Customer-Taste-Embedding aus Aroma-Sentiments + bisherigen Bewertungen ableiten und gegen Coffee-Embeddings matchen.
+- [x] **Aroma-basierte Reklassifikation** — Migration `20260519100000_aroma_based_reclassification.sql` legt Function `suggest_aroma_based_reclassification(min_ratings, score_threshold)` an + pg_cron-Job `suggest-aroma-reclassification` (taeglich 06:00 UTC). Pickt Customer mit ≥5 Ratings, scored Geschmackstypen anhand `customer_aroma_preferences.sentiment` ueber `taste_types.aroma_families`, setzt `reclassification_suggested_at` + `reclassification_suggested_type` wenn anderer Typ deutlich besser passt. Email kommt ueber bestehende `send-reclassification-emails`-Edge-Function.
+- [x] **M5b — Embedding-Drift**: erledigt. `triggerBuildCustomerEmbedding` wird im Quiz-Submit-Pfad gerufen (`lib/db/quiz.ts:273`), `drift_customer_embedding` wandert das `customers.taste_embedding` bei jeder neuen Rating-Auswertung in/weg vom `coffees.flavor_embedding` (re-normalisiert auf Einheitslaenge), Lern-Worker `process_pending_ratings` laeuft alle 15 Min via pg_cron. Backfill-Button im Admin-Rewards laedt Bestandskunden nach.
 
 ## Supabase
 
@@ -36,17 +46,15 @@ Pre-Launch-TODOs:
 - [ ] Test-Keys → Live-Keys (in Vercel Env-Vars).
 - [ ] Webhook-URLs auf Production-Domain umstellen.
 
-## Checkout / Payment-Flow optimieren (Pre-Launch)
+## Checkout / Payment-Flow — ✅ erledigt
 
-Aktuell gibt es Redundanzen und unnötige Schritte im Checkout. Vor Go-Live aufräumen:
-
-- [ ] **Lieferadresse nur einmal abfragen** — aktuell taucht sie sowohl in `/checkout/shipping` als auch in `/checkout/payment` auf. Heute via Redirect entschärft (`shipping → payment`), aber Payment-Page muss überarbeitet werden damit alles einheitlich an einer Stelle ist.
-- [ ] **Schritt-Anzahl reduzieren** — Cart → Payment statt Cart → Shipping → Review → Payment. Aktuell sind `/checkout/shipping` und `/checkout/review` per Redirect deaktiviert; entweder ganz löschen oder in einen Single-Page-Checkout konsolidieren.
-- [ ] **Saved Addresses für eingeloggte User** aus `customer_addresses`-Tabelle vorausfüllen.
-- [ ] **Order-Persistierung**: Bei Checkout-Submit echten Eintrag in `orders` + `order_items` schreiben (heute reines Mock).
-- [ ] **Stripe oder Shopify-Integration** finalisieren — heute Stub mit env-gated Init.
-- [ ] **Confirmation-Email** nach erfolgreichem Checkout (via Supabase-Trigger oder Edge-Function).
-- [ ] **Error-States im Checkout** sauber behandeln (Karten-Decline, Versand-Fehler, etc.).
+- [x] **Schritt-Anzahl reduziert**: Cart → Checkout → Stripe → Bestätigung. `/checkout/shipping` ist Redirect auf `/checkout/review` (Single-Page-Checkout); Stepper auf 3 Schritte gekürzt.
+- [x] **Lieferadresse nur einmal abgefragt**: Adress-Form via `components/checkout/ShippingForm.tsx` direkt auf `/checkout/review` eingebettet (statt separater Step).
+- [x] **Saved Addresses fuer eingeloggte User**: `SavedAddressesPicker` (in ShippingForm) laed bis zu 5 Adressen aus `customer_addresses`, ein Klick fuellt die Form, „Neue Adresse" raeumt sie wieder leer.
+- [x] **Order-Persistierung**: `POST /api/orders/create` legt echten `orders`+`order_items`-Eintrag an (war schon live, kein Mock).
+- [x] **Stripe-Integration**: Hosted Checkout, Webhook setzt Status, Stripe-Tax aktiv. Live.
+- [x] **Confirmation-Email**: `/api/webhooks/stripe` sendet bei `paid` automatisch `orderConfirmationEmail()` (Einmalkauf) bzw. `subscriptionConfirmationEmail()` (Abo) ueber Resend. (Edge-Function-Variante laut Original-Eintrag waere ein Refactor ohne Mehrwert — Webhook ist der natuerliche Trigger-Punkt.)
+- [x] **Error-States**: Stripe-Cancel-Redirect geht auf `/checkout/review?canceled=1` und zeigt eine Hinweisbox, Customer kann Adresse/Zahlungsmittel anpassen und retry. `/api/orders/create`-Fehler werden inline gerendert.
 
 ## Röster-Dashboard (Pre-Launch)
 
@@ -69,27 +77,26 @@ Wie kommen Röster und Coffees produktiv in die DB? Drei Optionen — entscheide
 - [ ] **Variante C: Onboarding-Form** — neue Röster füllen ein Online-Formular aus, Admin reviewed + freigibt. Hybrid aus A und B.
 - [ ] **Pflicht-Felder pro Coffee**: Sensorik-Profile (acidity/body/sweetness/bitterness/complexity, jeweils 1–5) müssen gesetzt sein, sonst landet der Coffee nicht in Empfehlungen. Heute fehlt z.B. bei "Brasil Cerrado" das ganze Profil — solche Coffees sind unsichtbar im Match.
 - [ ] **Aroma-Familien** (`aroma_families` text[]) müssen aus dem Standard-Vokabular kommen (chocolate, fruity, floral, nutty, sugary etc.) — sonst funktionieren Aroma-basierte Empfehlungen (Post-Launch-Verfeinerung) nicht.
-- [ ] **Flavor-Embedding** (pgvector) wird via OpenAI aus `flavor_description` + `tasting_summary` generiert. Edge Function bei Insert/Update auf `coffees` triggern, damit das Profil immer aktuell ist.
+- [x] **Flavor-Embedding** (pgvector) wird automatisch synchronisiert: DB-Trigger `trg_coffee_embedding_autosync` (Migration `20260518200000`) ruft `generate-coffee-embedding` per `pg_net.http_post` async nach Insert/Update von embedding-relevanten Coffee-Feldern. Voraussetzung Production: Vault-Secrets `SUPABASE_URL` + `SERVICE_ROLE_KEY` + Edge-Function-Secret `OPENAI_API_KEY_COFFEESELECTION`.
 
-## Automatisierte Bewertungs-Email (Pre-Launch)
+## Automatisierte Bewertungs-Email — ✅ erledigt
 
-Nach jeder Bestellung soll ein paar Tage später automatisch eine Email an den Kunden gehen mit Bitte um Bewertung — im Coffee-Selection-Design.
-
-- [ ] **Trigger**: 5–7 Tage nach `orders.delivered_at` (oder `created_at` bis Tracking aktiv ist) → Email-Job wird fällig.
-- [ ] **Design**: Email-Template im Coffee-Selection-Stil (Quiet Luxury Palette, Montserrat/Merriweather Fonts, primary `#4D2C19` / tertiary `#D4A017`). Konsistent mit Site, keine Boilerplate-Mails.
-- [ ] **Inhalt**:
-  - Personalisierte Anrede ("Hi {first_name}")
-  - Foto + Name des bestellten Coffees + Röster
-  - **1-Klick-Sterne-Bewertung in der Email selbst** — jeder Stern ist ein Deep-Link auf `/account/rate/{coffee_slug}?stars=N`, vorausgefüllt für sofort Submit
-  - Optional: Link zur vollständigen Bewertung mit Aromen-Tags + Comment
-  - Footer: Unsubscribe + AGB
-- [ ] **Technik**:
-  - Job-Queue: `pg_cron` + Edge Function (stündlich) — pickt fällige `orders` auf
-  - SMTP-Provider: Resend, Postmark oder SendGrid (siehe SMTP-Item bei Supabase oben)
-  - Tracking: `email_events`-Tabelle (existiert bereits) → sent / opened / clicked / bounced
-  - Rate-Limit: max. 1 Bewertungs-Email pro Coffee pro Kunde, max. 1 Reminder
-  - Idempotenz: Job-Status auf `email_events` prüfen damit Coffee nicht 2x angefragt wird
-- [ ] **Detail-Aufsetzung**: gemeinsam mit Sam — sobald die Datenbank-Anbindung (M5 + Roaster-Dashboard + Order-Persistierung) steht. Bis dahin nur tracken, nicht bauen.
+- [x] **Trigger**: 5–14 Tage nach `orders.paid_at` (`delivered_at` ist heute noch nicht befuellt, paid_at ist der praktikable Proxy bis Tracking-Anbindung).
+- [x] **Design**: `lib/email/templates/rating-reminder.ts` im CS-Stil mit 1-Klick-Sternen pro Coffee.
+- [x] **Magic-Link**: `/api/rate/via-token?t=<HMAC>&s=<stars>` — Submit ohne Login, signiert mit `RATING_TOKEN_SECRET`.
+- [x] **Job-Queue**: pg_cron (`send-rating-reminders`, 09:00 UTC daily) → `pg_net.http_get` auf `/api/cron/rating-reminders` mit `CRON_SECRET`-Bearer. Migration `20260518100000_cron_rating_reminders.sql`. Vault: `SITE_URL` + `CRON_SECRET`.
+- [x] **Rate-Limit / Idempotenz**:
+  - `orders.rating_reminder_sent_at` blockt eine Order nach erstem Send.
+  - `rating_reminder_log(customer_id, coffee_id, sent_at)` blockt Coffee-Reminder fuer 90 Tage.
+  - Coffees mit bestehendem `coffee_ratings`-Eintrag werden vor Send ausgefiltert (kein Reminder fuer bereits bewertete Sorten).
+- [ ] **Vor Go-Live noch zu erledigen** (Production-Supabase + Production-Vercel):
+  ```sql
+  -- Im Production-Supabase SQL Editor:
+  select vault.create_secret('https://coffeeselection.ch', 'SITE_URL');
+  select vault.create_secret('<production_cron_secret>', 'CRON_SECRET');
+  -- Falls schon vorhanden, vault.update_secret(...) statt create_secret.
+  ```
+  Dann gleiche Migration `20260518100000_cron_rating_reminders.sql` einmal auf Production laufen lassen. `CRON_SECRET` als Vercel Env-Var (Production) muss identisch sein.
 
 ## Domain & DNS
 
@@ -100,15 +107,15 @@ Nach jeder Bestellung soll ein paar Tage später automatisch eine Email an den K
 ## Analytics & Monitoring
 
 - [ ] Google Analytics / Plausible Tracking-ID einbauen.
-- [ ] Sentry o.ä. für Error-Tracking.
-- [ ] Vercel Analytics aktivieren.
+- [ ] Error-Monitoring: aktuell keines aktiv. Sentry wurde wegen Performance-Overhead (Client-JS, Session Replay, Tracing) komplett entfernt. Bei Bedarf später ein leichtgewichtigeres Monitoring evaluieren.
+- [x] Vercel Analytics: `@vercel/analytics` installiert + `<Analytics />` in `app/layout.tsx`. Aktiviert sich automatisch auf Vercel Production+Preview, im Vercel-Dashboard Analytics-Tab einschalten.
 
-## SEO
+## SEO — ✅ erledigt
 
-- [ ] `app/sitemap.ts` mit finalen Routen.
-- [ ] `app/robots.ts` von `noindex` auf `index, follow` umstellen.
-- [ ] OpenGraph-Bilder pro wichtiger Page.
-- [ ] Strukturierte Daten (Schema.org Product/Organization).
+- [x] `app/sitemap.ts` mit finalen Routen (statisch + dynamische Coffee-/Roaster-/City-/Compare-/Article-Slugs aus DB).
+- [x] `app/robots.ts` erlaubt Index der Public-Pages, blockt Admin/Account/Checkout/Roaster/API. `noindex` nur via `NEXT_PUBLIC_DISALLOW_INDEXING=1` (Staging).
+- [x] OpenGraph-Metadata in `layout.tsx` (global) + Coffee-/Compare-/Learn-Detail-Pages.
+- [x] Strukturierte Daten — Schema.org Organization ✅ (global in `layout.tsx`), Product ✅ (Coffee-Detail-Page), BlogPosting ✅ (Article-Detail-Page).
 
 ## Content
 
@@ -121,44 +128,37 @@ Nach jeder Bestellung soll ein paar Tage später automatisch eine Email an den K
 
 - [ ] Mock-Daten in Account-Pages durch echte DB-Queries ersetzen (Phase 2 der Supabase-Anbindung).
 
-## Phase A — Empfehlungs-Maschine (höchste Priorität, kritisch für Produkterlebnis)
+## Phase A — Empfehlungs-Maschine — ✅ erledigt (abgelöst durch pgvector-RPC + Lern-Worker)
 
-Aktuell sind alle "Empfehlungen" Mock-Daten oder Platzhalter. Phase A löst das vollständig:
+> **Stand 2026-05-21:** Dieser Block war ursprünglich der "alles ist Mock"-Plan.
+> Er ist mittlerweile vollständig durch die Postgres-Pipeline
+> `rank_coffees_for_customer` (Hartfilter-Cascade, 7-Dim-Scoring, pgvector-
+> Vektor-Similarity, MMR-Diversität, `explain_coffee_match`) + den 15-Min-
+> Lern-Worker `process_pending_ratings` (Embedding-Drift, Aroma-Sentiment,
+> Reklassifikation) ersetzt. Siehe `docs/PRE_GO_LIVE.md` P1 (✅). Die alten
+> Checkboxen sind hier nur noch zur Nachvollziehbarkeit als erledigt markiert.
 
 ### A.1 Quiz-Scoring → echtes `taste_type_id`
-- [ ] Quiz-Antworten in `quiz_responses` persistieren (12 Fragen × User)
-- [ ] Score pro Geschmackstyp berechnen via `quiz_scoring` + `taste_type_max_scores`
-- [ ] Best-Match in `customers.taste_type_id` + `customers.secondary_type` + `customers.confidence` schreiben
-- [ ] Aktuell: `match-result` schreibt Platzhalter `taste_type_id=2` — muss durch echte Quiz-Auswertung ersetzt werden
+- [x] Quiz-Antworten persistiert, Score je Geschmackstyp berechnet, Best-Match + Secondary + Confidence in `customers` geschrieben (`lib/db/quiz.ts`). Kein Platzhalter `taste_type_id=2` mehr.
 
 ### A.2 Coffee-Empfehlungen pro User (via pgvector)
-- [ ] Beim Quiz-Ende: Initial-`taste_embedding` für User aus Antworten erzeugen
-- [ ] Match-Result-Page: Top-N Coffees nach Distanz `customers.taste_embedding <=> coffees.flavor_embedding`
-- [ ] Aktuell: Yirgacheffe ist hardcoded — muss durch echten Vector-Match ersetzt werden
+- [x] Initial-`taste_embedding` beim Quiz-Ende, Top-N via `customers.taste_embedding <=> coffees.flavor_embedding` in `rank_coffees_for_customer`. Kein hardcoded Yirgacheffe mehr.
 
-### A.3 Coffee ↔ Taste-Type Mapping (`/taste-types/[slug]` Pages)
-- [ ] Auf jeder Geschmackstyp-Seite: echte Coffees aus DB, die zu diesem Typ passen
-- [ ] Variante 1 (manuell): neue Tabelle `coffee_taste_types` (n:m via Pflege)
-- [ ] Variante 2 (auto): pro Geschmackstyp Centroid-Embedding berechnen, Coffees mit `flavor_embedding` Distanz < Threshold
-- [ ] **Wichtig**: Aktuell zeigen diese Seiten erfundene Mock-Coffees aus `lib/taste-types.ts` — User hat explizit verlangt, dass das in Phase A vollständig ersetzt wird
+### A.3 Coffee ↔ Taste-Type Mapping (`/taste-types/[slug]`)
+- [x] Echte DB-Coffees pro Typ via `getCoffeesForTasteType` (Type-Centroid-Embedding + Sensorik). Keine Mock-Coffees aus `lib/taste-types.ts` (Datei gelöscht).
 
 ### A.4 Recommendation-Alternatives (`/recommendation/alternatives`)
-- [ ] Heute: liest aus `lib/taste-types.ts` mit Profil-Distanz-Berechnung im Code
-- [ ] Soll: liest aus DB via Embedding-Distanz, mit echter Begründung aus Profil-Diff zwischen User und Coffee
+- [x] Liest aus DB via Embedding/Sensorik-Distanz, Begründung aus Profil-Diff (`reasoningForMatch`).
 
 ### A.5 Feedback-Loop (Playbook Kap. 6)
-- [ ] `/account/rate/[orderId]` schreibt heute kein Rating in DB — muss `coffee_ratings`-Insert machen
-- [ ] Background-Worker (Edge Function + pg_cron alle 15 Min) verarbeitet `processed_at IS NULL`
-- [ ] Profil-Vektor-Drift: `update_customer_embedding(...)` mit adaptiver Lernrate
-- [ ] Aroma-Tag-Sentiment in `customer_aroma_preferences` upserten
+- [x] Rating-Insert in `coffee_ratings`, 15-Min-pg_cron-Worker `process_pending_ratings`, Embedding-Drift (`drift_customer_embedding`), Aroma-Sentiment-Upsert in `customer_aroma_preferences`.
 
 ### A.6 Reklassifikations-Cron
-- [ ] Täglicher Job: User mit ≥5 Ratings → Distance zu Type-Centroids berechnen → bei klarem Wechsel Email senden ("Geschmack hat sich entwickelt — Quiz neu machen?")
+- [x] Täglicher Job `suggest-aroma-reclassification` (Migration `20260519100000`) + `send-reclassification-emails`.
 
-### A.7 Cleanup: Mock-Datenquellen entfernen
-- [ ] `lib/coffees.ts` (Mock-Coffees aus `taste-types.ts`-Arrays) → entfernen sobald A.2 + A.3 durch
-- [ ] `lib/roasters.ts` → entfernen (DB ist jetzt Source-of-Truth, lib nur noch von alten Pages referenziert)
-- [ ] `lib/taste-types.ts` reduzieren auf statische SEO-Texte (Name, Tagline, Hero-Desc) — alle Coffee/Roaster-Listen daraus entfernen
+### A.7 Cleanup: Mock-Datenquellen entfernen — ✅ erledigt
+- [x] `lib/coffees.ts`, `lib/roasters.ts`, `lib/taste-types.ts` existieren nicht mehr — DB-Layer unter `lib/db/*.ts` ist Source-of-Truth.
+- [x] `lib/taste-types-map.ts` bleibt als statisches Slug↔ID-Mapping (kein Mock-Daten-File, sondern Routing-Helper).
 
 ## Post-Launch — Empfehlungs-Algorithmus verfeinern
 
@@ -166,17 +166,58 @@ Aktuell nutzt der Match-Score eine reine Manhattan-Distanz auf 5 Sensorik-Achsen
 
 **Schrittweise Verbesserung nach Launch — sortiert nach Impact / Aufwand:**
 
-- [ ] **Aroma-Familien-Match einbauen** (einfach, sofort spürbar): Coffee bekommt Bonus-Punkte pro übereinstimmender Aroma-Familie zwischen `coffees.aroma_families` und `taste_types.aroma_families`. z.B. +5% pro Treffer.
-- [ ] **Roast-Level als 6. Achse einbauen** (trivial): `coffees.roast_level` ↔ `taste_types.roast_level` zur Manhattan-Distanz dazuzählen.
-- [ ] **Achsen-Gewichtung** (mittel): Säure & Körper stärker gewichten als Komplexität, weil sie wahrnehmungsnäher sind. Gewichte konfigurierbar in `algorithm_config`-Tabelle hinterlegen.
-- [ ] **pgvector-Embedding-Match** (mittel, grosser Sprung): Cosine-Similarity zwischen `customers.taste_embedding` und `coffees.flavor_embedding`. Setzt voraus dass User-Embeddings generiert werden via OpenAI (heute null) — Phase A.5 Voraussetzung.
-- [ ] **Hybrid-Score** (komplex, finaler Schliff): Kombination aus Embedding-Cosine + Sensorik-Distanz + Aroma-Overlap + Tag-Sentiment, gewichtet nach Daten-Reife des Users (mehr Ratings → mehr Embedding-Gewicht). Folgt Playbook Kap. 5 ("Pre-Score + MMR für Diversität").
+- [x] **Aroma-Familien-Match** — `aromaOverlapBonus` in `lib/db/recommendations.ts`: +5% pro Treffer zwischen `coffees.aroma_families` und `taste_types.aroma_families`, gedeckelt auf 1.0 (JS-Hybrid-Pfad). *Offen: prüfen ob die RPC `compute_scoring_score` denselben Bonus enthält — sonst greift er für eingeloggte Customer nicht.*
+- [x] **Roast-Level als 6. Achse** — `roastNum()` + `weights.roast_level` in `manhattan()`; `taste_types.roast_level` seeded (Migration `20260515190000`).
+- [x] **Achsen-Gewichtung** — `loadMatchWeights()` liest `algorithm_config.match_weights`; Default Säure/Körper 1.5 > Komplexität 0.7. In der DB pro Key editierbar.
+- [x] **pgvector-Embedding-Match** — Cosine-Sim `customers.taste_embedding ↔ coffees.flavor_embedding`, hybrid kombiniert (0.611 Sensorik / 0.389 Vektor).
+- [ ] **Hybrid-Score — Daten-Reife-Gewichtung** (komplex, finaler Schliff): Die Basis (Embedding + Sensorik + Aroma) ist da, aber die Gewichte sind **fix** (0.611/0.389). Offen ist die *adaptive* Gewichtung nach User-Daten-Reife (mehr Ratings → mehr Embedding-Gewicht) + explizites Tag-Sentiment im Final-Score. Siehe Erklärung unten.
 
 **Wichtig:** Solange wir auf der reinen Sensorik-Distanz bleiben, ist der Score sehr nachvollziehbar und manuell auditierbar. Der Wechsel zu Embeddings macht's mächtiger, aber weniger erklärbar — Trade-off bewusst entscheiden.
 
-### Empfehlungs-Begründungen dynamisch aus DB
-- [ ] Aktuell zeigt `/recommendation/alternatives` für jede Alternative einen **statischen** Text ("Sehr nah an deinem Profil — du darfst ihn unbesorgt probieren"). Funktional, aber nicht datengetrieben.
-- [ ] Soll: Begründung dynamisch ableiten aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee-Profil — z.B. "Etwas weniger Säure, dafür mehr Körper als dein Match. Falls du gelegentlich kräftigere Brews magst, perfekt."
-- [ ] Logik dafür gibt's bereits als Helper `reasoningForMatch()` in `lib/db/recommendations.ts` — aktuell deaktiviert weil das alte Output ("Volltreffer") gegen die Nachbar-Type-Annahme verglich, was UX-mässig irreführend war.
-- [ ] Korrekte Implementation: Diff zwischen **User-Geschmackstyp-Profil** und **Coffee-Profil** rechnen (nicht Nachbar-Type vs Coffee), Top-1 oder Top-2 Achsen-Differenzen positiv formulieren, mit "darf bedenkenlos probieren" als Closing.
-- [ ] Optional: pro Coffee 1–2 statt nur 1 Begründungssatz — falls mehrere Achsen relevant differenzieren.
+### Profil-Reife (Konfidenz-Kurve im Geschmacksprofil) — ✅ MVP erledigt
+- [x] MVP-Variante live: `min(100, num_ratings_given * 10 + profile_confidence * 50)` rendert als Progress-Bar mit Label ("Sehr ausgereift" / "Solide" / "Aufbau-Phase" / "Frisch") auf `/account/taste-profile`. Quiz-Confidence + Ratings-Count werden transparent darunter angezeigt.
+- [ ] **Spaeter optional**: Snapshot-Tabelle mit monatlichen Eintraegen für die 6-12-Monats-Spark-Bars-Visualisierung. Aktuell nur Status quo, keine Zeitreihe.
+
+### Geschäftsmodell: RESELLER (entschieden 2026-05) — ✅ Tooling gebaut
+
+**Entscheidung:** Coffee Selection fährt das **Reseller-Modell** (Eigenhändler),
+nicht Marktplatz. Heisst:
+- Coffee Selection kauft beim Röster ein (Wholesale) und verkauft im eigenen
+  Namen an den Kunden (Retail).
+- Rechnung an Kunde kommt von Coffee Selection, Coffee Selection schuldet die
+  volle MwSt, zieht die Vorsteuer aus dem Wholesale-Einkauf ab.
+- Der volle Zahlbetrag landet auf dem Coffee-Selection-Stripe-Konto.
+- Röster werden **monatlich gegen Lieferanten-Rechnung** per Banküberweisung
+  bezahlt — ausserhalb von Stripe.
+
+**→ Stripe Connect wird NICHT gebraucht.** Die früher hier dokumentierte
+Marketplace-/Destination-Charge-Variante ist damit vom Tisch.
+
+**Gebautes Tooling (Reseller):**
+- [x] `coffees.wholesale_price_chf` Snapshot pro `order_items` beim Bestellen
+- [x] Monatlicher Röster-Auszahlungs-Report `/admin/roasters/payouts` (Wholesale
+      pro Röster + Marge + Bankdaten) + CSV-Export für die Buchhaltung
+- [x] Payout-Stammdaten pro Röster (`roasters_payout`: IBAN, BIC, Bank,
+      Schwelle, Vertrag) editierbar auf `/admin/roasters/[id]/edit`
+- [x] Marge-Report im Admin-Dashboard
+
+**Operativer Monats-Ablauf:**
+1. Monatsende → `/admin/roasters/payouts` öffnen, Monat wählen, CSV exportieren
+2. Röster-Lieferanten-Rechnung über Wholesale-Total erfassen
+3. Überweisung an hinterlegte IBAN
+4. Vorsteuer aus der MwSt-Rechnung verbuchen
+
+**Pflicht-Stammdaten pro Röster:** legal_name, CH-UID (`vat_number`), IBAN,
+Konto-Inhaber, Bank-Name (BIC nur bei Auslandsbank). Pro Coffee:
+`wholesale_price_chf` muss gepflegt sein, sonst zählt der Coffee mit 0.
+
+> Falls ihr je auf Marktplatz wechselt (Röster verkauft direkt, ihr nehmt
+> Provision), braucht's Stripe Connect Destination Charges. Die Architektur-
+> Notiz dazu ist aus der Git-Historie rekonstruierbar (PR #80) — nicht
+> aktueller Plan.
+
+### Empfehlungs-Begründungen dynamisch aus DB — ✅ erledigt
+- [x] `/recommendation/alternatives` ruft `reasoningForMatch(userProfile1to5, coffee)` aus `lib/db/recommendations.ts` auf und rendert headline + detail dynamisch aus dem Profil-Diff zwischen User-Geschmackstyp und Coffee.
+- [x] Tasting-Summary wird als sekundaerer Geschmacks-Satz darunter angezeigt, Fallback auf Aroma-Familien wenn beides fehlt.
+- [x] Korrekte Implementation: Diff zwischen **User-Geschmackstyp-Profil** und **Coffee-Profil** (5 Achsen), Top-1/Top-2 Achsen-Differenzen positiv formuliert, "darf bedenkenlos probieren" als Closing. (`reasoningForMatch`, Volltreffer-Sonderfall bei Diff 0.)
+- [x] Pro Coffee 1–2 Begründungssätze — zweiter Satz nur wenn eine zweite Achse ≥1 SCA-Punkt abweicht.

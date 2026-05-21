@@ -2,11 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { tasteTypeById } from "@/lib/taste-types-map";
+import { getTasteTypeById } from "@/lib/db/taste-types";
 import {
   getCoffeesForTasteType,
   getNeighborTasteTypes,
+  reasoningForMatch,
 } from "@/lib/db/recommendations";
+import AlternativeCartButtons from "./AlternativeCartButtons";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -31,7 +34,27 @@ export default async function AlternativesPage() {
     .single();
 
   const userTasteTypeId = customer?.taste_type_id;
-  const userTasteType = tasteTypeById(userTasteTypeId ?? null);
+  const userTasteType = userTasteTypeId
+    ? await getTasteTypeById(supabase, userTasteTypeId)
+    : null;
+
+  // Roh-Sensorik-Profil des User-Typs (1-5 Skala) fuer reasoningForMatch.
+  // getTasteTypeById liefert 0-100, reasoningForMatch braucht aber 1-5.
+  let userProfile1to5: {
+    acidity: number | null;
+    body: number | null;
+    sweetness: number | null;
+    bitterness: number | null;
+    complexity: number | null;
+  } | null = null;
+  if (userTasteTypeId) {
+    const { data } = await supabase
+      .from("taste_types")
+      .select("acidity, body, sweetness, bitterness, complexity")
+      .eq("id", userTasteTypeId)
+      .maybeSingle();
+    userProfile1to5 = data;
+  }
 
   // Top-Match des Users (zum Ausschluss aus Alternatives)
   const topMatch = userTasteTypeId
@@ -47,6 +70,7 @@ export default async function AlternativesPage() {
   const seen = new Set<string>(topMatch ? [topMatch.id] : []);
   const alternatives: Array<{
     coffee: Awaited<ReturnType<typeof getCoffeesForTasteType>>[number];
+    neighborName: string;
   }> = [];
   for (const neighbor of neighbors) {
     const coffees = await getCoffeesForTasteType(supabase, neighbor.id, {
@@ -56,26 +80,14 @@ export default async function AlternativesPage() {
     const c = coffees[0];
     if (!c) continue;
     seen.add(c.id);
-    alternatives.push({ coffee: c });
+    alternatives.push({ coffee: c, neighborName: neighbor.name_de });
   }
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
-          </Link>
-          <Link
-            href="/account/dashboard"
-            className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-tertiary transition-colors font-bold"
-          >
-            ← Zurück zum Profil
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
-      <main className="pt-36 md:pt-40 pb-20">
+      <main className="pt-20 md:pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           {/* Breadcrumb */}
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap mb-8">
@@ -117,60 +129,91 @@ export default async function AlternativesPage() {
             </div>
           ) : (
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {alternatives.map(({ coffee }) => (
-                <article key={coffee.id} className="bg-white shadow-sm hover:shadow-xl transition-all flex flex-col">
-                  <Link href={`/coffee/${coffee.slug}`} className="block">
-                    <div className="aspect-[4/3] overflow-hidden bg-surface-container-low">
-                      <img src={coffee.image_url || COFFEE_FALLBACK_IMG} alt={coffee.name} className="w-full h-full object-cover" />
-                    </div>
-                  </Link>
-                  <div className="p-8 flex-1">
-                    <div className="mb-5">
-                      <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">
-                        {coffee.origin_name ?? "Specialty"}
-                      </span>
-                      <Link href={`/coffee/${coffee.slug}`}>
-                        <h2 className="font-headline font-bold text-primary uppercase tracking-tight text-xl mb-1 hover:text-tertiary transition-colors">
-                          {coffee.name}
-                        </h2>
-                      </Link>
-                      <p className="text-xs text-on-surface-variant">{coffee.roaster?.name ?? ""}</p>
-                    </div>
-
-                    {/* Begründung — Static for now, später dynamisch (siehe GO-LIVE.md) */}
-                    <div className="bg-tertiary/5 border-l-4 border-tertiary p-5 mb-6">
-                      <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">
-                        Warum für dich
-                      </span>
-                      <p className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-2">
-                        Sehr nah an deinem Profil
-                      </p>
-                      <p className="text-sm text-on-surface-variant leading-relaxed">
-                        Dieser Kaffee liegt nur knapp neben deinem Geschmackstyp — du darfst ihn unbesorgt probieren.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-surface-container">
-                      <span className="font-headline font-bold text-primary text-xl">CHF {coffee.price_chf.toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 border-t border-primary/10">
-                    <Link
-                      href={`/coffee/${coffee.slug}`}
-                      className="text-center py-4 font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-bold"
-                    >
-                      Details
+              {alternatives.map(({ coffee, neighborName }) => {
+                const unit250 = (coffee.price_chf * 250) / coffee.weight_g;
+                // Algorithmische Begruendung: laengste Profil-Differenz zwischen
+                // User-Geschmackstyp und Coffee, dazu der Tasting-Summary als
+                // sekundaere Beschreibung. Fallback auf aroma_families wenn kein
+                // tasting_summary da ist.
+                const reasoning = userProfile1to5
+                  ? reasoningForMatch(userProfile1to5, coffee)
+                  : null;
+                const taste = coffee.tasting_summary || coffee.short_description;
+                const aromas =
+                  coffee.aroma_families && coffee.aroma_families.length > 0
+                    ? coffee.aroma_families.slice(0, 3).join(" · ")
+                    : null;
+                return (
+                  <article key={coffee.id} className="bg-white shadow-sm hover:shadow-xl transition-all flex flex-col">
+                    <Link href={`/coffee/${coffee.slug}`} className="block">
+                      <div className="aspect-[4/3] overflow-hidden bg-surface-container-low">
+                        <img src={coffee.image_url || COFFEE_FALLBACK_IMG} alt={coffee.name} className="w-full h-full object-cover" />
+                      </div>
                     </Link>
-                    <Link
-                      href="/checkout/cart"
-                      className="text-center py-4 font-headline text-[10px] uppercase tracking-widest bg-primary text-on-primary hover:bg-black transition-colors font-bold"
-                    >
-                      In den Warenkorb
-                    </Link>
-                  </div>
-                </article>
-              ))}
+                    <div className="p-8 flex-1">
+                      <div className="mb-5">
+                        <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold block mb-1">
+                          {coffee.origin_name ?? "Specialty"}
+                        </span>
+                        <Link href={`/coffee/${coffee.slug}`}>
+                          <h2 className="font-headline font-bold text-primary uppercase tracking-tight text-xl mb-1 hover:text-tertiary transition-colors">
+                            {coffee.name}
+                          </h2>
+                        </Link>
+                        <p className="text-xs text-on-surface-variant">{coffee.roaster?.name ?? ""}</p>
+                      </div>
+
+                      {/* Begründung — dynamisch:
+                          - Headline: groesste Profil-Diff aus reasoningForMatch
+                            (z.B. "Mehr Säure", "Weniger Körper")
+                          - Detail-Zeile aus dem Algorithmus
+                          - Plus tasting_summary als Geschmacks-Beschreibung */}
+                      <div className="bg-tertiary/5 border-l-4 border-tertiary p-5 mb-6">
+                        <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary font-bold block mb-2">
+                          Warum für dich
+                        </span>
+                        {reasoning ? (
+                          <p className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-2">
+                            {reasoning.headline}
+                          </p>
+                        ) : aromas ? (
+                          <p className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-2">
+                            {aromas}
+                          </p>
+                        ) : null}
+                        {reasoning && (
+                          <p className="text-sm text-on-surface-variant leading-relaxed mb-2">
+                            {reasoning.detail}
+                          </p>
+                        )}
+                        {taste && (
+                          <p className="text-sm text-on-surface-variant leading-relaxed italic">
+                            „{taste}"
+                          </p>
+                        )}
+                        {!reasoning && !taste && (
+                          <p className="text-sm text-on-surface-variant leading-relaxed">
+                            Angrenzend an „{neighborName}" — knapp neben deinem Geschmackstyp.
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-surface-container">
+                        <span className="font-headline font-bold text-primary text-xl">CHF {coffee.price_chf.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <AlternativeCartButtons
+                      coffee_id={coffee.id}
+                      coffee_name={coffee.name}
+                      coffee_slug={coffee.slug}
+                      image_url={coffee.image_url}
+                      roaster_name={coffee.roaster?.name ?? ""}
+                      unit_price_chf_250g={Number(unit250.toFixed(2))}
+                    />
+                  </article>
+                );
+              })}
             </section>
           )}
 
@@ -179,23 +222,21 @@ export default async function AlternativesPage() {
               Diese Kaffees passen nicht?
             </h2>
             <p className="text-on-surface-variant mb-8 max-w-xl mx-auto">
-              Bewerte deine letzten Empfehlungen — der Algorithmus lernt jedes Mal, wenn du Sterne vergibst.
+              Dann mache erneut das Quiz oder filtere im Shop nach deinen Vorlieben.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/account/recommendation-history"
+                href="/quiz/question-1-brewing-method"
                 className="bg-primary text-on-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
               >
-                Empfehlungen bewerten
+                Quiz wiederholen
               </Link>
-              {userTasteType && (
-                <Link
-                  href={`/taste-types/${userTasteType.slug}`}
-                  className="border border-primary text-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
-                >
-                  Mein Geschmackstyp
-                </Link>
-              )}
+              <Link
+                href="/coffee"
+                className="border border-primary text-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+              >
+                Im Shop stöbern
+              </Link>
             </div>
           </section>
         </div>

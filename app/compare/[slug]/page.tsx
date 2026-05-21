@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { comparisons, comparisonBySlug } from "@/lib/comparisons";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 
@@ -17,6 +18,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: c.seoTitle,
     description: c.seoDescription,
     keywords: c.keywords,
+    openGraph: {
+      title: c.seoTitle,
+      description: c.seoDescription,
+      type: "article",
+      images: c.a.image ? [{ url: c.a.image, alt: c.title }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: c.seoTitle,
+      description: c.seoDescription,
+      images: c.a.image ? [c.a.image] : undefined,
+    },
   };
 }
 
@@ -29,21 +42,9 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
-          </Link>
-          <Link
-            href="/quiz/question-1-brewing-method"
-            className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
-          >
-            Quiz starten
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
@@ -226,9 +227,9 @@ export default async function ComparisonPage({ params }: { params: Promise<{ slu
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-40 md:h-56 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
           </Link>
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
         </div>
       </footer>
     </div>

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getRoasters, getRoasterBySlug, getRoasterSlugsForStatic } from "@/lib/db/roasters";
 import { getCoffeesByRoasterSlug } from "@/lib/db/coffees";
+import FavoriteButton from "@/components/FavoriteButton";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const ROASTER_FALLBACK_IMG =
@@ -34,21 +36,9 @@ export default async function RoasterDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
-          </Link>
-          <Link
-            href="/quiz/question-1-brewing-method"
-            className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
-          >
-            Quiz starten
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
@@ -75,9 +65,12 @@ export default async function RoasterDetailPage({ params }: { params: Promise<{ 
                 {roaster.city}{roaster.region ? ` · ${roaster.region}` : ""}
               </span>
             )}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.05] mb-4 font-headline font-bold uppercase tracking-tight">
-              {roaster.name}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.05] font-headline font-bold uppercase tracking-tight">
+                {roaster.name}
+              </h1>
+              <FavoriteButton type="roaster" id={roaster.id} size="lg" />
+            </div>
             {roaster.short_description && (
               <p className="text-lg text-on-surface-variant leading-relaxed mb-8">{roaster.short_description}</p>
             )}
@@ -205,9 +198,9 @@ export default async function RoasterDetailPage({ params }: { params: Promise<{ 
         <section className="bg-primary text-on-primary py-20">
           <div className="max-w-3xl mx-auto px-6 md:px-8 text-center">
             <h2 className="text-3xl md:text-4xl mb-6 uppercase tracking-tight font-headline font-bold">
-              Bereit für einen <span className="text-tertiary">{roaster.name.split(" ")[0]}-Kaffee?</span>
+              Bereit für einen Kaffee von <span className="text-tertiary">{roaster.name}?</span>
             </h2>
-            <p className="text-lg text-on-primary/70 mb-10">Mach das Quiz und finde heraus, welcher Kaffee dieser Rösterei zu dir passt.</p>
+            <p className="text-lg text-on-primary/70 mb-10">Mach das Quiz und finde heraus, ob ein Kaffee dieser Rösterei zu dir passt.</p>
             <Link
               href="/quiz/question-1-brewing-method"
               className="inline-block bg-tertiary text-primary px-12 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
@@ -221,9 +214,9 @@ export default async function RoasterDetailPage({ params }: { params: Promise<{ 
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-40 md:h-56 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
           </Link>
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
         </div>
       </footer>
     </div>

@@ -56,7 +56,7 @@ export default function AccountSidebar() {
       : profile?.firstName || profile?.email.split("@")[0] || "—";
 
   return (
-    <aside className="lg:sticky lg:top-32 lg:self-start lg:h-fit bg-white shadow-sm">
+    <aside className="lg:sticky lg:top-28 lg:self-start lg:h-fit bg-white shadow-sm">
       <div className="p-6 border-b border-surface-container">
         <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold block mb-1">
           Mein Konto

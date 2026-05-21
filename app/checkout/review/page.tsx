@@ -1,157 +1,583 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useCart, lineTotal } from "@/lib/cart";
+import { useCheckout } from "@/lib/checkout";
+import { INTERVAL_LABELS } from "@/lib/subscription-constants";
+import CheckoutStepper from "@/components/CheckoutStepper";
+import ShippingForm from "@/components/checkout/ShippingForm";
 
-const steps = ["Lieferung", "Zahlung", "Überprüfung"];
+const LOGO = "/logo.png";
+const COFFEE_FALLBACK_IMG =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
+const FREE_SHIPPING_THRESHOLD_CHF = 100;
+const STANDARD_SHIPPING_CHF = 6.9;
+
+/**
+ * C-6.4: /checkout/review
+ *
+ * Vorletzter Schritt. Zeigt Items + Adressen + Total. Klick "Bezahlen":
+ *   1. POST /api/orders/create   → bekommt order_id
+ *   2. POST /api/checkout/session → bekommt Stripe-checkout_url
+ *   3. window.location.href = checkout_url  (Stripe-Hosted-Page)
+ *
+ * Loading-State zeigt waehrend der API-Calls. Error-State falls etwas zickt.
+ *
+ * Guards:
+ *   - Cart leer       → redirect /checkout/cart
+ *   - Shipping unvollst. → redirect /checkout/shipping
+ */
 
 export default function ReviewPage() {
   const router = useRouter();
+  const { items, subtotal, loaded: cartLoaded } = useCart();
+  const { data, loaded: checkoutLoaded, shippingValid, billingValid } = useCheckout();
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [promoState, setPromoState] = useState<
+    | { kind: "idle" }
+    | { kind: "validating" }
+    | { kind: "valid"; code: string; discount_chf: number; label: string }
+    | { kind: "error"; message: string }
+  >({ kind: "idle" });
+
+  const checkPromo = async () => {
+    const code = promoCodeInput.trim();
+    if (!code) return;
+    setPromoState({ kind: "validating" });
+    const res = await fetch("/api/promo/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    }).then((r) => r.json());
+    if (res.valid) {
+      setPromoState({
+        kind: "valid",
+        code: res.code,
+        discount_chf: Number(res.discount_chf),
+        label: res.label ?? "Aktion",
+      });
+    } else {
+      const reasonLabel: Record<string, string> = {
+        empty_code: "Bitte Code eingeben",
+        code_unknown: "Code unbekannt",
+        code_inactive: "Code ist nicht aktiv",
+        code_expired: "Code ist abgelaufen",
+        code_not_yet_valid: "Code ist noch nicht gültig",
+        code_fully_redeemed: "Code wurde vollständig eingelöst",
+        code_already_used_by_you: "Diesen Code hast du bereits eingelöst",
+        no_self_referral: "Eigener Empfehlungs-Code nicht einlösbar",
+        already_referred: "Du wurdest bereits empfohlen",
+        auth_required: "Bitte einloggen",
+      };
+      setPromoState({
+        kind: "error",
+        message: reasonLabel[res.reason] ?? "Code ungültig",
+      });
+    }
+  };
+
+  const removePromo = () => {
+    setPromoCodeInput("");
+    setPromoState({ kind: "idle" });
+  };
+
+  const promoDiscount =
+    promoState.kind === "valid" ? promoState.discount_chf : 0;
+
+  // C1: Customer-Guthaben aus customer_credits-Ledger laden + auto-applien.
+  const [balanceChf, setBalanceChf] = useState(0);
+  const [applyBalance, setApplyBalance] = useState(true);
+  useEffect(() => {
+    (async () => {
+      const sb = (await import("@/lib/supabase/client")).createClient();
+      const { data: auth } = await sb.auth.getUser();
+      if (!auth.user) return;
+      const { data: customer } = await sb
+        .from("customers")
+        .select("id")
+        .eq("auth_user_id", auth.user.id)
+        .single();
+      if (!customer) return;
+      const { data } = await sb.rpc("customer_credit_balance", {
+        p_customer_id: customer.id,
+      });
+      if (data != null) setBalanceChf(Number(data));
+    })();
+  }, []);
+
+  const shipping =
+    subtotal >= FREE_SHIPPING_THRESHOLD_CHF || subtotal === 0
+      ? 0
+      : STANDARD_SHIPPING_CHF;
+  const total = subtotal + shipping;
+  // Balance darf nur den Rest nach Promo-Discount abdecken und nicht
+  // negativ werden.
+  const balanceRedemption =
+    applyBalance && balanceChf > 0
+      ? Math.min(balanceChf, Math.max(0, total - promoDiscount))
+      : 0;
+  const totalAfterDiscounts = Math.max(
+    0,
+    total - promoDiscount - balanceRedemption
+  );
+
+  // Guards (erst nach Hydration — siehe useCart-Kommentar zum loaded-Flag).
+  // Konsolidierter Checkout: shipping/billing-Form ist eingebettet, also
+  // KEIN Redirect zu /checkout/shipping mehr. Wenn invalid, blockt der
+  // Pay-Button (disabled + Hint).
+  useEffect(() => {
+    if (!cartLoaded || !checkoutLoaded) return;
+    if (items.length === 0) {
+      router.replace("/checkout/cart");
+    }
+  }, [cartLoaded, checkoutLoaded, items.length, router]);
+
+  // Stripe-Cancel-Redirect leitet hierher mit ?canceled=1 — Userin sieht
+  // dann eine Hinweisbox statt einer leeren Wiederkehr. useSearchParams
+  // wuerde Suspense erzwingen; window.location reicht (client-only).
+  const [canceled, setCanceled] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setCanceled(new URLSearchParams(window.location.search).get("canceled") === "1");
+  }, []);
+
+  const handlePay = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      // 1) Order anlegen
+      const orderRes = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((it) => ({
+            coffee_id: it.coffee_id,
+            quantity: it.quantity,
+            weight_g: it.weight_g,
+            grind_preference: it.grind_preference ?? null,
+            is_subscription: it.is_subscription ?? false,
+            interval_weeks: it.interval_weeks,
+            discount_percent: it.discount_percent,
+            is_discovery: it.is_discovery ?? false,
+          })),
+          customer: {
+            email: data.customer.email,
+            first_name: data.customer.first_name || null,
+            last_name: data.customer.last_name || null,
+            language: data.customer.language,
+            marketing_opt_in: data.customer.marketing_opt_in,
+          },
+          shipping_address: {
+            recipient_name: data.shipping_address.recipient_name,
+            company: data.shipping_address.company || null,
+            street: data.shipping_address.street,
+            street_additional: data.shipping_address.street_additional || null,
+            postal_code: data.shipping_address.postal_code,
+            city: data.shipping_address.city,
+            region: data.shipping_address.region || null,
+            country: data.shipping_address.country,
+            delivery_instructions:
+              data.shipping_address.delivery_instructions || null,
+          },
+          billing_address_same_as_shipping:
+            data.billing_address_same_as_shipping,
+          billing_address: data.billing_address_same_as_shipping
+            ? null
+            : {
+                recipient_name: data.billing_address.recipient_name,
+                company: data.billing_address.company || null,
+                street: data.billing_address.street,
+                street_additional:
+                  data.billing_address.street_additional || null,
+                postal_code: data.billing_address.postal_code,
+                city: data.billing_address.city,
+                region: data.billing_address.region || null,
+                country: data.billing_address.country,
+                delivery_instructions:
+                  data.billing_address.delivery_instructions || null,
+              },
+          customer_note: data.customer_note || null,
+          promo_code:
+            promoState.kind === "valid" ? promoState.code : null,
+          apply_balance: applyBalance,
+        }),
+      }).then((r) => r.json());
+
+      if (!orderRes.success || !orderRes.order_id) {
+        const detail =
+          typeof orderRes.details === "string"
+            ? ` (${orderRes.details})`
+            : "";
+        throw new Error(
+          `Bestellung konnte nicht angelegt werden: ${
+            orderRes.error ?? "Unbekannter Fehler"
+          }${detail}`
+        );
+      }
+
+      // 2) Stripe Checkout Session
+      const sessRes = await fetch("/api/checkout/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderRes.order_id }),
+      }).then((r) => r.json());
+
+      if (!sessRes.checkout_url) {
+        const detail =
+          typeof sessRes.details === "string" ? ` (${sessRes.details})` : "";
+        throw new Error(
+          `Zahlungs-Sitzung konnte nicht erstellt werden: ${
+            sessRes.error ?? "Unbekannter Fehler"
+          }${detail}`
+        );
+      }
+
+      // 3) Redirect zur Stripe-Hosted-Page. Wir setzen window.location.href
+      // (kein router.push) damit der Browser komplett zur fremden Domain wechselt.
+      window.location.href = sessRes.checkout_url;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[checkout/review] pay-flow error", err);
+      setError(msg);
+      setSubmitting(false);
+    }
+  };
+
+  // Render-Guard: erst nach Hydration anwenden, sonst Flash-of-blank-page
+  if (cartLoaded && items.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-background font-sans">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-outline-variant h-16 flex items-center px-4 gap-4">
-        <Link href="/checkout/payment" className="w-10 h-10 flex items-center justify-center">
-          <span className="material-symbols-outlined text-on-surface">arrow_back</span>
-        </Link>
-        <p className="flex-1 text-center font-headline font-serif italic text-on-surface text-lg">
-          Review Order
-        </p>
-        <div className="w-10" />
+    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-32 md:pb-12">
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <div className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
+            <img
+              alt="Coffee Selection"
+              className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left"
+              src={LOGO}
+            />
+          </Link>
+          <div className="flex items-center gap-2 text-on-surface-variant">
+            <span className="material-symbols-outlined text-base text-tertiary">
+              lock
+            </span>
+            <span className="font-headline text-[11px] uppercase tracking-[0.2em] font-bold">
+              Sichere Zahlung
+            </span>
+          </div>
+        </div>
       </header>
 
-      {/* Progress Steps */}
-      <div className="fixed top-16 left-0 right-0 z-40 bg-background px-4 py-3 flex items-center justify-center gap-4 border-b border-outline-variant">
-        {steps.map((step, i) => (
-          <div key={step} className="flex items-center gap-2">
-            <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-label font-semibold transition-colors ${
-                i === 2
-                  ? "bg-primary text-white"
-                  : i < 2
-                  ? "bg-secondary text-white"
-                  : "bg-surface-container-high text-on-surface-variant"
-              }`}
-            >
-              {i < 2 ? (
-                <span className="material-symbols-outlined text-xs">check</span>
-              ) : (
-                i + 1
-              )}
-            </div>
-            <span
-              className={`text-sm font-label ${
-                i === 2 ? "text-on-surface font-semibold" : "text-on-surface-variant"
-              }`}
-            >
-              {step}
+      <main className="pt-20 md:pt-24">
+        <CheckoutStepper active={1} />
+
+        <div className="max-w-3xl mx-auto px-6 md:px-8">
+          <div className="mb-8">
+            <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-3 block">
+              Schritt 2 · Checkout
             </span>
-            {i < steps.length - 1 && (
-              <span className="material-symbols-outlined text-outline-variant text-base ml-2">
-                chevron_right
-              </span>
+            <h1 className="text-3xl md:text-5xl text-primary mb-2 font-headline font-bold uppercase tracking-tight">
+              Adresse & Bezahlung
+            </h1>
+            <p className="text-on-surface-variant">
+              Adresse eintragen, Bestellung prüfen, mit „Bezahlen" zu Stripe.
+            </p>
+          </div>
+
+          {canceled && (
+            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 text-sm">
+              <strong className="font-headline text-[11px] uppercase tracking-widest text-amber-900 font-bold block mb-1">
+                Zahlung abgebrochen
+              </strong>
+              Deine Bestellung wurde nicht abgebucht. Du kannst Adresse oder
+              Zahlungsmittel anpassen und es nochmal versuchen.
+            </div>
+          )}
+
+          {/* Adresse + Kontakt (frueher /checkout/shipping) */}
+          <ShippingForm />
+
+          {/* Items */}
+          <Section title="Bestellung" editHref="/checkout/cart">
+            <div className="space-y-4">
+              {items.map((item) => {
+                const isSub = item.is_subscription === true;
+                const total = lineTotal(item);
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex gap-4 items-start pb-4 last:pb-0 border-b last:border-b-0 border-surface-container ${
+                      isSub ? "pl-2 border-l-2 border-l-tertiary" : ""
+                    }`}
+                  >
+                    <div className="w-16 h-16 bg-surface-container-low overflow-hidden shrink-0">
+                      <img
+                        src={item.image_url || COFFEE_FALLBACK_IMG}
+                        alt={item.coffee_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {isSub && (
+                        <span className="inline-block bg-tertiary text-primary font-headline font-bold text-[9px] uppercase tracking-widest px-1.5 py-0.5 mb-1">
+                          Abo · −{item.discount_percent ?? 0}%
+                        </span>
+                      )}
+                      <h3 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">
+                        {item.coffee_name}
+                      </h3>
+                      <p className="text-xs text-on-surface-variant">
+                        {item.roaster_name} · {item.weight_g}g · {item.quantity}×
+                      </p>
+                      {isSub && item.interval_weeks && (
+                        <p className="text-[11px] text-tertiary mt-1">
+                          {INTERVAL_LABELS[item.interval_weeks].long} ·
+                          röstfrisch bei nächster Röstung
+                        </p>
+                      )}
+                    </div>
+                    <span className="font-headline font-bold text-sm">
+                      CHF {total.toFixed(2)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+
+          {/* Guthaben (Customer-Credit-Balance) */}
+          {balanceChf > 0 && (
+            <div className="bg-tertiary/10 border-l-4 border-tertiary p-5 mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold mb-1">
+                  Dein Guthaben
+                </p>
+                <p className="text-sm">
+                  Du hast <strong>CHF {balanceChf.toFixed(2)}</strong> Guthaben.
+                  {applyBalance && balanceRedemption > 0
+                    ? ` Davon werden CHF ${balanceRedemption.toFixed(2)} auf diese Bestellung angerechnet.`
+                    : " (Aktuell nicht angewendet.)"}
+                </p>
+              </div>
+              <label className="flex items-center gap-2 shrink-0 cursor-pointer text-sm">
+                <input
+                  type="checkbox"
+                  checked={applyBalance}
+                  onChange={(e) => setApplyBalance(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="font-headline text-[11px] uppercase tracking-widest font-bold">
+                  Anwenden
+                </span>
+              </label>
+            </div>
+          )}
+
+          {/* Promo-Code */}
+          <div className="bg-white p-6 md:p-8 mb-6 shadow-sm">
+            <h2 className="font-headline font-bold text-base text-primary uppercase tracking-tight mb-4">
+              Promo-Code oder Empfehlungs-Code
+            </h2>
+            {promoState.kind === "valid" ? (
+              <div className="flex items-center justify-between gap-3 bg-tertiary/10 border-l-4 border-tertiary p-4">
+                <div>
+                  <p className="font-headline font-bold text-primary uppercase tracking-tight text-sm">
+                    {promoState.code}
+                  </p>
+                  <p className="text-xs text-on-surface-variant">
+                    {promoState.label} · −CHF {promoState.discount_chf.toFixed(2)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={removePromo}
+                  className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors"
+                >
+                  Entfernen
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={promoCodeInput}
+                  onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                  placeholder="z.B. WELCOME10 oder MARCO10"
+                  className="flex-1 bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base uppercase tracking-wider"
+                />
+                <button
+                  type="button"
+                  onClick={checkPromo}
+                  disabled={promoState.kind === "validating" || !promoCodeInput.trim()}
+                  className="bg-primary text-on-primary px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+                >
+                  {promoState.kind === "validating" ? "…" : "Einlösen"}
+                </button>
+              </div>
+            )}
+            {promoState.kind === "error" && (
+              <p className="text-xs text-red-600 font-headline uppercase tracking-widest mt-3">
+                {promoState.message}
+              </p>
             )}
           </div>
-        ))}
-      </div>
 
-      <main className="pt-36 pb-36 px-4 max-w-lg mx-auto">
-        {/* Product */}
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 flex items-center gap-4 mb-6">
-          <div className="w-20 h-20 rounded-xl bg-surface-container-high flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-outlined text-secondary text-4xl">coffee</span>
-          </div>
-          <div className="flex-1">
-            <p className="font-headline font-serif text-on-surface text-lg">
-              Ethiopia Yirgacheffe
-            </p>
-            <p className="font-sans text-on-surface-variant text-sm mb-1">250g · Qty: 1</p>
-            <p className="font-sans font-semibold text-on-surface text-base">CHF 24.90</p>
-          </div>
-        </div>
-
-        {/* Bento Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {/* Shipping Address */}
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-secondary text-lg">local_shipping</span>
-              <p className="font-label font-semibold text-on-surface text-xs uppercase tracking-wider">
-                Lieferadresse
+          {/* Total */}
+          <div className="bg-primary text-on-primary p-6 md:p-8 mb-6">
+            <h2 className="font-headline font-bold text-base uppercase tracking-tight mb-4">
+              Zahlungsübersicht
+            </h2>
+            <div className="space-y-2 text-sm mb-4">
+              <SummaryRow
+                label="Zwischensumme"
+                value={`CHF ${subtotal.toFixed(2)}`}
+              />
+              <SummaryRow
+                label="Versand"
+                value={shipping === 0 ? "Gratis" : `CHF ${shipping.toFixed(2)}`}
+              />
+              {promoDiscount > 0 && (
+                <SummaryRow
+                  label={`Rabatt (${
+                    promoState.kind === "valid" ? promoState.code : ""
+                  })`}
+                  value={`−CHF ${promoDiscount.toFixed(2)}`}
+                />
+              )}
+              {balanceRedemption > 0 && (
+                <SummaryRow
+                  label="Guthaben"
+                  value={`−CHF ${balanceRedemption.toFixed(2)}`}
+                />
+              )}
+              <p className="text-xs text-on-primary/60 pt-1">
+                MWST ist im Preis enthalten (Brutto).
               </p>
             </div>
-            <p className="font-sans text-on-surface text-sm leading-relaxed">
-              Marco Müller<br />
-              Bahnhofstrasse 12<br />
-              8001 Zürich<br />
-              Schweiz
+            <div className="border-t border-on-primary/20 pt-4">
+              <SummaryRow
+                label="Total"
+                value={`CHF ${totalAfterDiscounts.toFixed(2)}`}
+                bold
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 p-4 mb-6 text-sm text-red-800">
+              <strong>Fehler:</strong> {error}
+            </div>
+          )}
+
+          {/* Pay-Button Validation: shipping+billing muss komplett sein. Wenn
+              nicht, button disabled mit Hint. */}
+          {(!shippingValid || !billingValid) && (
+            <p className="text-xs text-on-surface-variant mb-4 text-right">
+              Bitte alle Pflichtfelder oben ausfüllen.
             </p>
-            <p className="font-sans text-on-surface-variant text-xs mt-2">Standard (3–5 Tage)</p>
-          </div>
+          )}
 
-          {/* Payment Method */}
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-secondary text-lg">credit_card</span>
-              <p className="font-label font-semibold text-on-surface text-xs uppercase tracking-wider">
-                Zahlungsart
-              </p>
-            </div>
-            <p className="font-sans text-on-surface text-sm leading-relaxed">
-              Kreditkarte
-            </p>
-            <p className="font-sans text-on-surface-variant text-xs mt-1">•••• •••• •••• 3456</p>
-            <p className="font-sans text-on-surface-variant text-xs">Marco Müller</p>
-          </div>
-        </div>
-
-        {/* Price Summary */}
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-5 mb-8">
-          <div className="space-y-2 mb-3 pb-3 border-b border-outline-variant">
-            <div className="flex justify-between font-sans text-on-surface-variant text-sm">
-              <span>Ethiopia Yirgacheffe 250g</span>
-              <span>CHF 24.90</span>
-            </div>
-            <div className="flex justify-between font-sans text-on-surface-variant text-sm">
-              <span>Versand (Standard)</span>
-              <span>CHF 4.90</span>
-            </div>
-          </div>
-          <div className="flex justify-between font-sans font-bold text-on-surface text-base">
-            <span>Total</span>
-            <span>CHF 29.80</span>
-          </div>
-        </div>
-
-        {/* Trust Badges */}
-        <div className="flex items-center justify-center gap-6">
-          <div className="flex items-center gap-1.5 text-on-surface-variant text-xs font-label">
-            <span className="material-symbols-outlined text-base">lock</span>
-            SSL Gesichert
-          </div>
-          <div className="flex items-center gap-1.5 text-on-surface-variant text-xs font-label">
-            <span className="material-symbols-outlined text-base">flag</span>
-            Swiss Made
-          </div>
-          <div className="flex items-center gap-1.5 text-on-surface-variant text-xs font-label">
-            <span className="material-symbols-outlined text-base">undo</span>
-            Kostenlose Retoure
+          {/* CTA Desktop */}
+          <div className="hidden md:flex justify-between items-center">
+            <Link
+              href="/checkout/cart"
+              className="font-headline text-xs uppercase tracking-widest text-on-surface-variant hover:text-primary"
+            >
+              ← Zurück zum Warenkorb
+            </Link>
+            <button
+              type="button"
+              onClick={handlePay}
+              disabled={submitting || !shippingValid || !billingValid}
+              className="bg-tertiary text-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submitting
+                ? "Weiterleitung zu Stripe …"
+                : `Bezahlen · CHF ${totalAfterDiscounts.toFixed(2)}`}
+            </button>
           </div>
         </div>
       </main>
 
-      {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-outline-variant p-4">
-        <div className="max-w-lg mx-auto">
-          <button
-            onClick={() => router.push("/thank-you")}
-            className="w-full py-5 bg-primary text-white font-label font-semibold rounded-xl uppercase tracking-widest text-sm"
-          >
-            Jetzt kaufen — CHF 29.80
-          </button>
+      {/* Mobile sticky CTA */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-primary text-on-primary p-4 shadow-2xl z-40">
+        <div className="flex justify-between items-center mb-3">
+          <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60">
+            Total
+          </span>
+          <span className="font-headline font-bold text-xl">
+            CHF {totalAfterDiscounts.toFixed(2)}
+          </span>
         </div>
+        <button
+          type="button"
+          onClick={handlePay}
+          disabled={submitting || !shippingValid || !billingValid}
+          className="block w-full text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "…" : "Bezahlen"}
+        </button>
       </div>
     </div>
   );
 }
+
+function Section({
+  title,
+  editHref,
+  children,
+}: {
+  title: string;
+  editHref?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white p-6 md:p-8 shadow-sm mb-4">
+      <div className="flex justify-between items-baseline mb-4">
+        <h2 className="font-headline font-bold text-base text-primary uppercase tracking-tight">
+          {title}
+        </h2>
+        {editHref && (
+          <Link
+            href={editHref}
+            className="font-headline text-[11px] uppercase tracking-widest text-tertiary hover:text-primary font-bold"
+          >
+            Ändern
+          </Link>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  bold = false,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+}) {
+  return (
+    <div
+      className={`flex justify-between items-baseline ${
+        bold ? "font-headline font-bold text-lg" : ""
+      }`}
+    >
+      <span className={bold ? "" : "text-on-primary/80"}>{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}
+

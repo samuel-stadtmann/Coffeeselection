@@ -1,0 +1,23 @@
+-- ============================================================================
+-- P2 — coffees.roast_level Daten-Hygiene
+--
+-- Erste Annahme war: Spalte ist text mit Enum-CHECK (light/medium_light/...).
+-- Realitaet: Spalte wurde irgendwann via Dashboard auf smallint umgebaut. Die
+-- 16 aktiven Coffees nutzen 1-5.
+--
+-- Entscheidung: KEINE Schema-Aenderung. Die Edge Function generate-coffee-
+-- embedding macht jetzt das Mapping smallint -> Enum-Label beim Aufbau des
+-- OpenAI-Embedding-Texts ("Roestgrad: light" statt "Roestgrad: 1"). Die DB
+-- bleibt wie sie ist; alle anderen Codepfade (Frontend etc.) lesen 1-5
+-- weiter wie gewohnt.
+--
+-- Diese Migration ist daher leer — nur als Marker, dass P2 erledigt wurde
+-- und der Fix in supabase/functions/generate-coffee-embedding/index.ts liegt.
+-- Nach Re-Deploy der Edge Function MUESSEN die Coffee-Embeddings einmal neu
+-- generiert werden:
+--
+--   npx tsx scripts/backfill-coffee-embeddings.ts
+-- ============================================================================
+
+-- intentionally empty
+select 'P2 fix lives in supabase/functions/generate-coffee-embedding/index.ts'::text as note;

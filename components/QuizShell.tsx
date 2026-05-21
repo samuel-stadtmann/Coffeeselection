@@ -6,17 +6,19 @@ const LOGO = "/logo.png";
 export function QuizHeader({ step, totalSteps }: { step?: number; totalSteps?: number }) {
   const progress = step && totalSteps ? (step / totalSteps) * 100 : 0;
   return (
+    // Einheitlicher Header: feste Hoehe h-20 md:h-24. overflow-hidden
+    // NUR am Logo-Link. Konsistent mit Home + AccountLayout.
     <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-      <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-        <Link href="/" className="flex items-center">
-          <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
+      <div className="flex justify-between items-center gap-3 h-20 md:h-24 max-w-7xl mx-auto px-6 md:px-8 w-full">
+        <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
+          <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
         </Link>
         {step && totalSteps && (
           <div className="hidden md:block font-headline text-[11px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">
             Frage {String(step).padStart(2, "0")} von {String(totalSteps).padStart(2, "0")}
           </div>
         )}
-        <Link href="/" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors flex items-center gap-2">
+        <Link href="/" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors flex items-center gap-2 shrink-0">
           <span className="material-symbols-outlined text-base">close</span>
           <span className="hidden sm:inline">Beenden</span>
         </Link>

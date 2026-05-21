@@ -19,6 +19,7 @@ export type QuizQuestion = {
  *  Quiz-Daten sind public, daher anon-readable. */
 export async function getQuizQuestions(): Promise<QuizQuestion[]> {
   const supabase = createStaticClient();
+  if (!supabase) return [];
   const [{ data: questions }, { data: options }] = await Promise.all([
     supabase
       .from("quiz_questions")
@@ -152,15 +153,147 @@ export async function persistQuizForCurrentUser(
     })
     .eq("id", response.id);
 
-  // 5) customers updaten
+  // 5) customers updaten — taste-type + alle direkt-wirkenden Quiz-Praefs.
+  //
+  // Frage 9 (Saeure-Empfindlichkeit / Magen) -> prefers_low_acidity
+  const acidityAnswer = answers.find(
+    (a) => a.question_code === "question-9-acidity-sensitivity"
+  )?.answer_code;
+  const prefersLowAcidity = acidityAnswer === "often" || acidityAnswer === "always";
+
+  // Frage 10 (Mouthfeel / Konsistenz) -> preferred_body (1-5)
+  const consistencyAnswer = answers.find(
+    (a) => a.question_code === "question-10-mouthfeel"
+  )?.answer_code;
+  const bodyByAnswer: Record<string, number> = {
+    "tea-like": 1,
+    balanced: 3,
+    creamy: 4,
+    syrupy: 5,
+  };
+  const preferredBody = consistencyAnswer
+    ? bodyByAnswer[consistencyAnswer] ?? null
+    : null;
+
+  // Frage 11 (Erfahrung) -> preferred_complexity (1-5)
+  const experienceAnswer = answers.find(
+    (a) => a.question_code === "question-11-experience-level"
+  )?.answer_code;
+  const complexityByAnswer: Record<string, number> = {
+    beginner: 2,
+    casual: 3,
+    enthusiast: 4,
+    expert: 5,
+  };
+  const preferredComplexity = experienceAnswer
+    ? complexityByAnswer[experienceAnswer] ?? null
+    : null;
+
+  // Frage 12 (Offenheit fuer Neues) -> exploration_level (1-4)
+  // Steuert v_mmr_lambda in rank_coffees_for_customer (Discovery-Modus).
+  const opennessAnswer = answers.find(
+    (a) => a.question_code === "question-12-openness"
+  )?.answer_code;
+  const explorationByAnswer: Record<string, number> = {
+    comfort: 1,
+    open: 2,
+    explorer: 3,
+    extreme: 4,
+  };
+  const explorationLevel = opennessAnswer
+    ? explorationByAnswer[opennessAnswer] ?? null
+    : null;
+
   await supabase
     .from("customers")
     .update({
       taste_type_id: primary.type,
       secondary_type: secondary?.type ?? null,
       confidence,
+      prefers_low_acidity: prefersLowAcidity,
+      preferred_body: preferredBody,
+      preferred_complexity: preferredComplexity,
+      exploration_level: explorationLevel,
     })
     .eq("id", customer.id);
 
+  // 5b) Frage 1 (Bruehmethode) -> customer_brewing_methods (n:m mit Catalog).
+  //     Mapping Quiz-answer_code -> brewing_methods_catalog.slug.
+  //     Wir setzen genau einen Eintrag als is_primary=true (Partial Unique
+  //     Index erlaubt nur einen).
+  const brewingAnswer = answers.find(
+    (a) => a.question_code === "question-1-brewing-method"
+  )?.answer_code;
+  const slugByAnswer: Record<string, string> = {
+    vollautomat: "fully_auto",
+    siebtraeger: "espresso",
+    "v60-filter": "v60",
+    "french-press": "frenchpress",
+    "moka-pot": "moka",
+  };
+  const brewingSlug = brewingAnswer ? slugByAnswer[brewingAnswer] : undefined;
+  if (brewingSlug) {
+    // Catalog-ID nachschlagen
+    const { data: bm } = await supabase
+      .from("brewing_methods_catalog")
+      .select("id")
+      .eq("slug", brewingSlug)
+      .maybeSingle();
+    if (bm?.id) {
+      // Bestehende primary deaktivieren (Re-Quiz-Fall)
+      await supabase
+        .from("customer_brewing_methods")
+        .update({ is_primary: false })
+        .eq("customer_id", customer.id)
+        .eq("is_primary", true);
+      // Upsert auf (customer_id, brewing_method_id)
+      await supabase
+        .from("customer_brewing_methods")
+        .upsert(
+          {
+            customer_id: customer.id,
+            brewing_method_id: bm.id,
+            is_primary: true,
+            frequency: "daily",
+          },
+          { onConflict: "customer_id,brewing_method_id" }
+        );
+    } else {
+      console.warn(
+        "[quiz] brewing_methods_catalog slug not found:",
+        brewingSlug,
+        "— customer_brewing_methods not updated"
+      );
+    }
+  }
+
+  // 6) Embedding-Generation triggern (fire-and-forget, blockiert die Quiz-Antwort nicht).
+  //    Edge Function build-customer-embedding berechnet das taste_embedding aus
+  //    embedding_seed_text + aroma_families des neuen Geschmackstyps.
+  triggerCustomerEmbedding(customer.id).catch((err) => {
+    console.error("[quiz] build-customer-embedding trigger failed", err);
+  });
+
   return primary.type;
+}
+
+async function triggerCustomerEmbedding(customerId: string): Promise<void> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    console.warn("[quiz] supabase env vars missing — skipping embedding trigger");
+    return;
+  }
+  const res = await fetch(`${url}/functions/v1/build-customer-embedding`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ customer_id: customerId }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`build-customer-embedding ${res.status}: ${body}`);
+  }
 }

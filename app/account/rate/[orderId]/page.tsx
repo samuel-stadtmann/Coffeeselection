@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AccountSidebar from "@/components/AccountSidebar";
+import AccountMobileNav from "@/components/AccountMobileNav";
 import { createClient } from "@/lib/supabase/client";
 
 const LOGO = "/logo.png";
@@ -34,13 +35,28 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
   // Sobald `orders`-Table befüllt ist, wandelt sich das zu echtem orderId → coffee_id Lookup.
   const { orderId: slug } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Mail-Deep-Link-Params (heute):
+  //   ?stars=N       Pre-fill der Stern-Auswahl (z.B. von der Thanks-Page
+  //                  nach Magic-Link-Klick weitergeleitet — User kann nun
+  //                  Tags + Comment ergaenzen)
+  //   ?order=uuid    setzt order_id im coffee_ratings-Insert (Verknuepfung
+  //                  mit Bestellung)
+  //
+  // Auto-Submit gibt es NICHT mehr — Magic-Link in der Bewertungs-Email
+  // geht direkt auf /api/rate/via-token, ohne den Umweg ueber diese Page.
+  const initialStars = Number(searchParams.get("stars") ?? 0);
+  const orderIdParam = searchParams.get("order");
 
   const [coffee, setCoffee] = useState<CoffeeForRating | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  const [stars, setStars] = useState(0);
+  const [stars, setStars] = useState(
+    initialStars >= 1 && initialStars <= 5 ? initialStars : 0
+  );
   const [hoverStars, setHoverStars] = useState(0);
   const [positiveTags, setPositiveTags] = useState<string[]>([]);
   const [negativeTags, setNegativeTags] = useState<string[]>([]);
@@ -57,7 +73,13 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) {
-        router.push(`/login?next=/account/rate/${slug}`);
+        // Ganze URL inkl. ?stars=N&order=uuid mitnehmen — sonst verliert der
+        // User nach Login die Auto-Submit-Daten aus der Bewertungs-Email.
+        const nextUrl =
+          typeof window !== "undefined"
+            ? window.location.pathname + window.location.search
+            : `/account/rate/${slug}`;
+        router.push(`/login?next=${encodeURIComponent(nextUrl)}`);
         return;
       }
       const { data: customer } = await supabase
@@ -108,8 +130,7 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
     setPositiveTags((prev) => prev.filter((t) => t !== tag));
   };
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submitRating() {
     setSubmitError(null);
     if (stars === 0 || !coffee || !customerId) return;
     setSubmitting(true);
@@ -118,7 +139,7 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
     const { error } = await supabase.from("coffee_ratings").insert({
       customer_id: customerId,
       coffee_id: coffee.id,
-      order_id: null, // wird gesetzt sobald orders-Persistierung steht
+      order_id: orderIdParam ?? null,
       rating: stars,
       would_drink_again: wouldDrinkAgain,
       positive_tags: positiveTags,
@@ -135,6 +156,11 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
       return;
     }
     setSubmitted(true);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await submitRating();
   }
 
   if (loading) {
@@ -159,25 +185,26 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
   }
 
   return (
-    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
+    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 lg:pb-0">
+      {/* Einheitlicher Header — feste Hoehe, overflow-hidden nur am Logo. */}
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
+            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
           </Link>
           <Link
             href="/account/dashboard"
-            className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-tertiary transition-colors font-bold"
+            className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-tertiary transition-colors font-bold shrink-0"
           >
             ← Dashboard
           </Link>
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40 pb-20">
+      <main className="pt-20 md:pt-24 pb-20 lg:pb-12">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-            <div className="lg:col-span-3">
+            <div className="hidden lg:block lg:col-span-3">
               <AccountSidebar />
             </div>
 
@@ -405,6 +432,9 @@ export default function RateOrderPage({ params }: { params: Promise<{ orderId: s
           </div>
         </div>
       </main>
+
+      {/* Mobile/Tablet: App-artige Bottom-Tab-Bar */}
+      <AccountMobileNav />
     </div>
   );
 }

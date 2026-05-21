@@ -1,21 +1,26 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { tasteTypes, tasteTypeBySlug } from "@/lib/taste-types";
 import { tasteTypeIdBySlug } from "@/lib/taste-types-map";
 import { createStaticClient } from "@/lib/supabase/static";
 import { getCoffeesForTasteType } from "@/lib/db/recommendations";
+import { getTasteTypes, getTasteTypeBySlug } from "@/lib/db/taste-types";
+import CoffeeCardCartButtons from "@/components/CoffeeCardCartButtons";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG = "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
-export function generateStaticParams() {
-  return tasteTypes.map((t) => ({ slug: t.slug }));
+export async function generateStaticParams() {
+  const supabase = createStaticClient();
+  const types = await getTasteTypes(supabase);
+  return types.map((t) => ({ slug: t.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const t = tasteTypeBySlug(slug);
+  const supabase = createStaticClient();
+  const t = await getTasteTypeBySlug(supabase, slug);
   if (!t) return {};
   return {
     title: `${t.name} — ${t.seoTitle}`,
@@ -26,13 +31,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function TasteTypePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const type = tasteTypeBySlug(slug);
+  const supabase = createStaticClient();
+  const [type, tasteTypes] = await Promise.all([
+    getTasteTypeBySlug(supabase, slug),
+    getTasteTypes(supabase),
+  ]);
   if (!type) notFound();
 
   // DB-Coffees: Top-6 Matches für diesen Geschmackstyp
   const tasteTypeId = tasteTypeIdBySlug(slug);
-  const supabase = createStaticClient();
-  const dbCoffees = tasteTypeId ? await getCoffeesForTasteType(supabase, tasteTypeId, { limit: 6 }) : [];
+  const dbCoffees =
+    tasteTypeId && supabase
+      ? await getCoffeesForTasteType(supabase, tasteTypeId, { limit: 6 })
+      : [];
 
   // Röster werden aus den DB-Coffees abgeleitet — distinct
   const dbRoasters = Array.from(
@@ -48,21 +59,9 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       {/* Minimal Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
-          </Link>
-          <Link
-            href="/quiz/start"
-            className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
-          >
-            Quiz starten
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2">
@@ -93,7 +92,7 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               <p className="text-lg text-on-surface-variant leading-relaxed mb-10">{type.heroDesc}</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/quiz/start"
+                  href="/quiz/question-1-brewing-method"
                   className="bg-primary text-on-primary px-8 py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all text-center"
                 >
                   Bin ich der {type.name}?
@@ -160,10 +159,6 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               </span>
             ))}
           </div>
-          <div className="text-center mt-12 text-sm text-on-surface-variant">
-            <span className="font-headline text-[11px] uppercase tracking-widest font-bold mr-2 text-primary">Brühmethoden:</span>
-            {type.brewing.join(" · ")}
-          </div>
         </section>
 
         {/* Empfohlene Kaffees */}
@@ -217,20 +212,18 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
                         <span className="font-headline font-bold text-primary text-xl">CHF {c.price_chf.toFixed(2)}</span>
                       </div>
                     </Link>
-                    <div className="grid grid-cols-2 border-t border-primary/10">
-                      <Link
-                        href={`/coffee/${c.slug}`}
-                        className="text-center py-4 font-headline text-[10px] uppercase tracking-widest text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors font-bold"
-                      >
-                        Details
-                      </Link>
-                      <Link
-                        href="/checkout/cart"
-                        className="text-center py-4 font-headline text-[10px] uppercase tracking-widest bg-primary text-on-primary hover:bg-black transition-colors font-bold"
-                      >
-                        In den Warenkorb
-                      </Link>
-                    </div>
+                    <CoffeeCardCartButtons
+                      coffee_id={c.id}
+                      coffee_name={c.name}
+                      coffee_slug={c.slug}
+                      image_url={c.image_url}
+                      roaster_name={c.roaster?.name ?? ""}
+                      unit_price_chf_250g={
+                        c.weight_g > 0
+                          ? Number(((c.price_chf * 250) / c.weight_g).toFixed(2))
+                          : c.price_chf
+                      }
+                    />
                   </div>
                 ))}
               </div>
@@ -320,7 +313,7 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
               Unser 12-Fragen-Quiz klassifiziert dich präzise. 60 Sekunden, keine Anmeldung.
             </p>
             <Link
-              href="/quiz/start"
+              href="/quiz/question-1-brewing-method"
               className="inline-block bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all"
             >
               Geschmackstyp finden
@@ -333,18 +326,18 @@ export default async function TasteTypePage({ params }: { params: Promise<{ slug
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-40 md:h-56 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
           </Link>
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
         </div>
       </footer>
 
       {/* Sticky Mobile CTA */}
       <Link
-        href="/quiz/start"
+        href="/quiz/question-1-brewing-method"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
-        Quiz starten · 60 Sek
+        Quiz starten
       </Link>
     </div>
   );

@@ -62,6 +62,7 @@ export default async function Page() {
     ? await getCoffeesForTasteType(supabase, customer.taste_type_id, {
         limit: 3,
         excludeIds: Array.from(ratedCoffeeIds),
+        customerId: customer.id,
       })
     : [];
 
@@ -114,11 +115,17 @@ export default async function Page() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { label: "Bewertungen total", value: totalRecs, icon: "auto_awesome" },
-          { label: "Ø Match-Score", value: avgMatch != null ? `${avgMatch}%` : "—", icon: "psychology" },
-          { label: "Ø Bewertung", value: avgRating != null ? `${avgRating} / 5` : "—", icon: "star" },
+          { label: "Bewertungen total", value: totalRecs, icon: "auto_awesome", tooltip: "Anzahl Kaffees, die du bereits bewertet hast." },
+          {
+            label: "Ø Match-Score",
+            value: avgMatch != null ? `${avgMatch}%` : "—",
+            icon: "psychology",
+            tooltip:
+              "Profilnähe zwischen Coffee-Sensorik (Säure · Süße · Körper · Bitterkeit · Komplexität) und deinem Geschmackstyp. 100% = identisches Sensorik-Profil.",
+          },
+          { label: "Ø Bewertung", value: avgRating != null ? `${avgRating} / 5` : "—", icon: "star", tooltip: "Durchschnitt deiner Sterne-Bewertungen." },
         ].map((s) => (
-          <div key={s.label} className="bg-white p-6 shadow-sm">
+          <div key={s.label} className="bg-white p-6 shadow-sm" title={s.tooltip}>
             <span className="material-symbols-outlined text-tertiary text-2xl mb-3 block">{s.icon}</span>
             <p className="font-headline font-bold text-primary text-2xl uppercase tracking-tight">{s.value}</p>
             <p className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">{s.label}</p>

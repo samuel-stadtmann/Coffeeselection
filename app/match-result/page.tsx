@@ -1,27 +1,39 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { tasteTypeById } from "@/lib/taste-types-map";
-import type { TasteType } from "@/lib/taste-types";
+import { getTasteTypeById, type TasteType } from "@/lib/db/taste-types";
 import { getLocalAnswers, clearLocalAnswers, type LocalQuizAnswer } from "@/lib/quiz-storage";
 import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
+import { useCart, type CartWeight } from "@/lib/cart";
+import { hasDiscoveryIntent, clearDiscoveryIntent } from "@/lib/discovery-intent";
+import { trackEvent } from "@/lib/analytics";
+import {
+  SUBSCRIPTION_DISCOUNT_PERCENT,
+  SUBSCRIPTION_INTERVAL_WEEKS,
+  INTERVAL_LABELS,
+  type SubscriptionIntervalWeeks,
+} from "@/lib/subscription-constants";
 
 const LOGO = "/logo.png";
 const IMG_BEANS_FALLBACK =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuC-mgzdszeDV-ADPnt08LksEtq5jHo_pZiXrnzVNy7faF7CAvNwCIqw0tZ2ylgRbHNuI-cdksgJ49bjfH36AYZerX9qRPq7kE2svCJ2KsLCMhI2k4Dc50D2D5FEGms1FJKDbeS75aSghLNY7Dop_dxhV5e-766gOscbYVVzn4qpX1rtPcumcDu7hr6OQeoiBzbRrze7HIkmFAM9YOYzQFzRF1wR3U1Ec53bS5Aj9xRlWvn7KxLIHJL79Wy6T8BFR47-ulGO1PjIJKEL";
 
-const PRICE_PER_250G = 28;
-const intervals = [
-  { id: "weekly", label: "Wöchentlich", note: "Für Vieltrinker" },
-  { id: "biweekly", label: "Alle 2 Wochen", note: "Beliebteste Wahl", popular: true },
-  { id: "monthly", label: "Monatlich", note: "Standard" },
-  { id: "6weeks", label: "Alle 6 Wochen", note: "Für Genießer" },
-];
-const sizes = [
-  { id: "250g", label: "250g", multiplier: 1, note: "1 Packung" },
-  { id: "500g", label: "500g", multiplier: 1.9, note: "2 Packungen" },
-  { id: "1kg", label: "1 kg", multiplier: 3.6, note: "4 Packungen · -10%" },
+// Intervalle aus den Subscription-Konstanten ableiten (1/2/4/6/8 Wochen),
+// damit Match-Result, Cart und Stripe denselben Set teilen.
+const intervals = SUBSCRIPTION_INTERVAL_WEEKS.map((w) => ({
+  id: w,
+  label: INTERVAL_LABELS[w].short,
+  popular: w === 2,
+}));
+
+// Mengen ohne Volumen-Rabatt (linear) — die Anzahl Packungen blendet
+// der Roester selber im Versand.
+const sizes: { id: string; label: string; grams: CartWeight }[] = [
+  { id: "250g", label: "250g", grams: 250 },
+  { id: "500g", label: "500g", grams: 500 },
+  { id: "1kg",  label: "1 kg", grams: 1000 },
 ];
 
 /**
@@ -139,6 +151,14 @@ async function persistAndScoreQuiz(
     return { tasteTypeId: null, error: custErr.message };
   }
 
+  // 6) Embedding-Generation triggern (fire-and-forget — blockt Quiz-UX nicht).
+  //    Aktiviert den Hybrid-Score in /lib/db/recommendations.ts: nach diesem
+  //    Call hat der Customer ein taste_embedding und Empfehlungen nutzen
+  //    cosine similarity zu coffees.flavor_embedding.
+  void import("@/lib/db/embeddings").then((m) =>
+    m.triggerBuildCustomerEmbedding(customerId)
+  );
+
   return { tasteTypeId: primary.type, error: null };
 }
 
@@ -147,13 +167,26 @@ async function persistAndScoreQuiz(
 type LoadState = "loading" | "no-quiz" | "error" | "ready";
 
 export default function MatchResultPage() {
+  const router = useRouter();
+  const { add, addSubscription } = useCart();
   const [orderType, setOrderType] = useState<"once" | "subscription">("subscription");
-  const [interval, setInterval] = useState("biweekly");
+  // P2: Wenn User aus Discovery-Funnel (Home Section 6 oder /subscription/discovery)
+  // kommt, wird das Abo automatisch als Discovery-Abo angelegt.
+  const [isDiscovery, setIsDiscovery] = useState(false);
+  useEffect(() => {
+    if (hasDiscoveryIntent()) {
+      setIsDiscovery(true);
+      setOrderType("subscription");
+    }
+  }, []);
+  const [interval, setInterval] = useState<SubscriptionIntervalWeeks>(2);
   const [size, setSize] = useState("500g");
   const [tasteType, setTasteType] = useState<TasteType | undefined>();
   const [coffee, setCoffee] = useState<RecommendedCoffee | null>(null);
   const [state, setState] = useState<LoadState>("loading");
+  const [adding, setAdding] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -164,6 +197,7 @@ export default function MatchResultPage() {
         setErrMsg("Bitte einloggen.");
         return;
       }
+      setLoggedIn(true);
       const { data: customer } = await supabase
         .from("customers")
         .select("id, taste_type_id")
@@ -175,15 +209,14 @@ export default function MatchResultPage() {
         return;
       }
 
-      let id: number | null = customer.taste_type_id ?? null;
+      // Lokale Antworten haben Vorrang: Wer das Quiz wiederholt, will
+      // ein NEUES Resultat — auch wenn schon ein taste_type_id am Customer
+      // klebt. persistAndScoreQuiz deaktiviert dann die alte quiz_response
+      // und ueberschreibt customers.taste_type_id sauber.
+      let id: number | null = null;
+      const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
 
-      // Wenn noch kein Resultat: localStorage prüfen, persistieren
-      if (id == null) {
-        const localAnswers: LocalQuizAnswer[] = getLocalAnswers();
-        if (localAnswers.length === 0) {
-          setState("no-quiz");
-          return;
-        }
+      if (localAnswers.length > 0) {
         const result = await persistAndScoreQuiz(supabase, customer.id, localAnswers);
         if (result.error || result.tasteTypeId == null) {
           setState("error");
@@ -192,9 +225,23 @@ export default function MatchResultPage() {
         }
         clearLocalAnswers();
         id = result.tasteTypeId;
+      } else if (customer.taste_type_id != null) {
+        // Kein neuer Quiz-Durchgang, aber bereits ein gespeichertes Resultat.
+        id = customer.taste_type_id;
+      } else {
+        setState("no-quiz");
+        return;
       }
 
-      const type = tasteTypeById(id);
+      // Defensive: nach den Branches oben ist id immer ein number, aber
+      // TS narrowing greift bei let-Reassignment nicht durchgaengig.
+      if (id == null) {
+        setState("error");
+        setErrMsg("Interner Fehler: kein Geschmackstyp ermittelt.");
+        return;
+      }
+
+      const type = await getTasteTypeById(supabase, id);
       if (!type) {
         setState("error");
         setErrMsg(`Unbekannter Geschmackstyp ${id}.`);
@@ -206,30 +253,79 @@ export default function MatchResultPage() {
       const matches = await getCoffeesForTasteType(supabase, id, { limit: 1 });
       setCoffee(matches[0] ?? null);
       setState("ready");
+      // GA4: Quiz erfolgreich abgeschlossen, Geschmackstyp ermittelt.
+      trackEvent("quiz_complete", {
+        taste_type_id: id,
+        taste_type_slug: type?.slug ?? null,
+        matched_coffee_slug: matches[0]?.slug ?? null,
+      });
     })();
   }, []);
 
-  const sizeMultiplier = sizes.find((s) => s.id === size)?.multiplier ?? 1;
-  const basePrice = PRICE_PER_250G * sizeMultiplier;
-  const discount = orderType === "subscription" ? 0.85 : 1;
-  const totalPrice = (basePrice * discount).toFixed(2);
-  const savings = orderType === "subscription" ? (basePrice * 0.15).toFixed(2) : null;
+  // Preis pro 250g aus dem echten Coffee (price_chf gilt fuer weight_g),
+  // linear auf gewaehlte Groesse skaliert. Fallback 28 falls Coffee
+  // noch nicht geladen — die Konfigurator-Section wird sowieso nur
+  // gerendert wenn coffee gesetzt ist.
+  const unitPrice250g = coffee
+    ? (coffee.price_chf * 250) / coffee.weight_g
+    : 28;
+  const sizeGrams = sizes.find((s) => s.id === size)?.grams ?? 500;
+  const basePrice = unitPrice250g * (sizeGrams / 250);
+  const discountMult =
+    orderType === "subscription" ? 1 - SUBSCRIPTION_DISCOUNT_PERCENT / 100 : 1;
+  const totalPriceNum = basePrice * discountMult;
+  const totalPrice = totalPriceNum.toFixed(2);
+  const savings =
+    orderType === "subscription"
+      ? (basePrice - totalPriceNum).toFixed(2)
+      : null;
+
+  const handleAddToCart = () => {
+    if (adding || !coffee) return;
+    setAdding(true);
+    const common = {
+      coffee_id: coffee.id,
+      coffee_name: coffee.name,
+      coffee_slug: coffee.slug,
+      image_url: coffee.image_url,
+      roaster_name: coffee.roaster?.name ?? "",
+      unit_price_chf_250g: unitPrice250g,
+      weight_g: sizeGrams,
+      quantity: 1,
+    };
+    if (orderType === "subscription") {
+      addSubscription({
+        ...common,
+        interval_weeks: interval,
+        is_discovery: isDiscovery,
+      });
+    } else {
+      add(common);
+    }
+    // Intent ist nach Cart-Add eingelöst — verhindert, dass ein
+    // spaeterer Besuch auf /coffee/<slug> nochmals Discovery vorwaehlt.
+    clearDiscoveryIntent();
+    setTimeout(() => router.push("/checkout/cart"), 200);
+  };
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <div className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
+            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left" src={LOGO} />
           </Link>
-          <Link href="/login?next=/account/dashboard" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors">
+          <Link
+            href={loggedIn ? "/account/dashboard" : "/login?next=/account/dashboard"}
+            className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors"
+          >
             Mein Konto
           </Link>
         </div>
       </header>
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         {/* Hero — Geschmackstyp */}
         <section className="bg-primary text-on-primary py-12 md:py-16 border-b border-tertiary/20">
           <div className="max-w-5xl mx-auto px-6 md:px-8 text-center">
@@ -377,23 +473,46 @@ export default function MatchResultPage() {
               {/* Order Type Toggle */}
               <div>
                 <h3 className="font-headline text-[11px] uppercase tracking-[0.2em] text-on-surface-variant font-bold mb-3">Bestelltyp</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button
-                    onClick={() => setOrderType("subscription")}
+                    onClick={() => {
+                      setOrderType("subscription");
+                      setIsDiscovery(false);
+                    }}
                     className={`relative p-5 text-left transition-all border-2 ${
-                      orderType === "subscription"
+                      orderType === "subscription" && !isDiscovery
                         ? "border-tertiary bg-tertiary/5"
                         : "border-surface-container bg-white hover:border-tertiary/40"
                     }`}
                   >
                     <span className="absolute -top-3 left-3 bg-tertiary text-white px-2 py-0.5 font-headline text-[9px] uppercase tracking-widest font-bold">
-                      -15% Sparen
+                      -{SUBSCRIPTION_DISCOUNT_PERCENT}% Sparen
                     </span>
                     <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Abo</h4>
                     <p className="text-xs text-on-surface-variant">Regelmäßig liefern, jederzeit pausieren</p>
                   </button>
                   <button
-                    onClick={() => setOrderType("once")}
+                    onClick={() => {
+                      setOrderType("subscription");
+                      setIsDiscovery(true);
+                    }}
+                    className={`relative p-5 text-left transition-all border-2 ${
+                      orderType === "subscription" && isDiscovery
+                        ? "border-tertiary bg-tertiary/5"
+                        : "border-surface-container bg-white hover:border-tertiary/40"
+                    }`}
+                  >
+                    <span className="absolute -top-3 left-3 bg-tertiary text-white px-2 py-0.5 font-headline text-[9px] uppercase tracking-widest font-bold">
+                      −{SUBSCRIPTION_DISCOUNT_PERCENT}%
+                    </span>
+                    <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base mb-1">Discovery</h4>
+                    <p className="text-xs text-on-surface-variant">Jede Lieferung ein neuer Coffee aus deinem Geschmackstyp</p>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setOrderType("once");
+                      setIsDiscovery(false);
+                    }}
                     className={`p-5 text-left transition-all border-2 ${
                       orderType === "once"
                         ? "border-tertiary bg-tertiary/5"
@@ -421,7 +540,6 @@ export default function MatchResultPage() {
                       }`}
                     >
                       <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-base">{s.label}</h4>
-                      <p className="text-[10px] text-on-surface-variant mt-1 font-headline uppercase tracking-widest">{s.note}</p>
                     </button>
                   ))}
                 </div>
@@ -436,7 +554,7 @@ export default function MatchResultPage() {
                       <button
                         key={iv.id}
                         onClick={() => setInterval(iv.id)}
-                        className={`relative p-4 text-left transition-all border-2 ${
+                        className={`relative p-4 text-center transition-all border-2 ${
                           interval === iv.id
                             ? "border-tertiary bg-tertiary/5"
                             : "border-surface-container bg-white hover:border-tertiary/40"
@@ -448,7 +566,6 @@ export default function MatchResultPage() {
                           </span>
                         )}
                         <h4 className="font-headline font-bold text-primary uppercase tracking-tight text-sm">{iv.label}</h4>
-                        <p className="text-[10px] text-on-surface-variant mt-1">{iv.note}</p>
                       </button>
                     ))}
                   </div>
@@ -473,14 +590,15 @@ export default function MatchResultPage() {
                   )}
                 </div>
                 <p className="text-xs text-on-primary/60 mb-5">
-                  inkl. Versand · {orderType === "subscription" ? "jederzeit pausieren oder kündigen" : "keine Bindung"}
+                  Versand ab CHF 100 gratis · {orderType === "subscription" ? "jederzeit pausieren oder kündigen" : "keine Bindung"}
                 </p>
-                <Link
-                  href="/checkout/cart"
-                  className="block w-full text-center bg-tertiary text-primary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+                <button
+                  onClick={handleAddToCart}
+                  disabled={adding}
+                  className="block w-full text-center bg-tertiary text-primary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all disabled:opacity-60"
                 >
-                  {orderType === "subscription" ? "Abo starten" : "Jetzt bestellen"}
-                </Link>
+                  {adding ? "…" : orderType === "subscription" ? "Abo starten" : "Jetzt bestellen"}
+                </button>
                 <Link
                   href="/quiz/question-1-brewing-method"
                   className="block w-full text-center mt-3 py-3 font-headline text-[10px] uppercase tracking-widest text-on-primary/60 hover:text-tertiary transition-colors"
@@ -492,7 +610,7 @@ export default function MatchResultPage() {
               {/* Trust */}
               <div className="grid grid-cols-3 gap-2 text-center">
                 {[
-                  { icon: "local_shipping", label: "Versand inkl." },
+                  { icon: "psychology", label: "Quiz-Match" },
                   { icon: "verified", label: "Direct Trade" },
                   { icon: "autorenew", label: "Pause jederzeit" },
                 ].map((t) => (
@@ -509,12 +627,17 @@ export default function MatchResultPage() {
       </main>
 
       {/* Sticky Mobile CTA */}
-      <Link
-        href="/checkout/cart"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-tertiary text-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl"
+      <button
+        onClick={handleAddToCart}
+        disabled={adding || state !== "ready" || !coffee}
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-tertiary text-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl disabled:opacity-60"
       >
-        {orderType === "subscription" ? `Abo starten · CHF ${totalPrice}` : `Bestellen · CHF ${totalPrice}`}
-      </Link>
+        {adding
+          ? "…"
+          : orderType === "subscription"
+          ? `Abo starten · CHF ${totalPrice}`
+          : `Bestellen · CHF ${totalPrice}`}
+      </button>
     </div>
   );
 }

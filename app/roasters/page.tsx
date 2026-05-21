@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getRoasters } from "@/lib/db/roasters";
 import { getCoffees } from "@/lib/db/coffees";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const ROASTER_FALLBACK_IMG =
@@ -30,40 +31,9 @@ export default async function RoastersOverviewPage() {
   const allCities = Array.from(new Set(roasters.map((r) => r.city).filter(Boolean) as string[])).sort();
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
-          </Link>
-          <div className="hidden lg:flex items-center space-x-10">
-            {navLinks.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-[14px] ${l.href === "/roasters" ? "text-tertiary" : "text-primary"}`}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center space-x-4 md:space-x-6">
-            <Link href="/login?next=/account/dashboard" className="hidden md:block">
-              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">person</span>
-            </Link>
-            <Link href="/checkout/cart">
-              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">shopping_bag</span>
-            </Link>
-            <Link
-              href="/quiz/question-1-brewing-method"
-              className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
-            >
-              Quiz starten
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <SiteHeader />
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20 text-center">
           <span className="font-headline font-bold text-tertiary uppercase tracking-[0.4em] text-[11px] mb-6 block">
@@ -73,7 +43,7 @@ export default async function RoastersOverviewPage() {
             Alle Röster
           </h1>
           <p className="text-lg text-on-surface-variant leading-relaxed max-w-2xl mx-auto">
-            Wir arbeiten mit {roasters.length} Specialty-Coffee-Röstereien der Schweiz zusammen. Jede mit einer eigenen Handschrift, eigenem Stil, eigener Geschichte.
+            Wir arbeiten mit verlesenen Specialty-Coffee-Röstereien der Schweiz zusammen. Jede mit einer eigenen Handschrift, eigenem Stil, eigener Geschichte.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-8">
             {allCities.map((c) => (
@@ -151,9 +121,9 @@ export default async function RoastersOverviewPage() {
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-40 md:h-56 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
           </Link>
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
         </div>
       </footer>
     </div>

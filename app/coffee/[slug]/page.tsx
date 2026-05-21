@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCoffeeBySlug, getCoffeeSlugsForStatic } from "@/lib/db/coffees";
+import { createClient } from "@/lib/supabase/server";
 import { coffeeCategories, categoryBySlug, getCoffeesForCategory } from "@/lib/coffee-categories";
+import { CoffeePurchaseOptions } from "./CoffeePurchaseOptions";
+import FavoriteButton from "@/components/FavoriteButton";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 const COFFEE_FALLBACK_IMG =
@@ -23,28 +27,30 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const c = await getCoffeeBySlug(slug);
   if (!c) return {};
   const origin = c.origin_name_de ?? "Specialty";
+  const description = `${c.name} aus ${origin}, geröstet von ${c.roaster_name}. Specialty Coffee, Direct Trade, CHF ${Number(c.price_chf).toFixed(2)}.`;
+  const title = `${c.name} — ${c.roaster_name} | Coffee Selection`;
   return {
-    title: `${c.name} — ${c.roaster_name} | Coffee Selection`,
-    description: `${c.name} aus ${origin}, geröstet von ${c.roaster_name}. Specialty Coffee, Direct Trade, CHF ${Number(c.price_chf).toFixed(2)}.`,
+    title,
+    description,
     keywords: [c.name.toLowerCase(), origin.toLowerCase(), c.roaster_name.toLowerCase(), "specialty coffee", "schweizer kaffee"],
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: c.image_url ? [{ url: c.image_url, alt: c.name }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: c.image_url ? [c.image_url] : undefined,
+    },
   };
 }
 
 function Header() {
   return (
-    <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-      <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-        <Link href="/" className="flex items-center">
-          <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
-        </Link>
-        <Link
-          href="/quiz/question-1-brewing-method"
-          className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
-        >
-          Quiz starten
-        </Link>
-      </nav>
-    </header>
+    <SiteHeader />
   );
 }
 
@@ -53,9 +59,9 @@ function Footer() {
     <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
         <Link href="/" className="flex items-center">
-          <img alt="Coffee Selection" className="h-40 md:h-56 w-auto object-contain" src={LOGO} />
+          <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
         </Link>
-        <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+        <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
       </div>
     </footer>
   );
@@ -67,12 +73,12 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
 
   // Category page — render filter view
   if (cat) {
-    const coffees = getCoffeesForCategory(cat);
+    const coffees = await getCoffeesForCategory(cat);
     const otherCats = coffeeCategories.filter((c) => c.slug !== slug).slice(0, 4);
     return (
       <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
         <Header />
-        <main className="pt-36 md:pt-40">
+        <main className="pt-20 md:pt-24">
           {/* Breadcrumb */}
           <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
             <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
@@ -131,7 +137,7 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                         {c.name}
                       </h3>
                       <p className="text-xs text-on-surface-variant mb-3">{c.roaster}</p>
-                      <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.tasteTypes[0]?.tagline}</p>
+                      <p className="text-xs text-on-surface-variant mb-4 flex-1">{c.shortDescription ?? c.tasteTypes[0]?.tagline ?? ""}</p>
                       <div className="flex justify-between items-center pt-4 border-t border-surface-container">
                         <span className="font-headline font-bold text-primary text-lg">{c.price}</span>
                         <span className="font-headline text-[10px] uppercase tracking-[0.3em] text-tertiary group-hover:translate-x-1 transition-transform">
@@ -210,15 +216,80 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
 
   const origin = coffee.origin_name_de ?? "Specialty";
   const priceLabel = `CHF ${Number(coffee.price_chf).toFixed(2)}`;
-  const aromas = coffee.flavor_slugs ?? [];
+  const aromaSlugs = coffee.flavor_slugs ?? [];
   const brewing = coffee.recommended_brewing_slugs ?? [];
   const description =
     coffee.description ?? coffee.short_description ?? coffee.tasting_summary ?? "";
+  // Kurz-Pitch unter dem Hero-Bild — bevorzugt short_description, dann
+  // tasting_summary, dann erster Satz der description.
+  const heroBlurb =
+    coffee.short_description ??
+    coffee.tasting_summary ??
+    (coffee.description ? coffee.description.split(". ")[0] + "." : null);
+
+  // flavor_slugs sind aus flavor_notes_catalog.slug (z.B. "choco_milk",
+  // "caramel", "nuts_walnut"). Im UI wollen wir die deutschen name_de
+  // anzeigen — Lookup einmalig via supabase, dann Map. Fallback: slug
+  // mit underscores zu Leerzeichen + Title-Case.
+  const aromaLookup = await (async () => {
+    if (aromaSlugs.length === 0) return new Map<string, string>();
+    const sb = await createClient();
+    const { data } = await sb
+      .from("flavor_notes_catalog")
+      .select("slug, name_de")
+      .in("slug", aromaSlugs);
+    return new Map(
+      (data ?? []).map((r) => [r.slug as string, r.name_de as string])
+    );
+  })();
+  // Schema.org Product JSON-LD fuer dieses Coffee-Detail-Item. Hilft
+  // Google die Seite als Produkt zu klassifizieren (Rich Result mit
+  // Preis + Bewertung wenn aggregateRating geliefert).
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: coffee.name,
+    description: heroBlurb ?? description,
+    image: coffee.image_url ? [coffee.image_url] : undefined,
+    brand: { "@type": "Brand", name: coffee.roaster_name },
+    sku: coffee.slug,
+    offers: {
+      "@type": "Offer",
+      url: `https://coffeeselection.ch/coffee/${coffee.slug}`,
+      priceCurrency: "CHF",
+      price: Number(coffee.price_chf).toFixed(2),
+      availability:
+        coffee.stock_status === "out_of_stock"
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+    },
+    ...(coffee.avg_rating_public != null && (coffee.rating_count_public ?? 0) > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number(coffee.avg_rating_public),
+            reviewCount: coffee.rating_count_public,
+            bestRating: 5,
+          },
+        }
+      : {}),
+  };
+
+  const formatAromaSlug = (s: string): string =>
+    aromaLookup.get(s) ??
+    s
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (m) => m.toUpperCase());
+  const aromas = aromaSlugs.map(formatAromaSlug);
 
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <Header />
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8">
           <nav className="font-headline text-[10px] uppercase tracking-[0.3em] text-on-surface-variant flex items-center gap-2 flex-wrap">
             <Link href="/" className="hover:text-tertiary transition-colors">Home</Link>
@@ -235,6 +306,11 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
               <div className="aspect-square overflow-hidden bg-surface-container-low shadow-2xl">
                 <img src={coffee.image_url || COFFEE_FALLBACK_IMG} alt={coffee.name} className="w-full h-full object-cover" />
               </div>
+              {heroBlurb && (
+                <p className="mt-4 text-sm md:text-base text-on-surface-variant leading-relaxed italic">
+                  {heroBlurb}
+                </p>
+              )}
             </div>
 
             <div className="lg:sticky lg:top-28 lg:self-start space-y-8">
@@ -245,9 +321,12 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                 >
                   {coffee.roaster_name}
                 </Link>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.1] mb-4 font-headline font-bold uppercase tracking-tight">
-                  {coffee.name}
-                </h1>
+                <div className="flex items-start justify-between gap-4">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl text-primary leading-[1.1] mb-4 font-headline font-bold uppercase tracking-tight">
+                    {coffee.name}
+                  </h1>
+                  <FavoriteButton type="coffee" id={coffee.id} size="lg" />
+                </div>
                 <p className="font-headline text-on-surface-variant uppercase tracking-widest text-sm mb-6">
                   {origin}{coffee.region ? ` · ${coffee.region}` : ""}{coffee.processing_name_de ? ` · ${coffee.processing_name_de}` : ""}
                 </p>
@@ -294,18 +373,14 @@ export default async function CoffeePageOrCategory({ params }: { params: Promise
                   <span className="font-headline text-[10px] uppercase tracking-widest text-on-primary/60 block">Preis · {coffee.weight_g}g</span>
                   <span className="font-headline font-bold text-3xl md:text-4xl text-tertiary">{priceLabel}</span>
                 </div>
-                <Link
-                  href="/checkout/cart"
-                  className="block w-full text-center bg-tertiary text-primary py-4 mb-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
-                >
-                  In den Warenkorb · Einmalig
-                </Link>
-                <Link
-                  href="/match-result"
-                  className="block w-full text-center border-2 border-tertiary text-tertiary py-4 font-headline font-bold text-xs uppercase tracking-widest hover:bg-tertiary hover:text-primary transition-all"
-                >
-                  Abo konfigurieren · -15% Sparen
-                </Link>
+                <CoffeePurchaseOptions
+                  coffee_id={coffee.id}
+                  coffee_name={coffee.name}
+                  coffee_slug={coffee.slug}
+                  image_url={coffee.image_url ?? null}
+                  roaster_name={coffee.roaster_name}
+                  unit_price_chf_250g={Number(coffee.price_chf)}
+                />
                 <p className="text-xs text-on-primary/60 text-center mt-4">
                   Versand ab CHF 100 kostenlos · röstfrisch in 2–4 Werktagen
                 </p>

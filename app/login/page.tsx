@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import SiteHeader from "@/components/SiteHeader";
 
 const LOGO = "/logo.png";
 
@@ -18,6 +19,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [marketingOptIn, setMarketingOptIn] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -35,7 +37,15 @@ function LoginForm() {
         email,
         password,
         options: {
-          data: { first_name: firstName, last_name: lastName },
+          // marketing_opt_in wird vom handle_new_auth_user-Trigger aus den
+          // user_metadata uebernommen und auf customers.marketing_opt_in
+          // geschrieben. Resend-Audience-Sync passiert dann beim ersten
+          // Settings-Toggle bzw. via Migration/Backfill.
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            marketing_opt_in: marketingOptIn,
+          },
           emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
@@ -51,6 +61,13 @@ function LoginForm() {
         setSubmitting(false);
         return;
       }
+      // Form-State leeren — sonst stehen Email/Passwort/Name nach
+      // Confirmation-Wait noch im Browser und werden ggf. ungewollt
+      // erneut abgeschickt.
+      setEmail("");
+      setPassword("");
+      setFirstName("");
+      setLastName("");
       // Email-Confirmation aktiv? Dann gibt's keine session, sondern eine Bestätigungs-Mail.
       if (!data.session) {
         setInfo("Wir haben dir eine Bestätigungs-Mail geschickt. Klick auf den Link, dann geht's weiter.");
@@ -95,19 +112,9 @@ function LoginForm() {
   return (
     <div className="bg-[#F9F5F0] min-h-screen flex flex-col">
       {/* Minimal Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <div className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16" src={LOGO} />
-          </Link>
-          <Link href="/" className="font-headline text-[11px] uppercase tracking-[0.3em] text-primary hover:text-tertiary transition-colors flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">close</span>
-            <span className="hidden sm:inline">Beenden</span>
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
-      <main className="flex-1 flex items-center justify-center pt-36 md:pt-40 pb-16 px-6">
+      <main className="flex-1 flex items-center justify-center pt-20 md:pt-24 pb-16 px-6">
         <div className="w-full max-w-md">
           {/* Strategic Headline — kontextabhängig */}
           <div className="text-center mb-10">
@@ -184,7 +191,9 @@ function LoginForm() {
               </label>
               <input
                 type="email"
+                name="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
@@ -197,8 +206,10 @@ function LoginForm() {
               </label>
               <input
                 type="password"
+                name="password"
                 required
                 minLength={8}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-surface-container px-4 py-3 border-b-2 border-tertiary/0 focus:border-tertiary outline-none font-body text-base"
@@ -207,11 +218,25 @@ function LoginForm() {
             </div>
 
             {mode === "signup" && (
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                Mit der Registrierung akzeptierst du unsere{" "}
-                <Link href="#" className="text-tertiary hover:text-primary underline">AGB</Link> und{" "}
-                <Link href="/privacy" className="text-tertiary hover:text-primary underline">Datenschutzerklärung</Link>.
-              </p>
+              <>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={marketingOptIn}
+                    onChange={(e) => setMarketingOptIn(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <span className="text-xs text-on-surface-variant leading-relaxed">
+                    Newsletter abonnieren — neue Röster, Specialty-Lots und Brüh-Tipps,
+                    max. 1× im Monat. Jederzeit in den Einstellungen abbestellbar.
+                  </span>
+                </label>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  Mit der Registrierung akzeptierst du unsere{" "}
+                  <Link href="#" className="text-tertiary hover:text-primary underline">AGB</Link> und{" "}
+                  <Link href="/privacy" className="text-tertiary hover:text-primary underline">Datenschutzerklärung</Link>.
+                </p>
+              </>
             )}
 
             {error && (

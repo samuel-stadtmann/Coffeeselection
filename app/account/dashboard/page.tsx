@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import AccountSidebar from "@/components/AccountSidebar";
+import AccountMobileNav from "@/components/AccountMobileNav";
 import { createClient } from "@/lib/supabase/client";
-import { tasteTypeById } from "@/lib/taste-types-map";
-import type { TasteType } from "@/lib/taste-types";
+import { getTasteTypeById, type TasteType } from "@/lib/db/taste-types";
 import { getCoffeesForTasteType, type RecommendedCoffee } from "@/lib/db/recommendations";
 
 const LOGO = "/logo.png";
@@ -23,15 +23,26 @@ type TasteProfile = {
   complexity: number | null;
 };
 
-const subscription = {
-  active: true,
-  product: "Discovery Abo · 500g",
-  interval: "Alle 2 Wochen",
-  nextDelivery: "15. Mai 2025",
-  daysUntilNext: 8,
-  pricePerDelivery: "CHF 45.20",
-  totalSpent: "CHF 224.40",
-  deliveriesReceived: 5,
+type SubscriptionStats = {
+  hasActiveSub: boolean;
+  productLabel: string;          // "Discovery Abo · 500g" oder "Fix-Abo · Yirgacheffe · 250g"
+  intervalLabel: string;         // "Alle 2 Wochen"
+  pricePerDeliveryChf: number;
+  nextDeliveryDate: string | null;
+  daysUntilNext: number | null;
+  totalSpentChf: number;         // Sum aller paid orders dieses Customers
+  deliveriesReceived: number;    // Count paid orders dieses Customers
+};
+
+const EMPTY_SUB_STATS: SubscriptionStats = {
+  hasActiveSub: false,
+  productLabel: "Kein aktives Abo",
+  intervalLabel: "—",
+  pricePerDeliveryChf: 0,
+  nextDeliveryDate: null,
+  daysUntilNext: null,
+  totalSpentChf: 0,
+  deliveriesReceived: 0,
 };
 
 type RateableCoffee = {
@@ -46,9 +57,11 @@ type RateableCoffee = {
 export default function AccountDashboardPage() {
   const [paused, setPaused] = useState(false);
   const [customer, setCustomer] = useState<CustomerRow | null>(null);
+  const [tasteType, setTasteType] = useState<TasteType | null>(null);
   const [profile, setProfile] = useState<TasteProfile | null>(null);
   const [recommendation, setRecommendation] = useState<RecommendedCoffee | null>(null);
   const [rateables, setRateables] = useState<RateableCoffee[]>([]);
+  const [subStats, setSubStats] = useState<SubscriptionStats>(EMPTY_SUB_STATS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -66,18 +79,101 @@ export default function AccountDashboardPage() {
         .single();
       setCustomer(data);
 
-      // Wenn taste_type_id gesetzt: Archetyp-Profil + Top-Match + Rateables laden
+      // Subscription + Order-Stats fuer DIESEN customer.id laden (nicht
+      // global! sonst leakt Mattia's Sicht andere Kunden).
+      if (data?.id) {
+        const [{ data: subRow }, { data: orderRows }] = await Promise.all([
+          supabase
+            .from("subscriptions")
+            .select(
+              "id, status, interval_weeks, price_chf_per_delivery, discovery_mode, stripe_current_period_end, items:subscription_items(weight_g, quantity, coffee:coffees(name))"
+            )
+            .eq("customer_id", data.id)
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from("orders")
+            .select("total_chf, status")
+            .eq("customer_id", data.id)
+            .in("status", ["paid", "processing", "shipped", "delivered"]),
+        ]);
+        const totalSpent = ((orderRows ?? []) as Array<{ total_chf: number }>)
+          .reduce((s, o) => s + Number(o.total_chf), 0);
+        if (subRow) {
+          const sub = subRow as unknown as {
+            id: string;
+            interval_weeks: number;
+            price_chf_per_delivery: number;
+            discovery_mode: boolean;
+            stripe_current_period_end: string | null;
+            items: Array<{
+              weight_g: number;
+              quantity: number;
+              coffee: { name: string } | null;
+            }>;
+          };
+          const item = sub.items?.[0];
+          const totalWeight = (sub.items ?? []).reduce(
+            (s, it) => s + (it.weight_g ?? 0) * (it.quantity ?? 1),
+            0
+          );
+          const coffeeLabel = sub.discovery_mode
+            ? "Discovery Abo"
+            : item?.coffee?.name ?? "Fix-Abo";
+          const productLabel = `${coffeeLabel} · ${totalWeight}g`;
+          const intervalLabel =
+            sub.interval_weeks === 1
+              ? "Wöchentlich"
+              : `Alle ${sub.interval_weeks} Wochen`;
+          let nextDate: string | null = null;
+          let daysUntil: number | null = null;
+          if (sub.stripe_current_period_end) {
+            const d = new Date(sub.stripe_current_period_end);
+            nextDate = d.toLocaleDateString("de-CH", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            });
+            daysUntil = Math.max(
+              0,
+              Math.round((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+            );
+          }
+          setSubStats({
+            hasActiveSub: true,
+            productLabel,
+            intervalLabel,
+            pricePerDeliveryChf: Number(sub.price_chf_per_delivery),
+            nextDeliveryDate: nextDate,
+            daysUntilNext: daysUntil,
+            totalSpentChf: Number(totalSpent.toFixed(2)),
+            deliveriesReceived: orderRows?.length ?? 0,
+          });
+        } else {
+          setSubStats({
+            ...EMPTY_SUB_STATS,
+            totalSpentChf: Number(totalSpent.toFixed(2)),
+            deliveriesReceived: orderRows?.length ?? 0,
+          });
+        }
+      }
+
+      // Wenn taste_type_id gesetzt: TasteType + Archetyp-Profil + Top-Match + Rateables laden
       if (data?.taste_type_id != null && data?.id) {
-        const [{ data: tt }, topCoffees, { data: ratings }] = await Promise.all([
+        const [tt, { data: profileRow }, topCoffees, { data: ratings }] = await Promise.all([
+          getTasteTypeById(supabase, data.taste_type_id),
           supabase
             .from("taste_types")
             .select("acidity, body, sweetness, bitterness, complexity")
             .eq("id", data.taste_type_id)
             .maybeSingle(),
-          getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 6 }),
+          getCoffeesForTasteType(supabase, data.taste_type_id, { limit: 6, customerId: data.id }),
           supabase.from("coffee_ratings").select("coffee_id").eq("customer_id", data.id),
         ]);
-        setProfile(tt as TasteProfile | null);
+        setTasteType(tt);
+        setProfile(profileRow as TasteProfile | null);
         setRecommendation(topCoffees[0] ?? null);
 
         const ratedIds = new Set((ratings ?? []).map((r) => r.coffee_id as string));
@@ -103,7 +199,6 @@ export default function AccountDashboardPage() {
     return "Guten Abend";
   })();
 
-  const tasteType: TasteType | undefined = tasteTypeById(customer?.taste_type_id);
   const hasTasteType = tasteType != null;
   const firstName = customer?.first_name ?? "";
   const joinedDate = customer
@@ -111,20 +206,20 @@ export default function AccountDashboardPage() {
     : "";
 
   return (
-    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 md:pb-0">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
+    <div className="bg-[#F9F5F0] text-on-surface min-h-screen pb-20 lg:pb-0">
+      {/* Einheitlicher Header — feste Hoehe, overflow-hidden nur am Logo. */}
+      <header className="fixed top-0 w-full z-50 h-20 md:h-24 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
+        <nav className="flex justify-between items-center gap-3 h-full max-w-7xl mx-auto px-6 md:px-8 w-full">
+          <Link href="/" className="flex items-center shrink-0 h-full overflow-hidden">
+            <img alt="Coffee Selection" className="h-12 sm:h-14 md:h-16 lg:h-20 w-auto object-contain object-left shrink-0" src={LOGO} />
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-x-3 sm:gap-x-4 shrink-0">
             <Link href="/checkout/cart">
               <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">shopping_bag</span>
             </Link>
             <Link
               href="/quiz/question-1-brewing-method"
-              className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all"
+              className="bg-primary text-white px-3 sm:px-5 md:px-6 py-2.5 md:py-3 text-[10px] md:text-[12px] uppercase tracking-[0.15em] md:tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
             >
               Quiz wiederholen
             </Link>
@@ -132,11 +227,11 @@ export default function AccountDashboardPage() {
         </nav>
       </header>
 
-      <main className="pt-36 md:pt-40 pb-20">
+      <main className="pt-20 md:pt-24 pb-20 lg:pb-12">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-            {/* Sidebar */}
-            <div className="lg:col-span-3">
+            {/* Sidebar — ab lg; darunter uebernimmt die Bottom-Tab-Bar */}
+            <div className="hidden lg:block lg:col-span-3">
               <AccountSidebar />
             </div>
 
@@ -187,40 +282,78 @@ export default function AccountDashboardPage() {
                 </div>
               )}
 
-              {/* Subscription Status — wide top card */}
+              {/* Subscription Status — wide top card. Wenn kein aktives Abo:
+                  CTA zum Abo-Abschluss statt fake-Status. */}
               <div className="bg-primary text-on-primary p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className={`w-2 h-2 rounded-full ${paused ? "bg-on-primary/40" : "bg-tertiary"}`} />
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        !subStats.hasActiveSub
+                          ? "bg-on-primary/30"
+                          : paused
+                            ? "bg-on-primary/40"
+                            : "bg-tertiary"
+                      }`}
+                    />
                     <span className="font-headline text-[10px] uppercase tracking-widest text-tertiary font-bold">
-                      {paused ? "Abo pausiert" : "Abo aktiv"}
+                      {!subStats.hasActiveSub
+                        ? "Kein Abo"
+                        : paused
+                          ? "Abo pausiert"
+                          : "Abo aktiv"}
                     </span>
                   </div>
                   <h2 className="text-2xl md:text-3xl font-headline font-bold uppercase tracking-tight mb-2">
-                    {subscription.product}
+                    {subStats.productLabel}
                   </h2>
-                  <p className="text-on-primary/70 mb-4">
-                    {subscription.interval} · {subscription.pricePerDelivery} pro Lieferung
-                  </p>
-                  {!paused && (
+                  {subStats.hasActiveSub && (
+                    <p className="text-on-primary/70 mb-4">
+                      {subStats.intervalLabel} · CHF {subStats.pricePerDeliveryChf.toFixed(2)} pro Lieferung
+                    </p>
+                  )}
+                  {subStats.hasActiveSub && !paused && subStats.nextDeliveryDate && (
                     <p className="font-headline text-[11px] uppercase tracking-widest text-on-primary/60">
-                      Nächste Lieferung in <span className="text-tertiary font-bold">{subscription.daysUntilNext} Tagen</span> · {subscription.nextDelivery}
+                      Nächste Lieferung
+                      {subStats.daysUntilNext != null && (
+                        <>
+                          {" "}in <span className="text-tertiary font-bold">{subStats.daysUntilNext} Tagen</span>
+                        </>
+                      )}{" "}
+                      · {subStats.nextDeliveryDate}
+                    </p>
+                  )}
+                  {!subStats.hasActiveSub && (
+                    <p className="text-on-primary/70 text-sm mt-2 max-w-md">
+                      Mit einem Abo bekommst du regelmässig deinen Wunsch-Coffee oder eine
+                      Discovery-Box mit wechselnden Sorten — 10 % Rabatt gegenüber Einzelbestellung.
                     </p>
                   )}
                 </div>
                 <div className="flex flex-col gap-3 justify-center">
-                  <Link
-                    href="/account/subscription"
-                    className="text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
-                  >
-                    Abo verwalten
-                  </Link>
-                  <button
-                    onClick={() => setPaused(!paused)}
-                    className="text-center border border-on-primary/30 text-on-primary py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-on-primary/10 transition-all"
-                  >
-                    {paused ? "Abo fortsetzen" : "Pausieren"}
-                  </button>
+                  {subStats.hasActiveSub ? (
+                    <>
+                      <Link
+                        href="/account/subscription"
+                        className="text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+                      >
+                        Abo verwalten
+                      </Link>
+                      <button
+                        onClick={() => setPaused(!paused)}
+                        className="text-center border border-on-primary/30 text-on-primary py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-on-primary/10 transition-all"
+                      >
+                        {paused ? "Abo fortsetzen" : "Pausieren"}
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/subscription/discovery"
+                      className="text-center bg-tertiary text-primary py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+                    >
+                      Abo entdecken
+                    </Link>
+                  )}
                 </div>
               </div>
 
@@ -269,10 +402,10 @@ export default function AccountDashboardPage() {
 
                 <div className="grid grid-cols-2 gap-6">
                   {[
-                    { label: "Lieferungen", value: subscription.deliveriesReceived, icon: "inventory_2" },
-                    { label: "Gesamt", value: subscription.totalSpent, icon: "payments" },
-                    { label: "Bewertet", value: "3 / 4", icon: "star" },
-                    { label: "Geschmackstyp", value: "Stabil", icon: "trending_flat" },
+                    { label: "Bestellungen", value: String(subStats.deliveriesReceived), icon: "inventory_2" },
+                    { label: "Gesamt", value: `CHF ${subStats.totalSpentChf.toFixed(2)}`, icon: "payments" },
+                    { label: "Bewertet", value: `${rateables.filter((r) => r.rated).length} / ${rateables.length}`, icon: "star" },
+                    { label: "Geschmackstyp", value: tasteType?.name ?? "—", icon: "trending_flat" },
                   ].map((s) => (
                     <div key={s.label} className="bg-white p-5 shadow-sm">
                       <span className="material-symbols-outlined text-tertiary text-2xl mb-3 block">{s.icon}</span>
@@ -402,13 +535,9 @@ export default function AccountDashboardPage() {
         </div>
       </main>
 
-      {/* Sticky Mobile CTA */}
-      <Link
-        href="/account/subscription"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
-      >
-        Abo verwalten
-      </Link>
+      {/* Mobile/Tablet: App-artige Bottom-Tab-Bar (ersetzt den frueheren
+          fixen "Abo verwalten"-CTA — "Abo" ist jetzt ein eigener Tab). */}
+      <AccountMobileNav />
     </div>
   );
 }

@@ -1,0 +1,408 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+import { createServiceClient } from "@/lib/supabase/service";
+import CampaignForm from "./CampaignForm";
+import CampaignRow from "./CampaignRow";
+import InvoiceBackfillButton from "./InvoiceBackfillButton";
+import EmbeddingBackfillButton from "./EmbeddingBackfillButton";
+
+export const metadata: Metadata = {
+  title: "Admin · Rewards — Coffee Selection",
+  robots: { index: false, follow: false },
+};
+
+type Campaign = {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  credit_chf: number;
+  max_uses_per_customer: number;
+  max_total_uses: number | null;
+  current_uses: number;
+  valid_from: string;
+  valid_until: string | null;
+  active: boolean;
+  channel: string | null;
+};
+
+type CreditAggRow = {
+  reason: string;
+  total: number;
+  count: number;
+};
+
+// K3: Marketing-Aufwand-Report — pro Tag aggregierte Einloesungen
+// (negative customer_credits-Eintraege). Das ist der tatsaechliche
+// Cash-Out aus Sicht des Rewards-Programms.
+type RedemptionDailyRow = {
+  day: string; // YYYY-MM-DD
+  redeemed_chf: number;
+  bookings: number;
+};
+
+type TopCustomerRow = {
+  customer_id: string;
+  customer_name: string;
+  email: string;
+  total_credited: number;
+  total_redeemed: number;
+  balance: number;
+};
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminRewardsPage() {
+  const svc = createServiceClient();
+
+  // Kampagnen
+  const { data: campaignsRaw } = await svc
+    .from("marketing_campaigns")
+    .select(
+      "id, code, name, description, credit_chf, max_uses_per_customer, max_total_uses, current_uses, valid_from, valid_until, active, channel"
+    )
+    .order("created_at", { ascending: false });
+  const campaigns = (campaignsRaw ?? []) as Campaign[];
+
+  // Aggregat pro Reason — gleichzeitig fuer K3 Tagesreport created_at
+  const { data: allCredits } = await svc
+    .from("customer_credits")
+    .select("reason, amount_chf, created_at");
+  const agg = new Map<string, { total: number; count: number }>();
+  type CreditRow = { reason: string; amount_chf: number; created_at: string };
+  const credits = (allCredits ?? []) as CreditRow[];
+  credits.forEach((r) => {
+    const cur = agg.get(r.reason) ?? { total: 0, count: 0 };
+    cur.total += Number(r.amount_chf);
+    cur.count += 1;
+    agg.set(r.reason, cur);
+  });
+  const byReason: CreditAggRow[] = Array.from(agg.entries())
+    .map(([reason, v]) => ({ reason, total: Number(v.total.toFixed(2)), count: v.count }))
+    .sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+
+  // K3: Tages-Aggregation der Einloesungen (negative amount_chf). Wir
+  // schauen die letzten 30 Tage an und gruppieren pro UTC-Tag.
+  const redemptionsByDay = new Map<string, { redeemed: number; bookings: number }>();
+  const sinceMs = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  credits.forEach((r) => {
+    if (Number(r.amount_chf) >= 0) return;
+    const t = new Date(r.created_at).getTime();
+    if (Number.isNaN(t) || t < sinceMs) return;
+    const day = new Date(t).toISOString().slice(0, 10);
+    const cur = redemptionsByDay.get(day) ?? { redeemed: 0, bookings: 0 };
+    cur.redeemed += Math.abs(Number(r.amount_chf));
+    cur.bookings += 1;
+    redemptionsByDay.set(day, cur);
+  });
+  const redemptionsDaily: RedemptionDailyRow[] = Array.from(
+    redemptionsByDay.entries()
+  )
+    .map(([day, v]) => ({
+      day,
+      redeemed_chf: Number(v.redeemed.toFixed(2)),
+      bookings: v.bookings,
+    }))
+    .sort((a, b) => (a.day > b.day ? -1 : 1));
+  const redemptionTotal30d = redemptionsDaily.reduce(
+    (s, r) => s + r.redeemed_chf,
+    0
+  );
+
+  const totalPaid = byReason
+    .filter((r) => r.total > 0)
+    .reduce((s, r) => s + r.total, 0);
+  const totalRedeemed = Math.abs(
+    byReason.filter((r) => r.total < 0).reduce((s, r) => s + r.total, 0)
+  );
+  const outstanding = totalPaid - totalRedeemed;
+
+  // Top-Kunden nach Brutto-Credits (ohne Verbrauch)
+  const { data: topRaw } = await svc
+    .from("customer_credits")
+    .select("customer_id, amount_chf, customer:customers(first_name, last_name, email)")
+    .gt("amount_chf", 0);
+  const customerAgg = new Map<string, { name: string; email: string; credited: number; redeemed: number }>();
+  type CreditRowRaw = {
+    customer_id: string;
+    amount_chf: number;
+    customer:
+      | { first_name: string | null; last_name: string | null; email: string }
+      | { first_name: string | null; last_name: string | null; email: string }[]
+      | null;
+  };
+  ((topRaw ?? []) as CreditRowRaw[]).forEach((r) => {
+    const c = Array.isArray(r.customer) ? r.customer[0] : r.customer;
+    const name = `${c?.first_name ?? ""} ${c?.last_name ?? ""}`.trim() || c?.email || "—";
+    const cur = customerAgg.get(r.customer_id) ?? {
+      name,
+      email: c?.email ?? "",
+      credited: 0,
+      redeemed: 0,
+    };
+    cur.credited += Number(r.amount_chf);
+    customerAgg.set(r.customer_id, cur);
+  });
+  // Verbrauch dazu (negativ)
+  const { data: negRaw } = await svc
+    .from("customer_credits")
+    .select("customer_id, amount_chf")
+    .lt("amount_chf", 0);
+  ((negRaw ?? []) as Array<{ customer_id: string; amount_chf: number }>).forEach((r) => {
+    const cur = customerAgg.get(r.customer_id);
+    if (cur) cur.redeemed += Math.abs(Number(r.amount_chf));
+  });
+  const topCustomers: TopCustomerRow[] = Array.from(customerAgg.entries())
+    .map(([customer_id, v]) => ({
+      customer_id,
+      customer_name: v.name,
+      email: v.email,
+      total_credited: Number(v.credited.toFixed(2)),
+      total_redeemed: Number(v.redeemed.toFixed(2)),
+      balance: Number((v.credited - v.redeemed).toFixed(2)),
+    }))
+    .sort((a, b) => b.total_credited - a.total_credited)
+    .slice(0, 10);
+
+  return (
+    <div className="space-y-12">
+      <header>
+        <h1 className="font-headline font-bold text-3xl md:text-4xl text-primary uppercase tracking-tight">
+          Rewards
+        </h1>
+        <p className="text-on-surface-variant mt-2">
+          Marketing-Kampagnen, Guthaben-Auszahlungen und Top-Kunden.
+        </p>
+      </header>
+
+      {/* KPIs */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { label: "Total gutgeschrieben", value: `CHF ${totalPaid.toFixed(2)}` },
+          { label: "Davon eingelöst", value: `CHF ${totalRedeemed.toFixed(2)}` },
+          { label: "Ausstehend (Verpflichtung)", value: `CHF ${outstanding.toFixed(2)}` },
+        ].map((k) => (
+          <div key={k.label} className="bg-white p-6 shadow-sm">
+            <p className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-2">
+              {k.label}
+            </p>
+            <p className="font-headline font-bold text-3xl text-primary">{k.value}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* Kampagnen-Liste + Form */}
+      <section className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+        <div className="bg-white p-6 md:p-8 shadow-sm">
+          <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight mb-6">
+            Marketing-Kampagnen ({campaigns.length})
+          </h2>
+          {campaigns.length === 0 ? (
+            <p className="text-sm text-on-surface-variant">
+              Noch keine Kampagnen. Lege rechts eine an.
+            </p>
+          ) : (
+            <div className="divide-y divide-surface-container">
+              {campaigns.map((c) => (
+                <CampaignRow key={c.id} campaign={c} />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="bg-white p-6 md:p-8 shadow-sm h-fit">
+          <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight mb-6">
+            Neue Kampagne
+          </h2>
+          <CampaignForm />
+        </div>
+      </section>
+
+      {/* Aggregat pro Reason */}
+      <section className="bg-white p-6 md:p-8 shadow-sm">
+        <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight mb-6">
+          Auszahlungen nach Grund
+        </h2>
+        {byReason.length === 0 ? (
+          <p className="text-sm text-on-surface-variant">Noch keine Buchungen.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+                <tr>
+                  <th className="text-left py-2">Grund</th>
+                  <th className="text-right py-2">Anzahl</th>
+                  <th className="text-right py-2">Summe CHF</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-container">
+                {byReason.map((r) => (
+                  <tr key={r.reason}>
+                    <td className="py-2 font-headline text-primary uppercase tracking-tight text-xs">
+                      {r.reason}
+                    </td>
+                    <td className="py-2 text-right">{r.count}</td>
+                    <td
+                      className={`py-2 text-right font-headline font-bold ${
+                        r.total >= 0 ? "text-tertiary" : "text-on-surface-variant"
+                      }`}
+                    >
+                      {r.total >= 0 ? "+" : ""}
+                      {r.total.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* K3: Marketing-Aufwand pro Tag (letzte 30 Tage) */}
+      <section className="bg-white p-6 md:p-8 shadow-sm">
+        <div className="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+          <div>
+            <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight">
+              Marketing-Aufwand (30 Tage)
+            </h2>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Tatsächlicher Cash-Out aus dem Rewards-Programm: Summe aller
+              eingelösten Credits pro Tag.
+            </p>
+          </div>
+          <div className="flex items-baseline gap-4">
+            <span className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+              Total 30 Tage
+            </span>
+            <span className="font-headline font-bold text-2xl text-primary">
+              CHF {redemptionTotal30d.toFixed(2)}
+            </span>
+            <a
+              href="/api/admin/rewards/redemptions.csv"
+              className="font-headline text-[11px] uppercase tracking-[0.2em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-1"
+            >
+              CSV-Export →
+            </a>
+          </div>
+        </div>
+        {redemptionsDaily.length === 0 ? (
+          <p className="text-sm text-on-surface-variant">
+            Noch keine Einlösungen in den letzten 30 Tagen.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+                <tr>
+                  <th className="text-left py-2">Tag</th>
+                  <th className="text-right py-2">Buchungen</th>
+                  <th className="text-right py-2">Eingelöst CHF</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-container">
+                {redemptionsDaily.map((r) => (
+                  <tr key={r.day}>
+                    <td className="py-2 font-mono text-xs">{r.day}</td>
+                    <td className="py-2 text-right">{r.bookings}</td>
+                    <td className="py-2 text-right font-headline font-bold text-primary">
+                      {r.redeemed_chf.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Top-Kunden */}
+      <section className="bg-white p-6 md:p-8 shadow-sm">
+        <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight mb-6">
+          Top-Kunden nach Credits
+        </h2>
+        {topCustomers.length === 0 ? (
+          <p className="text-sm text-on-surface-variant">Noch keine Daten.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="font-headline text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
+                <tr>
+                  <th className="text-left py-2">Kunde</th>
+                  <th className="text-right py-2">Gutgeschrieben</th>
+                  <th className="text-right py-2">Eingelöst</th>
+                  <th className="text-right py-2">Saldo</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-container">
+                {topCustomers.map((c) => (
+                  <tr key={c.customer_id}>
+                    <td className="py-2">
+                      <div className="font-headline font-bold text-primary uppercase tracking-tight text-xs">
+                        {c.customer_name}
+                      </div>
+                      <div className="text-[10px] text-on-surface-variant">{c.email}</div>
+                    </td>
+                    <td className="py-2 text-right text-tertiary font-headline font-bold">
+                      {c.total_credited.toFixed(2)}
+                    </td>
+                    <td className="py-2 text-right text-on-surface-variant">
+                      {c.total_redeemed.toFixed(2)}
+                    </td>
+                    <td className="py-2 text-right font-headline font-bold text-primary">
+                      {c.balance.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Ops */}
+      <section className="bg-white p-6 md:p-8 shadow-sm space-y-8">
+        <h2 className="font-headline font-bold text-lg text-primary uppercase tracking-tight">
+          Operations
+        </h2>
+        <div>
+          <h3 className="font-headline font-bold text-sm text-primary uppercase tracking-tight mb-3">
+            Rechnungs-URLs
+          </h3>
+          <InvoiceBackfillButton />
+        </div>
+        <div className="border-t border-surface-container pt-8">
+          <h3 className="font-headline font-bold text-sm text-primary uppercase tracking-tight mb-3">
+            Customer-Embeddings (Hybrid-Match)
+          </h3>
+          <div className="bg-tertiary/5 border-l-4 border-tertiary p-5 mb-6 space-y-3 text-sm leading-relaxed">
+            <p>
+              <strong className="font-headline uppercase tracking-widest text-[11px] text-tertiary block mb-1">
+                Was ist ein Embedding?
+              </strong>
+              Ein Embedding ist ein digitaler Fingerabdruck des Geschmacks eines Kunden — eine Zahlenreihe mit 1536 Werten, von OpenAI aus dem Geschmackstyp und den abgegebenen Bewertungen berechnet. Jeder Kaffee hat ebenfalls so einen Fingerabdruck, gebaut aus Geschmacksbeschreibung, Aroma-Familien und Cupping-Notizen. Wir vergleichen beide und finden so Kaffees, die wirklich zum Geschmack passen — auch wenn die rohen Sensorik-Werte (Säure, Süße, Körper, Bitterkeit, Komplexität) nicht exakt übereinstimmen.
+            </p>
+            <p>
+              <strong className="font-headline uppercase tracking-widest text-[11px] text-tertiary block mb-1">
+                Warum der Backfill?
+              </strong>
+              Die Funktion war im Code vorhanden, wurde aber nie automatisch ausgelöst — alle bisherigen Kunden hatten kein Embedding. Mit dem Knopf unten holen wir das für die bestehenden Kunden nach. Ab sofort wird das Embedding zudem nach jedem Quiz und nach jeder Bewertung automatisch neu berechnet.
+            </p>
+            <p>
+              <strong className="font-headline uppercase tracking-widest text-[11px] text-tertiary block mb-1">
+                Wirkung
+              </strong>
+              Empfehlungen werden präziser. Bisher war der Match-Score eine reine Manhattan-Distanz über die 5 Sensorik-Achsen — mit dem Embedding kommt jetzt ein gewichteter Mix dazu (61 % Sensorik + 39 % semantischer Geschmacks-Vergleich via cosine similarity). Ein Kaffee mit „beerig, frisch, jasmin" passt zum Beispiel auch dann, wenn die rohen Werte etwas abweichen.
+            </p>
+          </div>
+          <EmbeddingBackfillButton />
+        </div>
+      </section>
+
+      <Link
+        href="/admin/metrics"
+        className="font-headline text-[11px] uppercase tracking-[0.2em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-1 inline-block"
+      >
+        ← Zu den Metriken
+      </Link>
+    </div>
+  );
+}

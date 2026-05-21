@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import SiteHeader from "@/components/SiteHeader";
+import DiscoveryCtaLink from "@/components/DiscoveryCtaLink";
 
 const LOGO = "/logo.png";
 const HERO =
@@ -24,18 +26,18 @@ const benefits = [
   { icon: "auto_awesome", title: "Kuratiert für deinen Geschmackstyp", desc: "Unser Algorithmus wählt jeden Monat zwei Kaffees, die exakt zu deinem Profil passen — von 16 Schweizer Top-Röstereien." },
   { icon: "explore", title: "Echte Entdeckungen", desc: "Du bekommst Kaffees, die du sonst nie gefunden hättest. Rare Lots, neue Aufbereitungen, saisonale Highlights." },
   { icon: "schedule", title: "Volle Flexibilität", desc: "Pausieren, Intervall ändern oder kündigen — alles mit einem Klick. Keine Mindestlaufzeit." },
-  { icon: "loyalty", title: "Abonnenten-Preise", desc: "15% Rabatt gegenüber Einzelbestellung. Plus Zugang zu limitierten 'Rare Batches' nur für Mitglieder." },
+  { icon: "loyalty", title: "Abonnenten-Preise", desc: "10% Rabatt gegenüber Einzelbestellung. Plus Zugang zu limitierten 'Rare Batches' nur für Mitglieder." },
   { icon: "local_shipping", title: "Versand ab CHF 100 kostenlos", desc: "Schweizweit liefern wir röstfrisch in 2–4 Werktagen. Ab einem Bestellwert von CHF 100 ist der Versand inklusive — sonst CHF 6.90." },
   { icon: "favorite", title: "Profil lernt mit", desc: "Bewerte jede Lieferung — der Algorithmus wird mit jeder Bewertung präziser. Deine zehnte Lieferung trifft besser als deine erste." },
 ];
 
 const bestsellers = [
-  { slug: "ethiopia-yirgacheffe", name: "Ethiopia Yirgacheffe", roaster: "Miro Coffee", origin: "Äthiopien", tagline: "Jasmin · Limette · Beeren", price: "CHF 23.80", originalPrice: "CHF 28", badge: "Bestseller" },
-  { slug: "brasil-cerrado", name: "Brasil Cerrado", roaster: "Miro Coffee", origin: "Brasilien", tagline: "Schokolade · Nuss · Karamell", price: "CHF 18.70", originalPrice: "CHF 22", badge: "Klassiker" },
-  { slug: "kenya-aa-nyeri", name: "Kenya AA Nyeri", roaster: "Vertical Coffee", origin: "Kenia", tagline: "Schwarze Johannisbeere · Tomate", price: "CHF 27.20", originalPrice: "CHF 32", badge: null },
-  { slug: "espresso-tradizionale", name: "Espresso Tradizionale", roaster: "Stoll Kaffee", origin: "Blend", tagline: "Kakao · Karamell · Tabak", price: "CHF 20.40", originalPrice: "CHF 24", badge: null },
-  { slug: "costa-rica-honey", name: "Costa Rica Honey", roaster: "Vertical Coffee", origin: "Costa Rica", tagline: "Honig · Mandarine · Honigmelone", price: "CHF 23.80", originalPrice: "CHF 28", badge: null },
-  { slug: "panama-geisha", name: "Panama Geisha", roaster: "Sweven Coffee", origin: "Panama", tagline: "Bergamotte · Pfirsich · Tee", price: "CHF 40.80", originalPrice: "CHF 48", badge: "Rare Lot" },
+  { slug: "ethiopia-yirgacheffe", name: "Ethiopia Yirgacheffe", roaster: "Miro Coffee", origin: "Äthiopien", tagline: "Jasmin · Limette · Beeren", price: "CHF 25.20", originalPrice: "CHF 28", badge: "Bestseller" },
+  { slug: "brasil-cerrado", name: "Brasil Cerrado", roaster: "Miro Coffee", origin: "Brasilien", tagline: "Schokolade · Nuss · Karamell", price: "CHF 19.80", originalPrice: "CHF 22", badge: "Klassiker" },
+  { slug: "kenya-aa-nyeri", name: "Kenya AA Nyeri", roaster: "Vertical Coffee", origin: "Kenia", tagline: "Schwarze Johannisbeere · Tomate", price: "CHF 28.80", originalPrice: "CHF 32", badge: null },
+  { slug: "espresso-tradizionale", name: "Espresso Tradizionale", roaster: "Stoll Kaffee", origin: "Blend", tagline: "Kakao · Karamell · Tabak", price: "CHF 21.60", originalPrice: "CHF 24", badge: null },
+  { slug: "costa-rica-honey", name: "Costa Rica Honey", roaster: "Vertical Coffee", origin: "Costa Rica", tagline: "Honig · Mandarine · Honigmelone", price: "CHF 25.20", originalPrice: "CHF 28", badge: null },
+  { slug: "panama-geisha", name: "Panama Geisha", roaster: "Sweven Coffee", origin: "Panama", tagline: "Bergamotte · Pfirsich · Tee", price: "CHF 43.20", originalPrice: "CHF 48", badge: "Rare Lot" },
 ];
 
 const steps = [
@@ -47,8 +49,8 @@ const steps = [
 const faq = [
   { q: "Was ist im Discovery Abo enthalten?", a: "Pro Lieferung erhältst du 2 verschiedene Specialty Coffees (250g oder 500g je Sorte, je nach gewählter Menge), perfekt auf deinen Geschmackstyp abgestimmt. Plus eine Karte mit Brüh-Tipps und Aromen-Beschreibung." },
   { q: "Kann ich das Abo jederzeit pausieren?", a: "Ja. In deinem Konto kannst du jederzeit pausieren (z. B. während Ferien), das Intervall ändern oder komplett kündigen. Es gibt keine Mindestlaufzeit." },
-  { q: "Was kostet das Abo?", a: "Discovery Abo startet bei CHF 24.00 pro Lieferung (250g + 250g). Ab einem Bestellwert von CHF 100 ist der Versand kostenlos, sonst CHF 6.90. Alle Abo-Preise enthalten 15% Mitglieder-Rabatt." },
-  { q: "Kann ich auch nur einmal bestellen?", a: "Ja. Du kannst jeden Match-Kaffee auch einmalig bestellen — ohne Abo, ohne Bindung. Im Abo sparst du allerdings 15%." },
+  { q: "Was kostet das Abo?", a: "Discovery Abo startet bei CHF 25.20 pro Lieferung (250g + 250g). Ab einem Bestellwert von CHF 100 ist der Versand kostenlos, sonst CHF 6.90. Alle Abo-Preise enthalten 10% Mitglieder-Rabatt." },
+  { q: "Kann ich auch nur einmal bestellen?", a: "Ja. Du kannst jeden Match-Kaffee auch einmalig bestellen — ohne Abo, ohne Bindung. Im Abo sparst du allerdings 10%." },
   { q: "Was passiert bei der ersten Lieferung?", a: "Sofort nach Bestellung wird dein erstes Set geröstet und versendet. Folgelieferungen kommen automatisch im gewählten Intervall — du siehst alle Termine in deinem Konto." },
   { q: "Kann ich Geschmackstyp wechseln?", a: "Ja, jederzeit. Wenn sich dein Geschmack entwickelt, machst du das Quiz neu — die nächste Lieferung passt sich an." },
 ];
@@ -57,40 +59,9 @@ export default function DiscoverySubscriptionPage() {
   return (
     <div className="bg-[#F9F5F0] text-on-surface pb-20 md:pb-0">
       {/* Header — full nav like home */}
-      <header className="fixed top-0 w-full z-50 bg-[#F9F5F0]/95 backdrop-blur-md border-b border-primary/5">
-        <nav className="flex justify-between items-center max-w-7xl mx-auto px-6 md:px-8 w-full">
-          <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection Logo" className="h-56 md:h-72 w-auto object-contain -my-10 md:-my-16 mr-8 shrink-0" src={LOGO} />
-          </Link>
-          <div className="hidden lg:flex items-center space-x-10">
-            {navLinks.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="text-primary hover:text-tertiary transition-colors font-headline font-bold tracking-widest uppercase text-[14px]"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center space-x-4 md:space-x-6">
-            <Link href="/login?next=/account/dashboard" className="hidden md:block">
-              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">person</span>
-            </Link>
-            <Link href="/checkout/cart">
-              <span className="material-symbols-outlined text-primary text-2xl hover:text-tertiary transition-colors">shopping_bag</span>
-            </Link>
-            <Link
-              href="/quiz/question-1-brewing-method"
-              className="bg-primary text-white px-5 md:px-6 py-3 text-[11px] md:text-[12px] uppercase tracking-[0.2em] font-headline font-bold hover:bg-black transition-all whitespace-nowrap"
-            >
-              Quiz starten
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <SiteHeader />
 
-      <main className="pt-36 md:pt-40">
+      <main className="pt-20 md:pt-24">
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-6 md:px-8 py-12 md:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
@@ -104,12 +75,12 @@ export default function DiscoverySubscriptionPage() {
               Das Discovery Abo bringt dir kuratierte Specialty Coffees, perfekt auf deinen Geschmackstyp abgestimmt — direkt von 16 Schweizer Top-Röstern.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link
+              <DiscoveryCtaLink
                 href="/quiz/question-1-brewing-method"
                 className="bg-primary text-on-primary px-10 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-black transition-all text-center"
               >
                 Geschmackstyp finden
-              </Link>
+              </DiscoveryCtaLink>
               <Link
                 href="#how"
                 className="flex items-center justify-center gap-3 font-headline font-bold text-primary px-6 py-5 hover:bg-surface-container-low transition-colors uppercase tracking-widest text-[11px]"
@@ -137,8 +108,9 @@ export default function DiscoverySubscriptionPage() {
             <div className="aspect-[4/5] overflow-hidden shadow-2xl">
               <img src={HERO} alt="Discovery Box" className="w-full h-full object-cover" />
             </div>
-            <div className="absolute -bottom-6 -right-6 bg-tertiary text-primary p-6 md:p-8 z-20 shadow-2xl max-w-[260px]">
-              <p className="font-headline font-bold text-3xl md:text-4xl mb-1">-15%</p>
+            {/* Badge: Mobile leicht innen, ab md versetzt nach aussen. */}
+            <div className="absolute -bottom-4 right-2 md:-bottom-6 md:-right-6 bg-tertiary text-primary p-5 md:p-8 z-20 shadow-2xl max-w-[200px] md:max-w-[260px]">
+              <p className="font-headline font-bold text-3xl md:text-4xl mb-1">-10%</p>
               <p className="font-headline text-[10px] uppercase tracking-widest leading-tight">
                 Abo-Rabatt<br />gegenüber Einzelbestellung
               </p>
@@ -160,7 +132,7 @@ export default function DiscoverySubscriptionPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
               {steps.map((s) => (
                 <div key={s.n} className="relative">
-                  <span className="text-9xl font-headline font-bold text-primary/5 absolute -top-12 -left-4 -z-0 select-none">{s.n}</span>
+                  <span className="text-7xl md:text-9xl font-headline font-bold text-primary/5 absolute -top-8 md:-top-12 -left-2 md:-left-4 -z-0 select-none">{s.n}</span>
                   <div className="relative z-10">
                     <h3 className="text-lg mb-4 text-primary uppercase tracking-widest font-headline font-bold">{s.title}</h3>
                     <p className="text-on-surface-variant leading-relaxed text-[15px]">{s.desc}</p>
@@ -204,15 +176,15 @@ export default function DiscoverySubscriptionPage() {
                   Direkt zum Abo — ohne Quiz
                 </h2>
                 <p className="text-on-surface-variant">
-                  Du weißt, was du willst? Wähle direkt einen unserer beliebtesten Specialty Coffees als Abo. Mit 15% Mitglieder-Rabatt.
+                  Du weißt, was du willst? Wähle direkt einen unserer beliebtesten Specialty Coffees als Abo. Mit 10% Mitglieder-Rabatt.
                 </p>
               </div>
-              <Link
+              <DiscoveryCtaLink
                 href="/quiz/question-1-brewing-method"
                 className="font-headline text-[11px] font-bold uppercase tracking-[0.3em] text-tertiary hover:text-primary transition-colors border-b-2 border-tertiary pb-2 whitespace-nowrap"
               >
                 Lieber Quiz machen →
-              </Link>
+              </DiscoveryCtaLink>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -226,7 +198,7 @@ export default function DiscoverySubscriptionPage() {
                       </span>
                     )}
                     <span className="absolute top-4 right-4 bg-primary text-on-primary px-3 py-1 font-headline text-[10px] uppercase tracking-widest font-bold">
-                      -15% Abo
+                      -10% Abo
                     </span>
                   </Link>
                   <div className="p-6 flex-1 flex flex-col">
@@ -306,12 +278,12 @@ export default function DiscoverySubscriptionPage() {
             <p className="text-lg text-on-primary/70 mb-10">
               Quiz machen, Geschmackstyp finden, Abo starten — alles in unter 5 Minuten.
             </p>
-            <Link
+            <DiscoveryCtaLink
               href="/quiz/question-1-brewing-method"
               className="inline-block bg-tertiary text-primary px-12 py-5 font-headline font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
             >
               Quiz starten
-            </Link>
+            </DiscoveryCtaLink>
           </div>
         </section>
       </main>
@@ -319,18 +291,18 @@ export default function DiscoverySubscriptionPage() {
       <footer className="w-full px-6 md:px-8 bg-[#F9F5F0] border-t border-primary/5 py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-on-surface-variant/60 font-headline font-bold uppercase tracking-[0.3em]">
           <Link href="/" className="flex items-center">
-            <img alt="Coffee Selection" className="h-40 md:h-56 w-auto object-contain" src={LOGO} />
+            <img alt="Coffee Selection" className="h-14 md:h-20 w-auto object-contain" src={LOGO} />
           </Link>
-          <span>© 2024 Coffee Selection · Handverlesen aus der Schweiz</span>
+          <span>© 2026 Coffee Selection GmbH · Handverlesen aus der Schweiz</span>
         </div>
       </footer>
 
-      <Link
+      <DiscoveryCtaLink
         href="/quiz/question-1-brewing-method"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-primary text-on-primary py-5 text-center font-headline font-bold uppercase tracking-widest text-xs shadow-2xl border-t-2 border-tertiary"
       >
         Abo starten · Quiz machen
-      </Link>
+      </DiscoveryCtaLink>
     </div>
   );
 }

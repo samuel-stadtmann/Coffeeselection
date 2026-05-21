@@ -1,5 +1,19 @@
-import { tasteTypes } from "./taste-types";
-import { getAllCoffees, type CoffeeDetail } from "./coffees";
+import { createClient } from "@/lib/supabase/server";
+import { getCoffeesForTasteType } from "@/lib/db/recommendations";
+import { getTasteTypeBySlug, type TasteType } from "@/lib/db/taste-types";
+import { tasteTypeIdBySlug } from "./taste-types-map";
+
+export type CoffeeDetail = {
+  slug: string;
+  name: string;
+  roaster: string;
+  origin: string;
+  price: string;
+  matchScore: number;
+  /** 1-Satz-Pitch aus der DB; faellt auf die Type-Tagline zurueck wenn null. */
+  shortDescription: string | null;
+  tasteTypes: TasteType[];
+};
 
 export type CoffeeCategory = {
   slug: string;
@@ -183,10 +197,10 @@ export const coffeeCategories: CoffeeCategory[] = [
     title: "Discovery Box — kuratierte Specialty-Reise",
     shortLabel: "Discovery Box",
     tagline: "Jeden Monat 2 neue Kaffees, perfekt zu deinem Geschmackstyp",
-    intro: "Die Discovery Box ist nicht eine Bestellung — es ist eine kuratierte Reise. Jeden Monat erhältst du 2 verschiedene Specialty Coffees, perfekt auf deinen Geschmackstyp abgestimmt. 15% Rabatt gegenüber Einzelbestellung.",
+    intro: "Die Discovery Box ist nicht eine Bestellung — es ist eine kuratierte Reise. Jeden Monat erhältst du 2 verschiedene Specialty Coffees, perfekt auf deinen Geschmackstyp abgestimmt. 10% Rabatt gegenüber Einzelbestellung.",
     filterTypes: ["der-fruchtfreund", "der-florale", "der-entdecker", "der-suesse"],
     seoTitle: "Discovery Box — Coffee Subscription Schweiz | Coffee Selection",
-    seoDescription: "Die Discovery Box: Kuratiertes Specialty-Coffee-Abo. 2 Kaffees pro Lieferung, 15% Rabatt, jederzeit pausierbar. Ab CHF 24.",
+    seoDescription: "Die Discovery Box: Kuratiertes Specialty-Coffee-Abo. 2 Kaffees pro Lieferung, 10% Rabatt, jederzeit pausierbar. Ab CHF 25.",
     keywords: ["discovery box", "coffee box schweiz", "kaffee abo box", "specialty coffee subscription"],
     educational: [
       { heading: "Was ist drin?", text: "2 verschiedene Specialty Coffees (250g oder 500g je), Karte mit Brüh-Tipps, Aromen-Beschreibung. Ab CHF 24 pro Lieferung." },
@@ -198,11 +212,53 @@ export const coffeeCategories: CoffeeCategory[] = [
 
 export const categoryBySlug = (slug: string) => coffeeCategories.find((c) => c.slug === slug);
 
-export function getCoffeesForCategory(cat: CoffeeCategory): CoffeeDetail[] {
-  const all = getAllCoffees();
-  return all.filter((c) => {
-    return c.tasteTypes.some((t) => cat.filterTypes.includes(t.slug));
-  });
+/**
+ * Holt alle Coffees aus der DB die zu mind. einem der `cat.filterTypes`
+ * (Taste-Type-Slugs) passen — ranking via getCoffeesForTasteType (anonyme
+ * Variante, kein Hard-Filter, kein Customer-Embedding). Union dedupliziert
+ * by coffee.id; matchScore behaelt den hoechsten gefundenen Wert.
+ */
+export async function getCoffeesForCategory(cat: CoffeeCategory): Promise<CoffeeDetail[]> {
+  const supabase = await createClient();
+
+  // filterTypes-Mapping: jeden Slug mit ID + DB-TasteType anreichern.
+  // Async parallelisieren — 3-4 Slugs pro Kategorie.
+  const filterTypes = (
+    await Promise.all(
+      cat.filterTypes.map(async (slug) => {
+        const id = tasteTypeIdBySlug(slug);
+        const type = await getTasteTypeBySlug(supabase, slug);
+        return id != null && type ? { slug, id, type } : null;
+      })
+    )
+  ).filter((t): t is { slug: string; id: number; type: TasteType } => t != null);
+
+  const seen = new Map<string, CoffeeDetail>();
+  for (const ft of filterTypes) {
+    const coffees = await getCoffeesForTasteType(supabase, ft.id, { limit: 30 });
+    for (const c of coffees) {
+      const matchPct = Math.round(c.matchScore * 100);
+      const existing = seen.get(c.id);
+      if (existing) {
+        if (!existing.tasteTypes.some((t) => t.slug === ft.slug)) {
+          existing.tasteTypes.push(ft.type);
+        }
+        if (matchPct > existing.matchScore) existing.matchScore = matchPct;
+        continue;
+      }
+      seen.set(c.id, {
+        slug: c.slug,
+        name: c.name,
+        roaster: c.roaster?.name ?? "",
+        origin: c.origin_name ?? "",
+        price: `CHF ${c.price_chf.toFixed(2)}`,
+        matchScore: matchPct,
+        shortDescription: c.short_description ?? c.tasting_summary ?? null,
+        tasteTypes: [ft.type],
+      });
+    }
+  }
+  return Array.from(seen.values()).sort((a, b) => b.matchScore - a.matchScore);
 }
 
 export const categorySlugs = coffeeCategories.map((c) => c.slug);

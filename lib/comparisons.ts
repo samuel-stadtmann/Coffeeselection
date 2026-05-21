@@ -24,13 +24,48 @@ const IMG_LIGHT =
 const IMG_DARK =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBN8IgtovkYQlygVeCT7-HQJ3MxBIeXLHA7DLDxl1WsR_OhCTGdjP5WesE-1cuQRX2vSR__im3sOEI3Io4OQIaVy0Id7JoExY3qQQYId3uFZ0QVQ97HAEuACLlAIx1qmx6h9H7xFKRyQu1GTx1w87_FIcnKzg7zHh6N1JV8CH_0r5HSJp1bQCci05GFg8a9-XCnRtJRO_Y0T3nVzh4tLab0BxXGH_-yl0BwzYHtUSYMv6Gj_lGWgVZf3eVU60m2PPVUZdFKNue8cwtB";
 
+// ----------------------------------------------------------------------------
+// Compare-Hero-Bilder — pro Vergleich-Seite ein eigener Slot.
+// Alle Bilder von Pexels (royalty-free, kommerzielle Nutzung erlaubt, keine
+// Attribution-Pflicht). CDN-URL-Pattern:
+//   https://images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?...
+// Format: 4:5 mobile bzw. 3:4 desktop, mit textfreier oberer Haelfte.
+// ----------------------------------------------------------------------------
+
+const PX = (id: string, slug: string) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1600&h=2000&fit=crop&dpr=2#${slug}`;
+
+// fruity-vs-chocolatey-coffee
+// A "Fruchtig" → Schale frischer Blaubeeren, hell, hell.
+const IMG_FRUITY = PX("30070198", "fruity");
+// B "Schokoladig" → Schokoladen-Dessert neben Kaffeetasse, warm, sinnlich.
+const IMG_CHOCOLATEY = PX("2223247", "chocolatey");
+
+// filter-vs-espresso
+// A "Filter" → Minimalistisches Dripper-Setup auf hellem Tisch, ruhig.
+const IMG_FILTER = PX("8004598", "filter");
+// B "Espresso" → Espressomaschine im Coffee-Shop, professionell.
+const IMG_ESPRESSO = PX("27969804", "espresso");
+
+// light-vs-dark-roast
+// A "Helle Roestung" → Helle Specialty-Bohnen, matt, sandig.
+const IMG_LIGHT_ROAST = PX("796609", "light-roast");
+// B "Dunkle Roestung" → Makro auf dunkel-oelige Bohnen, kontrastreich.
+const IMG_DARK_ROAST = PX("13737042", "dark-roast");
+
+// arabica-vs-robusta
+// A "Arabica" → Reife rote Kaffeekirschen am Strauch (Hochland-Setting).
+const IMG_ARABICA = PX("9323843", "arabica");
+// B "Robusta" → Pile of coffee beans — robust, dicht.
+const IMG_ROBUSTA = PX("942808", "robusta");
+
 export const comparisons: Comparison[] = [
   {
     slug: "fruity-vs-chocolatey-coffee",
     title: "Fruchtiger vs. schokoladiger Kaffee",
     subtitle: "Lebendige Beeren oder warme Kakaonoten — was passt zu dir?",
-    a: { name: "Fruchtig", tagline: "Beerig · Hell · Lebendig", icon: "nutrition", image: IMG_LIGHT, matchType: "der-fruchtfreund" },
-    b: { name: "Schokoladig", tagline: "Kakao · Karamell · Warm", icon: "cake", image: IMG_DARK, matchType: "der-suesse" },
+    a: { name: "Fruchtig", tagline: "Beerig · Hell · Lebendig", icon: "nutrition", image: IMG_FRUITY, matchType: "der-fruchtfreund" },
+    b: { name: "Schokoladig", tagline: "Kakao · Karamell · Warm", icon: "cake", image: IMG_CHOCOLATEY, matchType: "der-suesse" },
     intro: "Der wohl wichtigste Geschmacks-Wegscheid im Specialty Coffee. Auf der einen Seite die hellen, lebendigen Aromen aus Äthiopien und Kenia. Auf der anderen die warmen, schokoladigen Profile aus Brasilien, Kolumbien und Honduras. Beide sind hervorragend — aber sie sprechen unterschiedliche Geschmackstypen an.",
     table: [
       { label: "Aromen-Familie", a: "Beeren, Zitrus, Floral", b: "Schokolade, Karamell, Nuss" },
@@ -66,8 +101,8 @@ export const comparisons: Comparison[] = [
     slug: "filter-vs-espresso",
     title: "Filter vs. Espresso",
     subtitle: "Klarheit oder Konzentration — zwei Welten der Kaffeezubereitung",
-    a: { name: "Filter", tagline: "Klar · Aromatisch · Sanft", icon: "water_drop", image: IMG_LIGHT },
-    b: { name: "Espresso", tagline: "Konzentriert · Cremig · Intensiv", icon: "coffee_maker", image: IMG_DARK },
+    a: { name: "Filter", tagline: "Klar · Aromatisch · Sanft", icon: "water_drop", image: IMG_FILTER },
+    b: { name: "Espresso", tagline: "Konzentriert · Cremig · Intensiv", icon: "coffee_maker", image: IMG_ESPRESSO },
     intro: "Filter und Espresso sind zwei komplett verschiedene Auffassungen davon, was Kaffee sein soll. Filter ist Klarheit und Transparenz. Espresso ist Konzentration und Charakter. Beide haben ihre Berechtigung — die Wahl hängt von deinem Lebensstil ab.",
     table: [
       { label: "Druck", a: "0 bar (Schwerkraft)", b: "9 bar" },
@@ -104,8 +139,8 @@ export const comparisons: Comparison[] = [
     slug: "light-vs-dark-roast",
     title: "Helle vs. dunkle Röstung",
     subtitle: "Säure und Komplexität oder Schokolade und Körper — der Röstgrad-Vergleich",
-    a: { name: "Helle Röstung", tagline: "Frucht · Floral · Lebendig", icon: "light_mode", image: IMG_LIGHT },
-    b: { name: "Dunkle Röstung", tagline: "Kakao · Tabak · Voll", icon: "local_fire_department", image: IMG_DARK },
+    a: { name: "Helle Röstung", tagline: "Frucht · Floral · Lebendig", icon: "light_mode", image: IMG_LIGHT_ROAST },
+    b: { name: "Dunkle Röstung", tagline: "Kakao · Tabak · Voll", icon: "local_fire_department", image: IMG_DARK_ROAST },
     intro: "Der Röstgrad ist die wichtigste geschmackliche Stellschraube nach der Bohnen-Auswahl. Hell zeigt das Origin-Terroir, dunkel zeigt die Röstkunst. Beide sind valide Stile mit treuen Anhängern.",
     table: [
       { label: "Röst-Temperatur", a: "195–210°C", b: "220–240°C" },
@@ -142,8 +177,8 @@ export const comparisons: Comparison[] = [
     slug: "arabica-vs-robusta",
     title: "Arabica vs. Robusta",
     subtitle: "Zwei Bohnen-Arten, zwei Welten — was ist wirklich der Unterschied?",
-    a: { name: "Arabica", tagline: "Edel · Komplex · Specialty", icon: "spa", image: IMG_LIGHT },
-    b: { name: "Robusta", tagline: "Kräftig · Bitter · Crema", icon: "fitness_center", image: IMG_DARK },
+    a: { name: "Arabica", tagline: "Edel · Komplex · Specialty", icon: "spa", image: IMG_ARABICA },
+    b: { name: "Robusta", tagline: "Kräftig · Bitter · Crema", icon: "fitness_center", image: IMG_ROBUSTA },
     intro: "60% des weltweit produzierten Kaffees ist Arabica, 40% Robusta. Im Specialty Coffee dominiert Arabica fast komplett — aus gutem Grund. Aber Robusta hat seine Daseinsberechtigung in italienischen Espresso-Blends. Hier sind die Fakten.",
     table: [
       { label: "Botanische Art", a: "Coffea arabica", b: "Coffea canephora" },

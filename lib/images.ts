@@ -11,6 +11,11 @@
 
 const u = (id: string, w = 1600) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
 
+// Pexels-CDN-Helper fuer echte Stadt-Fotos (royalty-free, kommerziell,
+// keine Attribution-Pflicht).
+const px = (id: string, w = 1600) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
+
 // === COFFEE BEANS / DETAIL PAGES ===
 export const IMG_BEANS_MACRO = u("1495474472287-4d71bcdd2085"); // Mike Kenneally — beans macro
 export const IMG_BEANS_BOWL = u("1559525323-cbb5269e4497"); // beans in bowl
@@ -55,13 +60,13 @@ export const IMG_SPICES = u("1599639957043-f3aa5c986398"); // spices
 // Verified-working Unsplash IDs (same photos used elsewhere on the site).
 // NOT actual Swiss city photos — replace with real city photography when available.
 // To replace: get a photo from https://unsplash.com, copy its photo ID, format as below.
-export const IMG_ZURICH = u("1442550528053-c431ecb55509"); // cafe atmosphere (placeholder for Zürich)
-export const IMG_BERN = u("1559925393-8be0ec4767c8"); // roastery (placeholder for Bern)
-export const IMG_BASEL = u("1521017432531-fbd92d768814"); // coffee table (placeholder for Basel)
-export const IMG_GENEVA = u("1518057111178-44a106bad636"); // barista hands (placeholder for Geneva)
-export const IMG_LUCERNE = u("1559056199-641a0ac8b55e"); // pour over (placeholder for Lucerne)
-export const IMG_ZUG = u("1485808191679-5f86510681a2"); // espresso shot (placeholder for Zug)
-export const IMG_SWITZERLAND = u("1495474472287-4d71bcdd2085"); // beans macro (placeholder for CH)
+export const IMG_ZURICH = px("18415795"); // Limmat + Waterfront-Haeuser, Altstadt Zürich
+export const IMG_BERN = px("15274232"); // Aerial Altstadt Bern + Aare
+export const IMG_BASEL = px("31716233"); // Skyline + Rhein bei Sonnenuntergang
+export const IMG_GENEVA = px("32980057"); // Jet d'Eau, Genfersee
+export const IMG_LUCERNE = px("7929056"); // Kapellbrücke + Wasserturm, sonnig
+export const IMG_ZUG = px("35309605"); // Schweizer Alpen + See (lakeside Zug)
+export const IMG_SWITZERLAND = px("13916411"); // Schweizer Alpen im Sommer
 
 // === FALLBACK (always works as Unsplash random) ===
 export const IMG_FALLBACK = u("1495474472287-4d71bcdd2085");
